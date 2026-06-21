@@ -4,7 +4,7 @@ use crate::{
     errors::AppResult,
     models::document::{
         CreateDocumentInput, DocumentContentDto, DocumentDto, MoveDocumentInput,
-        UpdateDocumentContentInput, UpdateDocumentStatusInput,
+        UpdateDocumentContentInput, UpdateDocumentGoalInput, UpdateDocumentStatusInput,
     },
     services::document_service,
     AppState,
@@ -65,6 +65,14 @@ pub async fn move_document(
     state: State<'_, AppState>,
 ) -> AppResult<Vec<DocumentDto>> {
     document_service::move_document(&state.db, input).await
+}
+
+#[tauri::command]
+pub async fn update_document_goal(
+    input: UpdateDocumentGoalInput,
+    state: State<'_, AppState>,
+) -> AppResult<DocumentDto> {
+    document_service::update_document_goal(&state.db, input).await
 }
 
 #[tauri::command]

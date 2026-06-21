@@ -32,3 +32,37 @@ pub struct SchemaMigrationDto {
     pub name: String,
     pub applied_at: i64,
 }
+
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordWritingSessionInput {
+    pub session_id: String,
+    pub project_id: String,
+    pub document_id: String,
+    pub started_at: i64,
+    pub ended_at: Option<i64>,
+    pub characters_before: i64,
+    pub characters_after: i64,
+}
+
+#[derive(Debug, Clone, Serialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct WritingSessionDto {
+    pub id: String,
+    pub project_id: String,
+    pub document_id: String,
+    pub started_at: i64,
+    pub ended_at: Option<i64>,
+    pub characters_before: i64,
+    pub characters_after: i64,
+    pub inserted_count: i64,
+    pub deleted_count: i64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TodayWritingStatsDto {
+    pub project_id: String,
+    pub character_count: i64,
+    pub elapsed_ms: i64,
+}

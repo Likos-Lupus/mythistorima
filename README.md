@@ -122,3 +122,25 @@ Open a project
 → Change a chapter status to writing
 → Delete a parent node and confirm child nodes are removed
 ```
+
+## Phase 1 Week 3
+
+Week 3 adds editor-focused writing features:
+
+- Paragraph IDs for every paragraph in the Tiptap document.
+- Current-chapter find and replace.
+- Focus mode that hides the document tree and status panel.
+- Writing timer and today writing stats backed by `writing_sessions`.
+- Current document target character count stored in `documents.metadata_json`.
+- Editor settings for font size, line height, and paper width stored in `app_settings`.
+
+Recommended verification:
+
+```bash
+bun install
+bun run typecheck
+cd src-tauri
+cargo check
+cd ..
+bun run tauri:dev
+```

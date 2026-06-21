@@ -7,7 +7,7 @@ use crate::{
     errors::{AppError, AppResult},
     models::document::{
         CreateDocumentInput, DocumentContentDto, DocumentDto, MoveDocumentInput,
-        UpdateDocumentContentInput, UpdateDocumentStatusInput,
+        UpdateDocumentContentInput, UpdateDocumentGoalInput, UpdateDocumentStatusInput,
     },
 };
 
@@ -447,6 +447,73 @@ pub async fn move_document(
     tx.commit().await?;
 
     list_documents(pool, project_id).await
+}
+
+pub async fn update_document_goal(
+    pool: &SqlitePool,
+    input: UpdateDocumentGoalInput,
+) -> AppResult<DocumentDto> {
+    let now = now_ms();
+    let mut tx = pool.begin().await?;
+
+    let row = sqlx::query(
+        r#"
+        SELECT project_id, metadata_json
+        FROM documents
+        WHERE id = ?1
+        "#,
+    )
+    .bind(&input.document_id)
+    .fetch_optional(&mut *tx)
+    .await?
+    .ok_or_else(|| AppError::not_found("document"))?;
+
+    let project_id: String = row.try_get("project_id")?;
+    let metadata_json_raw: String = row.try_get("metadata_json")?;
+    let mut metadata =
+        serde_json::from_str::<Value>(&metadata_json_raw).unwrap_or_else(|_| serde_json::json!({}));
+
+    if !metadata.is_object() {
+        metadata = serde_json::json!({});
+    }
+
+    if let Some(target) = input.target_character_count.filter(|value| *value > 0) {
+        metadata["targetCharacterCount"] = serde_json::json!(target);
+    } else if let Some(object) = metadata.as_object_mut() {
+        object.remove("targetCharacterCount");
+    }
+
+    let metadata_json = serde_json::to_string(&metadata).map_err(|error| {
+        AppError::with_detail(
+            "INVALID_METADATA_JSON",
+            "文档目标元数据无法序列化",
+            error.to_string(),
+        )
+    })?;
+
+    sqlx::query(
+        r#"
+        UPDATE documents
+        SET metadata_json = ?1,
+            updated_at = ?2
+        WHERE id = ?3
+        "#,
+    )
+    .bind(metadata_json)
+    .bind(now)
+    .bind(&input.document_id)
+    .execute(&mut *tx)
+    .await?;
+
+    sqlx::query("UPDATE projects SET updated_at = ?1 WHERE id = ?2")
+        .bind(now)
+        .bind(&project_id)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
+
+    get_document(pool, input.document_id).await
 }
 
 pub async fn update_document_status(

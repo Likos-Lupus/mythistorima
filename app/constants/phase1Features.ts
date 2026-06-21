@@ -1,6 +1,14 @@
 import type {Phase1FeatureFlag} from '~/types/phase1'
 
 export const phase1FeatureFlags: Phase1FeatureFlag[] = [
+
+    {
+        key: 'editor-week3',
+        label: '编辑器增强与写作体验',
+        week: 3,
+        status: 'done',
+        description: '已实现 ParagraphId、当前章节查找替换、专注模式、写作计时、今日字数、当前文档目标和编辑器字号/行距/页面宽度设置。'
+    },
     {
         key: 'document-tree',
         label: '卷 / 章 / 场景文档树',

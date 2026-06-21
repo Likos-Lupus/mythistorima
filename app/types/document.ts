@@ -58,6 +58,11 @@ export interface UpdateDocumentStatusInput {
     status: DocumentStatus
 }
 
+export interface UpdateDocumentGoalInput {
+    documentId: string
+    targetCharacterCount?: number | null
+}
+
 export interface DocumentCreatePayload {
     parentId?: string | null
     type: DocumentType

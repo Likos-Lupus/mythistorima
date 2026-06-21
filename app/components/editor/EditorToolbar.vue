@@ -10,14 +10,32 @@
     >
       {{ button.label }}
     </button>
+
+    <span class="toolbar-divider"/>
+
+    <button
+        :class="{ 'is-active': focusMode }"
+        class="toolbar-button"
+        type="button"
+        @click="$emit('toggleFocus')"
+    >
+      {{ focusMode ? '退出专注' : '专注模式' }}
+    </button>
   </div>
 </template>
 
 <script lang="ts" setup>
 import type {Editor} from '@tiptap/vue-3'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   editor: Editor | null
+  focusMode?: boolean
+}>(), {
+  focusMode: false
+})
+
+defineEmits<{
+  toggleFocus: []
 }>()
 
 const buttons = computed(() => {

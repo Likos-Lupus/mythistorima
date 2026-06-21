@@ -5,6 +5,7 @@ import type {
     MoveDocumentInput,
     NovelDocument,
     UpdateDocumentContentInput,
+    UpdateDocumentGoalInput,
     UpdateDocumentStatusInput
 } from '~/types/document'
 import type {DocumentStats} from '~/types/stats'
@@ -122,6 +123,16 @@ export const useDocumentStore = defineStore('document', () => {
         return document
     }
 
+    async function updateDocumentGoal(input: UpdateDocumentGoalInput) {
+        const document = await call<NovelDocument>('update_document_goal', {input})
+        const index = documents.value.findIndex(item => item.id === document.id)
+        if (index >= 0) {
+            documents.value[index] = document
+            documents.value = sortDocumentList(documents.value)
+        }
+        return document
+    }
+
     async function getDocumentContent(documentId: string) {
         return call<DocumentContent>('get_document_content', {documentId})
     }
@@ -182,6 +193,7 @@ export const useDocumentStore = defineStore('document', () => {
         createDocument,
         moveDocument,
         updateDocumentStatus,
+        updateDocumentGoal,
         getDocumentContent,
         updateDocumentContent,
         renameDocument,

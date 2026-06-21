@@ -48,9 +48,15 @@ pub fn run() {
             commands::document::rename_document,
             commands::document::move_document,
             commands::document::update_document_status,
+            commands::document::update_document_goal,
             commands::document::delete_document,
             commands::stats::get_project_stats,
-            commands::stats::get_document_stats
+            commands::stats::get_document_stats,
+            commands::settings::set_app_setting,
+            commands::settings::get_app_setting,
+            commands::settings::list_app_settings,
+            commands::stats::get_today_writing_stats,
+            commands::stats::record_writing_session
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,4 +1,4 @@
-export type Phase1FeatureStatus = 'planned' | 'foundation' | 'enabled'
+export type Phase1FeatureStatus = 'planned' | 'foundation' | 'enabled' | 'done'
 
 export interface Phase1FeatureFlag {
     key: string

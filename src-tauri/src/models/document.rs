@@ -71,3 +71,10 @@ pub struct UpdateDocumentStatusInput {
 fn default_document_type() -> String {
     "chapter".to_string()
 }
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateDocumentGoalInput {
+    pub document_id: String,
+    pub target_character_count: Option<i64>,
+}

@@ -22,3 +22,21 @@ export interface SchemaMigration {
     name: string
     appliedAt: number
 }
+
+export interface TodayWritingStats {
+    projectId: string
+    characterCount: number
+    elapsedMs: number
+}
+
+export interface WritingSession {
+    id: string
+    projectId: string
+    documentId: string
+    startedAt: number
+    endedAt?: number | null
+    charactersBefore: number
+    charactersAfter: number
+    insertedCount: number
+    deletedCount: number
+}

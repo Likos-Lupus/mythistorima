@@ -1,13 +1,13 @@
 export type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'failed'
 
-export function useAutoSave<TPayload>(handler: (payload: TPayload) => Promise<void>, delay = 1000) {
+export function useAutoSave<TPayload>(handler: (payload: TPayload) => Promise<unknown>, delay = 1000) {
     const saveState = ref<SaveState>('idle')
     const lastSavedAt = ref<number | null>(null)
     const errorMessage = ref<string | null>(null)
 
     let timer: ReturnType<typeof setTimeout> | null = null
     let latestPayload: TPayload | null = null
-    let activeSave: Promise<void> | null = null
+    let activeSave: Promise<unknown> | null = null
 
     function clearTimer() {
         if (timer) {
