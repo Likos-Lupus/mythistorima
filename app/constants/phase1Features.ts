@@ -20,7 +20,14 @@ export const phase1FeatureFlags: Phase1FeatureFlag[] = [
         label: '设定卡',
         week: 4,
         status: 'done',
-        description: '已实现人物 / 地点 / 概念设定卡 CRUD、设定工作区、别名编辑、字段模板和引用章节列表预留。'
+        description: '已实现人物 / 地点 / 概念设定卡 CRUD、设定工作区、别名编辑和字段模板。'
+    },
+    {
+        key: 'setting-references',
+        label: '@ 设定插入与悬浮预览',
+        week: 5,
+        status: 'done',
+        description: '已实现正文 @ 设定建议、SettingReference mark、悬浮预览、保存时提取 card_references 和卡片引用章节列表。'
     },
     {
         key: 'creative-notes',

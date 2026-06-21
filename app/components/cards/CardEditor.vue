@@ -2,7 +2,7 @@
   <section class="card-editor-panel paper-card">
     <div v-if="!card" class="card-editor-empty">
       <h2>选择或创建一张设定卡</h2>
-      <p>Week 4 支持人物、地点、概念设定卡。Week 5 会把这些卡片接入正文 @ 引用。</p>
+      <p>创建人物、地点或概念后，可以在正文中输入 @ 快捷插入引用。</p>
       <button class="primary-button" type="button" @click="$emit('create')">创建设定卡</button>
     </div>
 
@@ -67,11 +67,12 @@
 
       <section class="card-reference-section">
         <h3>引用章节</h3>
-        <p v-if="references.length === 0" class="text-muted-paper">暂未被正文引用。Week 5 的 @
-          插入完成后，这里会显示引用位置。</p>
+        <p v-if="references.length === 0" class="text-muted-paper">暂未被正文引用。在编辑器中输入 @
+          并选择此设定后，这里会显示引用章节。</p>
         <ul v-else>
           <li v-for="reference in references" :key="reference.id">
-            {{ reference.documentTitle || reference.documentId }} · {{ reference.displayText }}
+            {{ reference.documentTitle || reference.documentId }} · {{ reference.displayText }}<span
+              v-if="reference.paragraphId"> · {{ reference.paragraphId }}</span>
           </li>
         </ul>
       </section>

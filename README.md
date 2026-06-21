@@ -197,3 +197,48 @@ Open a project
 → Filter by type
 → Restart the app and confirm all cards persist
 ```
+
+## Phase 1 Week 5 - Setting References
+
+Week 5 connects setting cards to the editor through inline `@` references.
+
+Implemented:
+
+- Tiptap `SettingReference` mark.
+- Editor-side `@` setting suggestion list.
+- Keyboard support for suggestions:
+    - Arrow up / down to move selection
+    - Enter / Tab to insert
+    - Escape to close
+- Inline rendering for setting references in the prose editor.
+- Hover preview for referenced cards.
+- Automatic extraction of `settingReference` marks when document content is saved.
+- Refreshing `card_references` for the saved document.
+- Card detail reference list now shows real referenced documents after saving.
+
+Recommended verification:
+
+```bash
+bun install
+bun run typecheck
+cd src-tauri
+cargo check
+cd ..
+bun run tauri:dev
+```
+
+Acceptance path:
+
+```txt
+Open a project
+→ Switch to Setting
+→ Create a character card named 林澈
+→ Switch back to Writing
+→ Type @林 in the editor
+→ Select 林澈 from the suggestion list
+→ Confirm 林澈 is inserted as highlighted inline text
+→ Hover 林澈 and confirm the setting preview appears
+→ Wait for autosave
+→ Switch to Setting and open 林澈
+→ Confirm the reference list shows the current document
+```

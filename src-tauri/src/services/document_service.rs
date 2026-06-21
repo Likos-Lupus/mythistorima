@@ -13,6 +13,15 @@ use crate::{
 
 const EMPTY_DOCUMENT_JSON: &str = r#"{"type":"doc","content":[{"type":"paragraph"}]}"#;
 
+#[derive(Debug, Clone)]
+struct ExtractedCardReference {
+    card_id: String,
+    display_text: String,
+    from_pos: i64,
+    to_pos: i64,
+    paragraph_id: Option<String>,
+}
+
 fn now_ms() -> i64 {
     Utc::now().timestamp_millis()
 }
@@ -320,6 +329,15 @@ pub async fn update_document_content(
         &search_document_type,
         &search_title,
         &input.content_text,
+    )
+    .await?;
+
+    refresh_document_card_references(
+        &mut tx,
+        &search_project_id,
+        &input.document_id,
+        &input.content_json,
+        now,
     )
     .await?;
 
@@ -793,4 +811,169 @@ async fn next_sort_order(
     .await?;
 
     Ok(row.try_get("next_order")?)
+}
+
+async fn refresh_document_card_references(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    project_id: &str,
+    document_id: &str,
+    content_json: &Value,
+    now: i64,
+) -> AppResult<()> {
+    sqlx::query("DELETE FROM card_references WHERE document_id = ?1")
+        .bind(document_id)
+        .execute(&mut **tx)
+        .await?;
+
+    let references = extract_card_references(content_json);
+    for reference in references {
+        let card_exists: Option<(String,)> =
+            sqlx::query_as("SELECT id FROM cards WHERE id = ?1 AND project_id = ?2")
+                .bind(&reference.card_id)
+                .bind(project_id)
+                .fetch_optional(&mut **tx)
+                .await?;
+
+        if card_exists.is_none() {
+            continue;
+        }
+
+        sqlx::query(
+            r#"
+            INSERT INTO card_references
+              (id, project_id, document_id, card_id, display_text, from_pos, to_pos, paragraph_id, created_at, updated_at)
+            VALUES
+              (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+            "#,
+        )
+        .bind(Uuid::new_v4().to_string())
+        .bind(project_id)
+        .bind(document_id)
+        .bind(&reference.card_id)
+        .bind(&reference.display_text)
+        .bind(reference.from_pos)
+        .bind(reference.to_pos)
+        .bind(reference.paragraph_id.as_deref())
+        .bind(now)
+        .bind(now)
+        .execute(&mut **tx)
+        .await?;
+    }
+
+    Ok(())
+}
+
+fn extract_card_references(content_json: &Value) -> Vec<ExtractedCardReference> {
+    let mut references = Vec::new();
+    let mut offset = 0_i64;
+    walk_reference_node(content_json, None, &mut offset, &mut references);
+    references
+}
+
+fn walk_reference_node(
+    node: &Value,
+    paragraph_id: Option<String>,
+    offset: &mut i64,
+    references: &mut Vec<ExtractedCardReference>,
+) {
+    let Some(object) = node.as_object() else {
+        return;
+    };
+
+    let node_type = object
+        .get("type")
+        .and_then(Value::as_str)
+        .unwrap_or_default();
+    let next_paragraph_id = if node_type == "paragraph" {
+        object
+            .get("attrs")
+            .and_then(Value::as_object)
+            .and_then(|attrs| attrs.get("pid"))
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned)
+    } else {
+        paragraph_id
+    };
+
+    if let Some(text) = object.get("text").and_then(Value::as_str) {
+        let from = *offset;
+        let char_len = text.chars().count() as i64;
+        let to = from + char_len;
+
+        if let Some(card_id) = object
+            .get("marks")
+            .and_then(Value::as_array)
+            .and_then(|marks| find_setting_reference_mark_card_id(marks))
+        {
+            let display_text = object
+                .get("marks")
+                .and_then(Value::as_array)
+                .and_then(|marks| find_setting_reference_display_name(marks))
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or_else(|| text.to_string());
+
+            references.push(ExtractedCardReference {
+                card_id,
+                display_text,
+                from_pos: from,
+                to_pos: to,
+                paragraph_id: next_paragraph_id.clone(),
+            });
+        }
+
+        *offset = to;
+    }
+
+    if let Some(children) = object.get("content").and_then(Value::as_array) {
+        for child in children {
+            walk_reference_node(child, next_paragraph_id.clone(), offset, references);
+        }
+    }
+
+    if matches!(node_type, "paragraph" | "heading") {
+        *offset += 1;
+    }
+}
+
+fn find_setting_reference_mark_card_id(marks: &[Value]) -> Option<String> {
+    marks.iter().find_map(|mark| {
+        let object = mark.as_object()?;
+        if object.get("type").and_then(Value::as_str)? != "settingReference" {
+            return None;
+        }
+        object
+            .get("attrs")
+            .and_then(Value::as_object)
+            .and_then(|attrs| attrs.get("cardId"))
+            .or_else(|| {
+                object
+                    .get("attrs")
+                    .and_then(Value::as_object)
+                    .and_then(|attrs| attrs.get("card_id"))
+            })
+            .and_then(Value::as_str)
+            .filter(|value| !value.trim().is_empty())
+            .map(ToOwned::to_owned)
+    })
+}
+
+fn find_setting_reference_display_name(marks: &[Value]) -> Option<String> {
+    marks.iter().find_map(|mark| {
+        let object = mark.as_object()?;
+        if object.get("type").and_then(Value::as_str)? != "settingReference" {
+            return None;
+        }
+        object
+            .get("attrs")
+            .and_then(Value::as_object)
+            .and_then(|attrs| attrs.get("displayName"))
+            .or_else(|| {
+                object
+                    .get("attrs")
+                    .and_then(Value::as_object)
+                    .and_then(|attrs| attrs.get("display_name"))
+            })
+            .and_then(Value::as_str)
+            .map(ToOwned::to_owned)
+    })
 }

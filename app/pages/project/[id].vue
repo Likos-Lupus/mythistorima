@@ -38,7 +38,7 @@
 
         <section v-else class="card-sidebar-summary">
           <h2>设定卡</h2>
-          <p>管理人物、地点、概念。当前阶段先完成 CRUD 和引用章节列表预留。</p>
+          <p>管理人物、地点、概念；在正文输入 @ 即可插入设定引用。</p>
           <ul>
             <li>人物：角色身份、动机与备注</li>
             <li>地点：氛围、场景提示</li>
@@ -78,8 +78,8 @@
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 1 Week 4</h2>
-          <p class="status-panel-subtitle">设定卡系统：人物、地点、概念 CRUD、别名、简介、字段模板和引用列表预留。</p>
+          <h2 class="status-panel-title">Phase 1 Week 5</h2>
+          <p class="status-panel-subtitle">@ 设定插入：正文引用设定卡、悬浮预览，并在保存时刷新引用章节。</p>
         </div>
 
         <dl class="status-list">

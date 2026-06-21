@@ -2,9 +2,9 @@
   <section class="card-workspace" data-phase1-area="card-workspace">
     <header class="card-workspace-header glass-panel">
       <div>
-        <p class="card-workspace-kicker">Phase 1 Week 4</p>
+        <p class="card-workspace-kicker">Phase 1 Week 5</p>
         <h1>设定卡</h1>
-        <p>管理人物、地点和概念。Week 5 会把这些设定接入正文 @ 引用。</p>
+        <p>管理人物、地点和概念，并查看它们在正文中的 @ 引用章节。</p>
       </div>
       <button class="primary-button" type="button" @click="createCard">新建设定卡</button>
     </header>
