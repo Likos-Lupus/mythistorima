@@ -242,3 +242,18 @@ Open a project
 → Switch to Setting and open 林澈
 → Confirm the reference list shows the current document
 ```
+
+## Phase 1 Week 7
+
+Search, import/export, and backup are now implemented:
+
+- SearchWorkspace: search through body text, setting cards, and notes.
+- Manual rebuild of `search_index` is supported.
+- Export to TXT / Markdown / HTML is supported.
+- Export as a JSON project package is supported.
+- Import from txt / markdown / html file paths as new chapters is supported.
+- Creating and viewing local SQLite backups is supported.
+- A backup is attempted once when the project page starts.
+
+If the export path is left empty, files are written to the `exports` folder under the app data directory; backup files
+are written to the `backups/<project_id>` folder under the app data directory.

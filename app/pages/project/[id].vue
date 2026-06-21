@@ -29,6 +29,20 @@
           >
             事项
           </button>
+          <button
+              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'search' }]"
+              type="button"
+              @click="workspaceMode = 'search'"
+          >
+            搜索
+          </button>
+          <button
+              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'export' }]"
+              type="button"
+              @click="workspaceMode = 'export'"
+          >
+            导出
+          </button>
         </nav>
 
         <DocumentTree
@@ -53,13 +67,33 @@
           </ul>
         </section>
 
-        <section v-else class="card-sidebar-summary">
+        <section v-else-if="workspaceMode === 'notes'" class="card-sidebar-summary">
           <h2>创作事项</h2>
           <p>管理备忘、待办、伏笔、问题和灵感。</p>
           <ul>
             <li>项目级：全局待办和灵感</li>
             <li>章节级：本章修订事项</li>
             <li>段落级：伏笔与情节提示</li>
+          </ul>
+        </section>
+
+        <section v-else-if="workspaceMode === 'search'" class="card-sidebar-summary">
+          <h2>全文搜索</h2>
+          <p>在正文、设定卡和创作事项中查找关键词。</p>
+          <ul>
+            <li>保存时自动索引</li>
+            <li>可手动重建索引</li>
+            <li>搜索结果支持跳转</li>
+          </ul>
+        </section>
+
+        <section v-else class="card-sidebar-summary">
+          <h2>导入导出</h2>
+          <p>导出 txt / markdown / html / 项目包，并创建本地备份。</p>
+          <ul>
+            <li>全项目导出</li>
+            <li>当前文档导出</li>
+            <li>导入文本为章节</li>
           </ul>
         </section>
       </aside>
@@ -94,16 +128,29 @@
         />
 
         <NoteWorkspace
+            v-else-if="workspaceMode === 'notes'"
+            :active-document-id="documentStore.activeDocumentId"
+            :project-id="projectId"
+        />
+
+        <SearchWorkspace
+            v-else-if="workspaceMode === 'search'"
+            :project-id="projectId"
+            @open-result="handleOpenSearchResult"
+        />
+
+        <ExportWorkspace
             v-else
             :active-document-id="documentStore.activeDocumentId"
             :project-id="projectId"
+            @imported="handleImportedDocument"
         />
       </main>
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 1 Week 6</h2>
-          <p class="status-panel-subtitle">创作事项：备忘、待办、伏笔可绑定项目、章节和段落。</p>
+          <h2 class="status-panel-title">Phase 1 Week 7</h2>
+          <p class="status-panel-subtitle">搜索、导入导出和本地备份已接入。</p>
         </div>
 
         <dl class="status-list">
@@ -241,11 +288,14 @@ import NovelEditor from '~/components/editor/NovelEditor.vue'
 import EditorFocusOverlay from '~/components/editor/EditorFocusOverlay.vue'
 import CardWorkspace from '~/components/cards/CardWorkspace.vue'
 import NoteWorkspace from '~/components/notes/NoteWorkspace.vue'
+import SearchWorkspace from '~/components/search/SearchWorkspace.vue'
+import ExportWorkspace from '~/components/export/ExportWorkspace.vue'
 import type {ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
 import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
 import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
 import type {CreativeNote, EditorParagraphNoteRequest, NoteType} from '~/types/note'
+import type {SearchResult} from '~/types/search'
 
 const route = useRoute()
 const router = useRouter()
@@ -254,6 +304,7 @@ const documentStore = useDocumentStore()
 const settingsStore = useSettingsStore()
 const timerStore = useTimerStore()
 const noteStore = useNoteStore()
+const exportStore = useExportStore()
 const {call} = useTauriInvoke()
 
 const projectId = computed(() => String(route.params.id))
@@ -261,7 +312,7 @@ const projectStats = ref<ProjectStats | null>(null)
 const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
 const focusMode = ref(false)
-const workspaceMode = ref<'writing' | 'cards' | 'notes'>('writing')
+const workspaceMode = ref<'writing' | 'cards' | 'notes' | 'search' | 'export'>('writing')
 const targetDraft = ref<number | null>(null)
 const currentDocumentNotes = ref<CreativeNote[]>([])
 
@@ -323,6 +374,7 @@ async function loadProjectWorkspace() {
     await refreshStats()
     await refreshTodayStats()
     await refreshCurrentDocumentNotes()
+    await createStartupBackup()
   } catch (error) {
     pageError.value = errorMessage(error, '加载项目失败')
   }
@@ -403,6 +455,36 @@ async function markNoteDone(noteId: string) {
   } catch (error) {
     pageError.value = errorMessage(error, '更新事项失败')
   }
+}
+
+async function createStartupBackup() {
+  try {
+    await exportStore.createBackup(projectId.value)
+    await exportStore.listBackups(projectId.value)
+  } catch (error) {
+    console.warn('[backup] startup backup failed', error)
+  }
+}
+
+async function handleImportedDocument() {
+  await documentStore.loadDocuments(projectId.value)
+  await refreshStats()
+}
+
+function handleOpenSearchResult(result: SearchResult) {
+  if (result.targetType === 'card') {
+    workspaceMode.value = 'cards'
+    const cardStore = useCardStore()
+    void cardStore.loadCards(projectId.value).then(() => cardStore.selectCard(result.targetId))
+    return
+  }
+  if (result.targetType === 'note') {
+    workspaceMode.value = 'notes'
+    noteStore.selectNote(result.targetId)
+    return
+  }
+  workspaceMode.value = 'writing'
+  documentStore.selectDocument(result.targetId)
 }
 
 async function createDocument(payload: DocumentCreatePayload) {

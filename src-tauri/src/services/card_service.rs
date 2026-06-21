@@ -1,6 +1,6 @@
 use chrono::Utc;
 use serde_json::Value;
-use sqlx::{Row, SqlitePool};
+use sqlx::SqlitePool;
 use uuid::Uuid;
 
 use crate::{

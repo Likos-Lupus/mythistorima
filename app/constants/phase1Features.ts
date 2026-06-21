@@ -38,10 +38,10 @@ export const phase1FeatureFlags: Phase1FeatureFlag[] = [
     },
     {
         key: 'full-text-search',
-        label: '全文搜索',
+        label: '全文搜索、导入导出与备份',
         week: 7,
-        status: 'foundation',
-        description: 'SQLite FTS5 search_index 已建立，正文保存时会同步基础索引。'
+        status: 'done',
+        description: '已实现 SearchWorkspace、搜索索引重建、正文/设定/事项搜索、txt/markdown/html/项目包导出、文本导入和本地备份。'
     },
     {
         key: 'settings-foundation',
