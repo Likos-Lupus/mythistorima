@@ -7,6 +7,7 @@ pub struct NoteDto {
     pub id: String,
     pub project_id: String,
     pub document_id: Option<String>,
+    pub document_title: Option<String>,
     pub paragraph_id: Option<String>,
     #[serde(rename = "type")]
     pub note_type: String,
@@ -31,4 +32,30 @@ pub struct CreateNoteInput {
     pub body: Option<String>,
     pub priority: Option<String>,
     pub due_at: Option<i64>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateNoteInput {
+    pub note_id: String,
+    pub document_id: Option<Option<String>>,
+    pub paragraph_id: Option<Option<String>>,
+    #[serde(rename = "type")]
+    pub note_type: Option<String>,
+    pub title: Option<String>,
+    pub body: Option<String>,
+    pub status: Option<String>,
+    pub priority: Option<String>,
+    pub due_at: Option<Option<i64>>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListNotesInput {
+    pub project_id: String,
+    pub document_id: Option<String>,
+    pub paragraph_id: Option<String>,
+    #[serde(rename = "type")]
+    pub note_type: Option<String>,
+    pub status: Option<String>,
 }

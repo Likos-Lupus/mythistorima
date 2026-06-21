@@ -33,8 +33,8 @@ export const phase1FeatureFlags: Phase1FeatureFlag[] = [
         key: 'creative-notes',
         label: '备忘 / 待办 / 伏笔',
         week: 6,
-        status: 'foundation',
-        description: 'notes 表已支持项目、章节、段落锚点和状态；Week 6 实现工作区。'
+        status: 'done',
+        description: '已实现 Note CRUD、创作事项工作区、memo / todo / foreshadow、章节与段落绑定、右侧本章事项面板和完成状态。'
     },
     {
         key: 'full-text-search',

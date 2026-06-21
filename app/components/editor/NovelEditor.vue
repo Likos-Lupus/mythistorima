@@ -8,6 +8,13 @@
 
     <EditorFindReplace :editor="editor" @replaced="handleManualContentChange"/>
 
+    <div v-if="editor" class="paragraph-note-toolbar">
+      <span>段落事项</span>
+      <button class="toolbar-button" type="button" @click="requestParagraphNote('memo')">备忘</button>
+      <button class="toolbar-button" type="button" @click="requestParagraphNote('todo')">待办</button>
+      <button class="toolbar-button" type="button" @click="requestParagraphNote('foreshadow')">伏笔</button>
+    </div>
+
     <SettingMentionList
         v-if="mentionState.open"
         :active-index="mentionState.activeIndex"
@@ -79,6 +86,7 @@ import {parseTiptapDocument} from '~/utils/tiptapDocument'
 import type {SaveState} from '~/composables/useAutoSave'
 import type {UpdateDocumentContentInput} from '~/types/document'
 import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
+import type {EditorParagraphNoteRequest} from '~/types/note'
 
 const props = withDefaults(defineProps<{
   documentId: string
@@ -102,6 +110,7 @@ const emit = defineEmits<{
     sessionDelta: number
   }]
   session: [payload: EditorSessionSnapshot]
+  paragraphNote: [payload: EditorParagraphNoteRequest]
   toggleFocusMode: []
 }>()
 
@@ -459,6 +468,36 @@ function closeReferencePreview() {
 function handleManualContentChange() {
   if (!editor.value) return
   queueEditorSave(editor.value)
+}
+
+function requestParagraphNote(type: EditorParagraphNoteRequest['type']) {
+  if (!editor.value) return
+  const paragraphId = getSelectedParagraphId(editor.value)
+  const selectedText = getSelectedText(editor.value)
+  emit('paragraphNote', {
+    type,
+    paragraphId,
+    selectedText
+  })
+}
+
+function getSelectedParagraphId(instance: Editor) {
+  const {selection} = instance.state
+  const $from = selection.$from
+  for (let depth = $from.depth; depth >= 0; depth -= 1) {
+    const node = $from.node(depth)
+    if (node.type.name === 'paragraph' || node.type.name === 'heading') {
+      const attrs = node.attrs as { pid?: unknown }
+      return typeof attrs.pid === 'string' && attrs.pid.length > 0 ? attrs.pid : null
+    }
+  }
+  return null
+}
+
+function getSelectedText(instance: Editor) {
+  const {from, to, empty} = instance.state.selection
+  if (empty) return ''
+  return instance.state.doc.textBetween(from, to, '\n').trim()
 }
 
 function focusEditor() {

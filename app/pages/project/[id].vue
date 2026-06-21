@@ -22,6 +22,13 @@
           >
             设定
           </button>
+          <button
+              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'notes' }]"
+              type="button"
+              @click="workspaceMode = 'notes'"
+          >
+            事项
+          </button>
         </nav>
 
         <DocumentTree
@@ -36,13 +43,23 @@
             @update-status="updateDocumentStatus"
         />
 
-        <section v-else class="card-sidebar-summary">
+        <section v-else-if="workspaceMode === 'cards'" class="card-sidebar-summary">
           <h2>设定卡</h2>
           <p>管理人物、地点、概念；在正文输入 @ 即可插入设定引用。</p>
           <ul>
             <li>人物：角色身份、动机与备注</li>
             <li>地点：氛围、场景提示</li>
             <li>概念：规则、限制与说明</li>
+          </ul>
+        </section>
+
+        <section v-else class="card-sidebar-summary">
+          <h2>创作事项</h2>
+          <p>管理备忘、待办、伏笔、问题和灵感。</p>
+          <ul>
+            <li>项目级：全局待办和灵感</li>
+            <li>章节级：本章修订事项</li>
+            <li>段落级：伏笔与情节提示</li>
           </ul>
         </section>
       </aside>
@@ -62,6 +79,7 @@
               @saved="handleSaved"
               @session="handleEditorSession"
               @status="handleEditorStatus"
+              @paragraph-note="handleParagraphNote"
               @toggle-focus-mode="toggleFocusMode"
           />
 
@@ -71,15 +89,21 @@
         </template>
 
         <CardWorkspace
+            v-else-if="workspaceMode === 'cards'"
+            :project-id="projectId"
+        />
+
+        <NoteWorkspace
             v-else
+            :active-document-id="documentStore.activeDocumentId"
             :project-id="projectId"
         />
       </main>
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 1 Week 5</h2>
-          <p class="status-panel-subtitle">@ 设定插入：正文引用设定卡、悬浮预览，并在保存时刷新引用章节。</p>
+          <h2 class="status-panel-title">Phase 1 Week 6</h2>
+          <p class="status-panel-subtitle">创作事项：备忘、待办、伏笔可绑定项目、章节和段落。</p>
         </div>
 
         <dl class="status-list">
@@ -140,6 +164,27 @@
           </div>
         </dl>
 
+        <section class="current-notes-card">
+          <div class="current-notes-header">
+            <h3>本章事项</h3>
+            <button class="ghost-button" type="button" @click="createChapterNote('todo')">+ 待办</button>
+          </div>
+          <div v-if="currentDocumentNotes.length === 0" class="current-notes-empty">
+            暂无未完成事项。
+          </div>
+          <div v-else class="current-notes-list">
+            <article v-for="note in currentDocumentNotes" :key="note.id" class="current-note-item">
+              <div>
+                <strong>{{ note.title }}</strong>
+                <small>{{ noteTypeLabel(note.type) }} · {{ notePriorityLabel(note.priority) }}
+                  <template v-if="note.paragraphId"> · 段落</template>
+                </small>
+              </div>
+              <button class="tree-action-button" type="button" @click="markNoteDone(note.id)">完成</button>
+            </article>
+          </div>
+        </section>
+
         <section class="settings-card">
           <h3>编辑器设置</h3>
           <label>
@@ -195,10 +240,12 @@ import DocumentTree from '~/components/project/DocumentTree.vue'
 import NovelEditor from '~/components/editor/NovelEditor.vue'
 import EditorFocusOverlay from '~/components/editor/EditorFocusOverlay.vue'
 import CardWorkspace from '~/components/cards/CardWorkspace.vue'
+import NoteWorkspace from '~/components/notes/NoteWorkspace.vue'
 import type {ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
 import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
 import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
+import type {CreativeNote, EditorParagraphNoteRequest, NoteType} from '~/types/note'
 
 const route = useRoute()
 const router = useRouter()
@@ -206,6 +253,7 @@ const projectStore = useProjectStore()
 const documentStore = useDocumentStore()
 const settingsStore = useSettingsStore()
 const timerStore = useTimerStore()
+const noteStore = useNoteStore()
 const {call} = useTauriInvoke()
 
 const projectId = computed(() => String(route.params.id))
@@ -213,8 +261,9 @@ const projectStats = ref<ProjectStats | null>(null)
 const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
 const focusMode = ref(false)
-const workspaceMode = ref<'writing' | 'cards'>('writing')
+const workspaceMode = ref<'writing' | 'cards' | 'notes'>('writing')
 const targetDraft = ref<number | null>(null)
+const currentDocumentNotes = ref<CreativeNote[]>([])
 
 const editorSnapshot = reactive({
   saveState: 'idle' as SaveState,
@@ -231,6 +280,10 @@ const activeDocumentTarget = computed(() => getDocumentTarget(activeDocument.val
 watch(activeDocumentTarget, value => {
   targetDraft.value = value ?? null
 }, {immediate: true})
+
+watch(() => documentStore.activeDocumentId, async () => {
+  await refreshCurrentDocumentNotes()
+})
 
 const topbarStatus = computed(() => {
   const title = activeDocument.value?.title ? `${activeDocument.value.title} · ` : ''
@@ -269,6 +322,7 @@ async function loadProjectWorkspace() {
     await documentStore.loadDocuments(projectId.value)
     await refreshStats()
     await refreshTodayStats()
+    await refreshCurrentDocumentNotes()
   } catch (error) {
     pageError.value = errorMessage(error, '加载项目失败')
   }
@@ -286,6 +340,69 @@ async function refreshTodayStats() {
     dayEnd: range.dayEnd
   })
   timerStore.setTodayStats(todayStats.value)
+}
+
+
+async function refreshCurrentDocumentNotes() {
+  if (!documentStore.activeDocumentId) {
+    currentDocumentNotes.value = []
+    return
+  }
+  try {
+    currentDocumentNotes.value = (await noteStore.loadDocumentNotes(projectId.value, documentStore.activeDocumentId, null))
+        .filter(note => note.status === 'open' || note.status === 'doing')
+  } catch (error) {
+    console.warn('[notes] failed to refresh current document notes', error)
+    currentDocumentNotes.value = []
+  }
+}
+
+async function createChapterNote(type: Exclude<NoteType, 'all'> = 'todo') {
+  if (!documentStore.activeDocumentId) return
+  pageError.value = null
+  try {
+    await noteStore.createNote({
+      projectId: projectId.value,
+      documentId: documentStore.activeDocumentId,
+      paragraphId: null,
+      type,
+      title: type === 'foreshadow' ? '新的伏笔' : type === 'memo' ? '新的备忘' : '新的待办',
+      body: '',
+      priority: type === 'foreshadow' ? 'high' : 'normal'
+    })
+    await refreshCurrentDocumentNotes()
+  } catch (error) {
+    pageError.value = errorMessage(error, '创建事项失败')
+  }
+}
+
+async function handleParagraphNote(payload: EditorParagraphNoteRequest) {
+  if (!documentStore.activeDocumentId) return
+  pageError.value = null
+  try {
+    await noteStore.createNote({
+      projectId: projectId.value,
+      documentId: documentStore.activeDocumentId,
+      paragraphId: payload.paragraphId,
+      type: payload.type,
+      title: paragraphNoteTitle(payload),
+      body: payload.selectedText,
+      priority: payload.type === 'foreshadow' ? 'high' : 'normal'
+    })
+    await refreshCurrentDocumentNotes()
+  } catch (error) {
+    pageError.value = errorMessage(error, '创建段落事项失败')
+  }
+}
+
+async function markNoteDone(noteId: string) {
+  pageError.value = null
+  try {
+    await noteStore.updateNoteStatus(noteId, 'done')
+    await refreshCurrentDocumentNotes()
+  } catch (error) {
+    pageError.value = errorMessage(error, '更新事项失败')
+  }
 }
 
 async function createDocument(payload: DocumentCreatePayload) {
@@ -367,6 +484,7 @@ async function saveDocumentTarget() {
 async function handleSaved() {
   await refreshStats()
   await refreshTodayStats()
+  await refreshCurrentDocumentNotes()
 }
 
 function handleEditorSession(payload: EditorSessionSnapshot) {
@@ -424,6 +542,44 @@ function getTodayRange() {
   return {
     dayStart: start.getTime(),
     dayEnd: end.getTime()
+  }
+}
+
+function paragraphNoteTitle(payload: EditorParagraphNoteRequest) {
+  const prefix = payload.type === 'foreshadow'
+      ? '段落伏笔'
+      : payload.type === 'todo'
+          ? '段落待办'
+          : '段落备忘'
+  const selected = payload.selectedText.trim().replace(/\s+/g, ' ').slice(0, 28)
+  return selected ? `${prefix}：${selected}` : prefix
+}
+
+function noteTypeLabel(type: string) {
+  switch (type) {
+    case 'memo':
+      return '备忘'
+    case 'todo':
+      return '待办'
+    case 'foreshadow':
+      return '伏笔'
+    case 'issue':
+      return '问题'
+    case 'idea':
+      return '灵感'
+    default:
+      return type
+  }
+}
+
+function notePriorityLabel(priority: string) {
+  switch (priority) {
+    case 'high':
+      return '高'
+    case 'low':
+      return '低'
+    default:
+      return '普通'
   }
 }
 
