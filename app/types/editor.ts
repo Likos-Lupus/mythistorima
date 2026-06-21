@@ -2,6 +2,8 @@ export interface EditorSettings {
     fontSize: number
     lineHeight: number
     pageWidth: number
+    fontFamily: 'serif' | 'sans' | 'system' | 'mono'
+    autosaveIntervalMs: number
 }
 
 export interface EditorSessionSnapshot {

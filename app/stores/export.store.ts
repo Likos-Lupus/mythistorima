@@ -1,3 +1,4 @@
+import {toAppErrorMessage} from '~/utils/appError'
 import type {
     BackupItem,
     ExportDocumentsInput,
@@ -22,7 +23,7 @@ export const useExportStore = defineStore('export', () => {
             lastExport.value = await call<ExportResult>('export_documents', {input})
             return lastExport.value
         } catch (err) {
-            error.value = errorMessage(err, '导出失败')
+            error.value = toAppErrorMessage(err, '导出失败')
             throw err
         } finally {
             busy.value = false
@@ -36,7 +37,7 @@ export const useExportStore = defineStore('export', () => {
             lastExport.value = await call<ExportResult>('export_project', {input})
             return lastExport.value
         } catch (err) {
-            error.value = errorMessage(err, '导出项目包失败')
+            error.value = toAppErrorMessage(err, '导出项目包失败')
             throw err
         } finally {
             busy.value = false
@@ -50,7 +51,7 @@ export const useExportStore = defineStore('export', () => {
             lastImport.value = await call<ImportResult>('import_text_file', {input})
             return lastImport.value
         } catch (err) {
-            error.value = errorMessage(err, '导入失败')
+            error.value = toAppErrorMessage(err, '导入失败')
             throw err
         } finally {
             busy.value = false
@@ -65,7 +66,7 @@ export const useExportStore = defineStore('export', () => {
             backups.value = [backup, ...backups.value.filter(item => item.id !== backup.id)]
             return backup
         } catch (err) {
-            error.value = errorMessage(err, '创建备份失败')
+            error.value = toAppErrorMessage(err, '创建备份失败')
             throw err
         } finally {
             busy.value = false
@@ -91,8 +92,3 @@ export const useExportStore = defineStore('export', () => {
     }
 })
 
-function errorMessage(error: unknown, fallback: string) {
-    return typeof error === 'object' && error && 'message' in error
-        ? String((error as { message?: string }).message)
-        : fallback
-}

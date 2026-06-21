@@ -1,6 +1,17 @@
+import type {ComputedRef, Ref} from 'vue'
+import {ref, unref} from 'vue'
+
 export type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'failed'
 
-export function useAutoSave<TPayload>(handler: (payload: TPayload) => Promise<unknown>, delay = 1000) {
+type MaybeDynamicDelay = number | Ref<number> | ComputedRef<number> | (() => number)
+
+function readDelay(delay: MaybeDynamicDelay) {
+    const raw = typeof delay === 'function' ? delay() : unref(delay)
+    const numeric = Number(raw)
+    return Number.isFinite(numeric) ? Math.min(10000, Math.max(250, Math.round(numeric))) : 1000
+}
+
+export function useAutoSave<TPayload>(handler: (payload: TPayload) => Promise<unknown>, delay: MaybeDynamicDelay = 1000) {
     const saveState = ref<SaveState>('idle')
     const lastSavedAt = ref<number | null>(null)
     const errorMessage = ref<string | null>(null)
@@ -42,7 +53,7 @@ export function useAutoSave<TPayload>(handler: (payload: TPayload) => Promise<un
             const snapshot = latestPayload
             if (!snapshot) return
             void runSave(snapshot)
-        }, delay)
+        }, readDelay(delay))
     }
 
     async function flushSave() {

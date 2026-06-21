@@ -40,6 +40,7 @@ import CardEditor from '~/components/cards/CardEditor.vue'
 import CardList from '~/components/cards/CardList.vue'
 import CardTypeTabs from '~/components/cards/CardTypeTabs.vue'
 import type {CardType, UpdateCardInput} from '~/types/card'
+import {toAppErrorMessage} from '~/utils/appError'
 
 const props = defineProps<{
   projectId: string
@@ -57,7 +58,7 @@ async function loadCards() {
   try {
     await cardStore.loadCards(props.projectId, cardStore.typeFilter)
   } catch (err) {
-    error.value = errorMessage(err, '加载设定卡失败')
+    error.value = toAppErrorMessage(err, '加载设定卡失败')
   }
 }
 
@@ -74,7 +75,7 @@ async function createCard() {
       fieldsJson: defaultFieldsJson(type)
     })
   } catch (err) {
-    error.value = errorMessage(err, '创建设定卡失败')
+    error.value = toAppErrorMessage(err, '创建设定卡失败')
   }
 }
 
@@ -83,7 +84,7 @@ async function saveCard(payload: UpdateCardInput) {
   try {
     await cardStore.updateCard(payload)
   } catch (err) {
-    error.value = errorMessage(err, '保存设定卡失败')
+    error.value = toAppErrorMessage(err, '保存设定卡失败')
   }
 }
 
@@ -92,7 +93,7 @@ async function deleteCard(cardId: string) {
   try {
     await cardStore.deleteCard(cardId)
   } catch (err) {
-    error.value = errorMessage(err, '删除设定卡失败')
+    error.value = toAppErrorMessage(err, '删除设定卡失败')
   }
 }
 
@@ -122,10 +123,4 @@ function defaultFieldsJson(type: string) {
   }
 }
 
-function errorMessage(error: unknown, fallback: string) {
-  if (error && typeof error === 'object' && 'message' in error) {
-    return String((error as { message?: unknown }).message || fallback)
-  }
-  return fallback
-}
 </script>

@@ -1,3 +1,4 @@
+import {toAppErrorMessage} from '~/utils/appError'
 import type {SearchProjectInput, SearchResult, SearchScope} from '~/types/search'
 
 export const useSearchStore = defineStore('search', () => {
@@ -17,7 +18,7 @@ export const useSearchStore = defineStore('search', () => {
             results.value = await call<SearchResult[]>('search_project', {input})
             return results.value
         } catch (err) {
-            error.value = errorMessage(err, '搜索失败')
+            error.value = toAppErrorMessage(err, '搜索失败')
             results.value = []
             throw err
         } finally {
@@ -36,9 +37,3 @@ export const useSearchStore = defineStore('search', () => {
 
     return {query, scopes, results, loading, error, searchProject, rebuildIndex, clear}
 })
-
-function errorMessage(error: unknown, fallback: string) {
-    return typeof error === 'object' && error && 'message' in error
-        ? String((error as { message?: string }).message)
-        : fallback
-}

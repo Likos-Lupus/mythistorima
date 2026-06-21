@@ -43,6 +43,13 @@
           >
             导出
           </button>
+          <button
+              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'settings' }]"
+              type="button"
+              @click="workspaceMode = 'settings'"
+          >
+            设置
+          </button>
         </nav>
 
         <DocumentTree
@@ -87,13 +94,23 @@
           </ul>
         </section>
 
-        <section v-else class="card-sidebar-summary">
+        <section v-else-if="workspaceMode === 'export'" class="card-sidebar-summary">
           <h2>导入导出</h2>
           <p>导出 txt / markdown / html / 项目包，并创建本地备份。</p>
           <ul>
             <li>全项目导出</li>
             <li>当前文档导出</li>
             <li>导入文本为章节</li>
+          </ul>
+        </section>
+
+        <section v-else class="card-sidebar-summary">
+          <h2>设置</h2>
+          <p>调整主题、字体、字号、行距、自动保存间隔和界面语言。</p>
+          <ul>
+            <li>纸张 / 明亮 / 夜间主题</li>
+            <li>编辑器体验设置</li>
+            <li>中文 / 英文文案结构</li>
           </ul>
         </section>
       </aside>
@@ -140,17 +157,19 @@
         />
 
         <ExportWorkspace
-            v-else
+            v-else-if="workspaceMode === 'export'"
             :active-document-id="documentStore.activeDocumentId"
             :project-id="projectId"
             @imported="handleImportedDocument"
         />
+
+        <SettingsWorkspace v-else/>
       </main>
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 1 Week 7</h2>
-          <p class="status-panel-subtitle">搜索、导入导出和本地备份已接入。</p>
+          <h2 class="status-panel-title">Phase 1 Week 8</h2>
+          <p class="status-panel-subtitle">主题、设置、i18n、空状态和稳定性收尾已接入。</p>
         </div>
 
         <dl class="status-list">
@@ -208,6 +227,14 @@
           <div class="status-card">
             <dt>最近保存</dt>
             <dd>{{ editorSnapshot.lastSavedAt ? formatDate(editorSnapshot.lastSavedAt) : '尚未保存' }}</dd>
+          </div>
+          <div class="status-card">
+            <dt>当前主题</dt>
+            <dd>{{ themeLabel }}</dd>
+          </div>
+          <div class="status-card">
+            <dt>自动保存</dt>
+            <dd>{{ (settingsStore.editorSettings.autosaveIntervalMs / 1000).toFixed(1) }} 秒</dd>
           </div>
         </dl>
 
@@ -269,6 +296,30 @@
                 @change="updateEditorSetting('pageWidth', $event)"
             >
           </label>
+          <label>
+            字体
+            <select
+                :value="settingsStore.editorSettings.fontFamily"
+                class="compact-select-field"
+                @change="updateEditorSetting('fontFamily', $event)"
+            >
+              <option v-for="option in settingsStore.fontFamilyOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+          <label>
+            自动保存（毫秒）
+            <input
+                :value="settingsStore.editorSettings.autosaveIntervalMs"
+                class="compact-number-field"
+                max="10000"
+                min="500"
+                step="250"
+                type="number"
+                @change="updateEditorSetting('autosaveIntervalMs', $event)"
+            >
+          </label>
           <button class="secondary-button full-width-button" type="button" @click="toggleFocusMode">
             {{ focusMode ? '退出专注模式' : '进入专注模式' }}
           </button>
@@ -290,6 +341,8 @@ import CardWorkspace from '~/components/cards/CardWorkspace.vue'
 import NoteWorkspace from '~/components/notes/NoteWorkspace.vue'
 import SearchWorkspace from '~/components/search/SearchWorkspace.vue'
 import ExportWorkspace from '~/components/export/ExportWorkspace.vue'
+import SettingsWorkspace from '~/components/settings/SettingsWorkspace.vue'
+import {toAppErrorMessage} from '~/utils/appError'
 import type {ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
 import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
@@ -306,13 +359,14 @@ const timerStore = useTimerStore()
 const noteStore = useNoteStore()
 const exportStore = useExportStore()
 const {call} = useTauriInvoke()
+const {locale} = useI18n()
 
 const projectId = computed(() => String(route.params.id))
 const projectStats = ref<ProjectStats | null>(null)
 const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
 const focusMode = ref(false)
-const workspaceMode = ref<'writing' | 'cards' | 'notes' | 'search' | 'export'>('writing')
+const workspaceMode = ref<'writing' | 'cards' | 'notes' | 'search' | 'export' | 'settings'>('writing')
 const targetDraft = ref<number | null>(null)
 const currentDocumentNotes = ref<CreativeNote[]>([])
 
@@ -357,6 +411,10 @@ const saveStateLabel = computed(() => {
   }
 })
 
+const themeLabel = computed(() => {
+  return settingsStore.themeOptions.find(option => option.value === settingsStore.theme)?.label ?? settingsStore.theme
+})
+
 onMounted(async () => {
   await loadProjectWorkspace()
 })
@@ -369,6 +427,7 @@ async function loadProjectWorkspace() {
   pageError.value = null
   try {
     await settingsStore.loadAppSettings()
+    locale.value = settingsStore.language
     await projectStore.loadProject(projectId.value)
     await documentStore.loadDocuments(projectId.value)
     await refreshStats()
@@ -376,7 +435,7 @@ async function loadProjectWorkspace() {
     await refreshCurrentDocumentNotes()
     await createStartupBackup()
   } catch (error) {
-    pageError.value = errorMessage(error, '加载项目失败')
+    pageError.value = toAppErrorMessage(error, '加载项目失败')
   }
 }
 
@@ -424,7 +483,7 @@ async function createChapterNote(type: Exclude<NoteType, 'all'> = 'todo') {
     })
     await refreshCurrentDocumentNotes()
   } catch (error) {
-    pageError.value = errorMessage(error, '创建事项失败')
+    pageError.value = toAppErrorMessage(error, '创建事项失败')
   }
 }
 
@@ -443,7 +502,7 @@ async function handleParagraphNote(payload: EditorParagraphNoteRequest) {
     })
     await refreshCurrentDocumentNotes()
   } catch (error) {
-    pageError.value = errorMessage(error, '创建段落事项失败')
+    pageError.value = toAppErrorMessage(error, '创建段落事项失败')
   }
 }
 
@@ -453,7 +512,7 @@ async function markNoteDone(noteId: string) {
     await noteStore.updateNoteStatus(noteId, 'done')
     await refreshCurrentDocumentNotes()
   } catch (error) {
-    pageError.value = errorMessage(error, '更新事项失败')
+    pageError.value = toAppErrorMessage(error, '更新事项失败')
   }
 }
 
@@ -499,7 +558,7 @@ async function createDocument(payload: DocumentCreatePayload) {
     })
     await refreshStats()
   } catch (error) {
-    pageError.value = errorMessage(error, '创建文档失败')
+    pageError.value = toAppErrorMessage(error, '创建文档失败')
   }
 }
 
@@ -513,7 +572,7 @@ async function renameDocument(documentId: string, title: string) {
     await documentStore.renameDocument(documentId, title)
     await refreshStats()
   } catch (error) {
-    pageError.value = errorMessage(error, '重命名文档失败')
+    pageError.value = toAppErrorMessage(error, '重命名文档失败')
   }
 }
 
@@ -523,7 +582,7 @@ async function deleteDocument(documentId: string) {
     await documentStore.deleteDocument(documentId)
     await refreshStats()
   } catch (error) {
-    pageError.value = errorMessage(error, '删除文档失败')
+    pageError.value = toAppErrorMessage(error, '删除文档失败')
   }
 }
 
@@ -533,7 +592,7 @@ async function moveDocument(input: MoveDocumentInput) {
     await documentStore.moveDocument(input)
     await refreshStats()
   } catch (error) {
-    pageError.value = errorMessage(error, '移动文档失败')
+    pageError.value = toAppErrorMessage(error, '移动文档失败')
   }
 }
 
@@ -543,7 +602,7 @@ async function updateDocumentStatus(documentId: string, status: DocumentStatus) 
     await documentStore.updateDocumentStatus({documentId, status})
     await refreshStats()
   } catch (error) {
-    pageError.value = errorMessage(error, '更新文档状态失败')
+    pageError.value = toAppErrorMessage(error, '更新文档状态失败')
   }
 }
 
@@ -559,7 +618,7 @@ async function saveDocumentTarget() {
       targetCharacterCount: target
     })
   } catch (error) {
-    pageError.value = errorMessage(error, '更新目标字数失败')
+    pageError.value = toAppErrorMessage(error, '更新目标字数失败')
   }
 }
 
@@ -595,12 +654,22 @@ function toggleFocusMode() {
 }
 
 async function updateEditorSetting(key: keyof EditorSettings, event: Event) {
-  const value = Number((event.target as HTMLInputElement).value)
-  if (!Number.isFinite(value)) return
+  const target = event.target as HTMLInputElement | HTMLSelectElement
   try {
-    await settingsStore.updateEditorSetting(key, value)
+    if (key === 'fontFamily') {
+      await settingsStore.updateEditorSetting('fontFamily', target.value as EditorSettings['fontFamily'])
+      return
+    }
+
+    const value = Number(target.value)
+    if (!Number.isFinite(value)) return
+
+    if (key === 'fontSize') await settingsStore.updateEditorSetting('fontSize', value)
+    else if (key === 'lineHeight') await settingsStore.updateEditorSetting('lineHeight', value)
+    else if (key === 'pageWidth') await settingsStore.updateEditorSetting('pageWidth', value)
+    else if (key === 'autosaveIntervalMs') await settingsStore.updateEditorSetting('autosaveIntervalMs', value)
   } catch (error) {
-    pageError.value = errorMessage(error, '保存编辑器设置失败')
+    pageError.value = toAppErrorMessage(error, '保存编辑器设置失败')
   }
 }
 
@@ -695,11 +764,6 @@ function documentStatusLabel(status: DocumentStatus) {
   }
 }
 
-function errorMessage(error: unknown, fallback: string) {
-  return typeof error === 'object' && error && 'message' in error
-      ? String((error as { message?: string }).message)
-      : fallback
-}
 
 function formatDate(timestamp: number) {
   return new Intl.DateTimeFormat('zh-CN', {

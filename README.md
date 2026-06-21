@@ -257,3 +257,78 @@ Search, import/export, and backup are now implemented:
 
 If the export path is left empty, files are written to the `exports` folder under the app data directory; backup files
 are written to the `backups/<project_id>` folder under the app data directory.
+
+## Phase 1 Week 8 - Theme, Settings, i18n, Stability
+
+Week 8 polishes Phase 1 into a usable MVP.
+
+Implemented:
+
+- Settings workspace added to the project page.
+- Theme settings:
+    - paper
+    - light
+    - dark
+- Editor settings:
+    - font family
+    - font size
+    - line height
+    - page width
+- Autosave interval setting, persisted through `app_settings`.
+- Language setting foundation for `zh-CN` and `en`.
+- Expanded `i18n.config.ts` message structure.
+- Unified error message helper: `toAppErrorMessage`.
+- Shared empty and error UI components:
+    - `EmptyState`
+    - `ErrorBanner`
+- Phase 1 acceptance documentation.
+
+Recommended verification:
+
+```bash
+bun install
+bun run typecheck
+cd src-tauri
+cargo check
+cd ..
+bun run tauri:dev
+```
+
+Acceptance path:
+
+```txt
+Open a project
+→ Switch to Settings
+→ Change theme to Light, Paper, and Dark
+→ Change font, font size, line height, and page width
+→ Change autosave interval
+→ Switch language between zh-CN and English
+→ Return to Writing
+→ Confirm editor settings are applied
+→ Restart the app
+→ Confirm settings persist
+```
+
+## Phase 1 MVP Acceptance Summary
+
+```txt
+[ ] Create / open / delete projects
+[ ] Create volume / chapter / scene nodes
+[ ] Rename, delete, reorder, and change document status
+[ ] Write rich text with autosave
+[ ] Use paragraph ids for paragraph-level anchors
+[ ] Use find / replace in the current document
+[ ] Enter focus mode
+[ ] Track writing time and today character count
+[ ] Create character / location / concept cards
+[ ] Insert setting references with @
+[ ] Hover setting references for previews
+[ ] Create memo / todo / foreshadow notes
+[ ] Bind notes to documents and paragraphs
+[ ] Search documents, cards, and notes
+[ ] Export TXT / Markdown / HTML / project package
+[ ] Import TXT / Markdown / HTML as chapters
+[ ] Create local backups
+[ ] Switch themes and editor settings
+[ ] Persist settings after restart
+```

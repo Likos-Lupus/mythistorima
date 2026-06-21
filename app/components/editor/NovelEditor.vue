@@ -157,7 +157,8 @@ const isEmpty = computed(() => characterCount.value === 0 && !loading.value && B
 const editorStyle = computed(() => ({
   '--editor-font-size': `${props.settings.fontSize}px`,
   '--editor-line-height': String(props.settings.lineHeight),
-  '--editor-page-width': `${props.settings.pageWidth}px`
+  '--editor-page-width': `${props.settings.pageWidth}px`,
+  '--editor-font-family': editorFontFamily(props.settings.fontFamily)
 }))
 
 async function persist(payload: UpdateDocumentContentInput) {
@@ -187,7 +188,7 @@ const {
   errorMessage,
   queueSave,
   flushSave
-} = useAutoSave<UpdateDocumentContentInput>(persist, 1000)
+} = useAutoSave<UpdateDocumentContentInput>(persist, () => props.settings.autosaveIntervalMs)
 
 watch([saveState, lastSavedAt, errorMessage, characterCount, sessionElapsedMs, sessionDelta], () => {
   editorStore.setSaveState(saveState.value)
@@ -502,6 +503,19 @@ function getSelectedText(instance: Editor) {
 
 function focusEditor() {
   editor.value?.commands.focus('end')
+}
+
+function editorFontFamily(family: EditorSettings['fontFamily']) {
+  switch (family) {
+    case 'sans':
+      return 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    case 'system':
+      return 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    case 'mono':
+      return 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace'
+    default:
+      return 'ui-serif, "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", Georgia, serif'
+  }
 }
 
 function startSessionTimer() {
