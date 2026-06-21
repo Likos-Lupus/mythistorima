@@ -1,0 +1,36 @@
+{
+  "name": "mythistorima",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev --port 3000",
+    "generate": "nuxt generate",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "typecheck": "nuxt typecheck",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@nuxt/ui": "^4.0.0",
+    "@nuxtjs/i18n": "^10.0.0",
+    "@pinia/nuxt": "^0.11.2",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "@tiptap/pm": "^2.12.0",
+    "@tiptap/starter-kit": "^2.12.0",
+    "@tiptap/vue-3": "^2.12.0",
+    "nuxt": "^4.0.0",
+    "pinia": "^3.0.3",
+    "tailwindcss": "^4.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "typescript": "~5.8.3",
+    "vue-tsc": "^2.2.12"
+  }
+}
