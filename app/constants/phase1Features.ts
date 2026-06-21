@@ -5,8 +5,8 @@ export const phase1FeatureFlags: Phase1FeatureFlag[] = [
         key: 'document-tree',
         label: '卷 / 章 / 场景文档树',
         week: 2,
-        status: 'foundation',
-        description: '数据库已支持 type、parent_id、sort_order、summary、metadata_json；Week 2 开始接入 UI 和排序。'
+        status: 'done',
+        description: '已接入 DocumentTree，支持卷 / 章 / 场景、层级创建、重命名、删除、上移下移和状态切换。'
     },
     {
         key: 'setting-cards',

@@ -42,9 +42,12 @@ pub fn run() {
             commands::project::delete_project,
             commands::document::create_document,
             commands::document::list_documents,
+            commands::document::get_document_tree,
             commands::document::get_document_content,
             commands::document::update_document_content,
             commands::document::rename_document,
+            commands::document::move_document,
+            commands::document::update_document_status,
             commands::document::delete_document,
             commands::stats::get_project_stats,
             commands::stats::get_document_stats

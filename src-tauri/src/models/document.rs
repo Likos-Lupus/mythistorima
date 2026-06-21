@@ -45,12 +45,27 @@ pub struct CreateDocumentInput {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct MoveDocumentInput {
+    pub document_id: String,
+    pub parent_id: Option<String>,
+    pub sort_order: i64,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateDocumentContentInput {
     pub document_id: String,
     pub content_json: Value,
     pub content_text: String,
     pub content_html: String,
     pub character_count: i64,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateDocumentStatusInput {
+    pub document_id: String,
+    pub status: String,
 }
 
 fn default_document_type() -> String {

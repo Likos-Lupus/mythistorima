@@ -1,12 +1,13 @@
 use tauri::State;
 
 use crate::{
-    AppState,
     errors::AppResult,
     models::document::{
-        CreateDocumentInput, DocumentContentDto, DocumentDto, UpdateDocumentContentInput,
+        CreateDocumentInput, DocumentContentDto, DocumentDto, MoveDocumentInput,
+        UpdateDocumentContentInput, UpdateDocumentStatusInput,
     },
     services::document_service,
+    AppState,
 };
 
 #[tauri::command]
@@ -19,6 +20,14 @@ pub async fn create_document(
 
 #[tauri::command]
 pub async fn list_documents(
+    project_id: String,
+    state: State<'_, AppState>,
+) -> AppResult<Vec<DocumentDto>> {
+    document_service::list_documents(&state.db, project_id).await
+}
+
+#[tauri::command]
+pub async fn get_document_tree(
     project_id: String,
     state: State<'_, AppState>,
 ) -> AppResult<Vec<DocumentDto>> {
@@ -48,6 +57,22 @@ pub async fn rename_document(
     state: State<'_, AppState>,
 ) -> AppResult<DocumentDto> {
     document_service::rename_document(&state.db, document_id, title).await
+}
+
+#[tauri::command]
+pub async fn move_document(
+    input: MoveDocumentInput,
+    state: State<'_, AppState>,
+) -> AppResult<Vec<DocumentDto>> {
+    document_service::move_document(&state.db, input).await
+}
+
+#[tauri::command]
+pub async fn update_document_status(
+    input: UpdateDocumentStatusInput,
+    state: State<'_, AppState>,
+) -> AppResult<DocumentDto> {
+    document_service::update_document_status(&state.db, input).await
 }
 
 #[tauri::command]

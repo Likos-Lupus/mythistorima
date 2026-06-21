@@ -1,21 +1,25 @@
 <template>
   <AppShell
       :status="topbarStatus"
-      :subtitle="activeDocument?.title || '本地写作闭环'"
+      :subtitle="activeDocument?.title || '小说工作台 MVP'"
       :title="projectStore.currentProject?.title || 'Mythistorima'"
       @home="router.push('/')"
   >
     <div class="workspace-layout">
-      <aside class="workspace-sidebar app-sidebar glass-panel" data-phase0-area="chapter-sidebar">
-        <ChapterTree
+      <aside class="workspace-sidebar app-sidebar glass-panel" data-phase1-area="document-tree-sidebar">
+        <DocumentTree
             :active-document-id="documentStore.activeDocumentId"
-            :documents="documentStore.documents"
-            @create="createChapter"
+            :items="documentStore.documentTree"
             @select="selectDocument"
+            @create-document="createDocument"
+            @delete-document="deleteDocument"
+            @move-document="moveDocument"
+            @rename-document="renameDocument"
+            @update-status="updateDocumentStatus"
         />
       </aside>
 
-      <main class="workspace-editor workspace-editor-host" data-phase0-area="novel-editor-host">
+      <main class="workspace-editor workspace-editor-host" data-phase1-area="novel-editor-host">
         <NovelEditor
             v-if="documentStore.activeDocumentId"
             :key="documentStore.activeDocumentId"
@@ -25,14 +29,14 @@
         />
 
         <section v-else class="editor-select-empty paper-card">
-          请选择或创建一个章节。
+          请选择或创建一个卷、章节或场景。
         </section>
       </main>
 
-      <aside class="workspace-status status-panel glass-panel" data-phase0-area="status-panel">
+      <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 0 状态</h2>
-          <p class="status-panel-subtitle">用于验证本地写作闭环。</p>
+          <h2 class="status-panel-title">Phase 1 Week 2</h2>
+          <p class="status-panel-subtitle">文档树增强：卷 / 章 / 场景、排序、状态。</p>
         </div>
 
         <dl class="status-list">
@@ -41,11 +45,18 @@
             <dd>{{ projectId }}</dd>
           </div>
           <div class="status-card">
-            <dt>章节 ID</dt>
-            <dd>{{ documentStore.activeDocumentId || '未选择' }}</dd>
+            <dt>当前文档</dt>
+            <dd>{{
+                activeDocument ? `${documentTypeLabel(activeDocument.type)} · ${activeDocument.title}` : '未选择'
+              }}
+            </dd>
           </div>
           <div class="status-card">
-            <dt>当前章节字数</dt>
+            <dt>文档状态</dt>
+            <dd>{{ activeDocument ? documentStatusLabel(activeDocument.status) : '未选择' }}</dd>
+          </div>
+          <div class="status-card">
+            <dt>当前文档字数</dt>
             <dd>{{ editorSnapshot.characterCount }} 字</dd>
           </div>
           <div class="status-card">
@@ -73,10 +84,11 @@
 
 <script lang="ts" setup>
 import AppShell from '~/components/layout/AppShell.vue'
-import ChapterTree from '~/components/project/ChapterTree.vue'
+import DocumentTree from '~/components/project/DocumentTree.vue'
 import NovelEditor from '~/components/editor/NovelEditor.vue'
 import type {ProjectStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
+import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
 
 const route = useRoute()
 const router = useRouter()
@@ -127,9 +139,7 @@ async function loadProjectWorkspace() {
     await documentStore.loadDocuments(projectId.value)
     await refreshStats()
   } catch (error) {
-    pageError.value = typeof error === 'object' && error && 'message' in error
-        ? String((error as { message?: string }).message)
-        : '加载项目失败'
+    pageError.value = errorMessage(error, '加载项目失败')
   }
 }
 
@@ -137,25 +147,64 @@ async function refreshStats() {
   projectStats.value = await projectStore.loadProjectStats(projectId.value)
 }
 
-async function createChapter() {
-  const nextNumber = documentStore.documents.length + 1
+async function createDocument(payload: DocumentCreatePayload) {
+  pageError.value = null
   try {
     await documentStore.createDocument({
       projectId: projectId.value,
-      type: 'chapter',
-      title: `第 ${nextNumber} 章`,
-      sortOrder: nextNumber - 1
+      parentId: payload.parentId ?? null,
+      type: payload.type,
+      title: payload.title,
+      sortOrder: payload.sortOrder ?? null
     })
     await refreshStats()
   } catch (error) {
-    pageError.value = typeof error === 'object' && error && 'message' in error
-        ? String((error as { message?: string }).message)
-        : '创建章节失败'
+    pageError.value = errorMessage(error, '创建文档失败')
   }
 }
 
 function selectDocument(documentId: string) {
   documentStore.selectDocument(documentId)
+}
+
+async function renameDocument(documentId: string, title: string) {
+  pageError.value = null
+  try {
+    await documentStore.renameDocument(documentId, title)
+    await refreshStats()
+  } catch (error) {
+    pageError.value = errorMessage(error, '重命名文档失败')
+  }
+}
+
+async function deleteDocument(documentId: string) {
+  pageError.value = null
+  try {
+    await documentStore.deleteDocument(documentId)
+    await refreshStats()
+  } catch (error) {
+    pageError.value = errorMessage(error, '删除文档失败')
+  }
+}
+
+async function moveDocument(input: MoveDocumentInput) {
+  pageError.value = null
+  try {
+    await documentStore.moveDocument(input)
+    await refreshStats()
+  } catch (error) {
+    pageError.value = errorMessage(error, '移动文档失败')
+  }
+}
+
+async function updateDocumentStatus(documentId: string, status: DocumentStatus) {
+  pageError.value = null
+  try {
+    await documentStore.updateDocumentStatus({documentId, status})
+    await refreshStats()
+  } catch (error) {
+    pageError.value = errorMessage(error, '更新文档状态失败')
+  }
 }
 
 async function handleSaved() {
@@ -172,6 +221,42 @@ function handleEditorStatus(payload: {
   editorSnapshot.characterCount = payload.characterCount
   editorSnapshot.lastSavedAt = payload.lastSavedAt
   editorSnapshot.errorMessage = payload.errorMessage
+}
+
+function documentTypeLabel(type: DocumentType) {
+  switch (type) {
+    case 'volume':
+      return '卷'
+    case 'scene':
+      return '场景'
+    case 'chapter':
+      return '章节'
+    default:
+      return '文档'
+  }
+}
+
+function documentStatusLabel(status: DocumentStatus) {
+  switch (status) {
+    case 'writing':
+      return '写作中'
+    case 'done':
+      return '完成'
+    case 'draft':
+      return '草稿'
+    case 'revised':
+      return '已修订'
+    case 'archived':
+      return '已归档'
+    default:
+      return String(status)
+  }
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return typeof error === 'object' && error && 'message' in error
+      ? String((error as { message?: string }).message)
+      : fallback
 }
 
 function formatDate(timestamp: number) {

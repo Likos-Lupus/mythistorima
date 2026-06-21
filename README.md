@@ -92,3 +92,33 @@ Launch Mythistorima
 - Cloud sync and project encryption
 
 These belong to Phase 1 or later stages.
+
+## Phase 1 Week 2 - Document Tree
+
+Week 2 upgrades the Phase 0 single chapter list into a novel document tree.
+
+Implemented:
+
+- Volume / chapter / scene document types
+- `parent_id` hierarchy
+- Root volume and root chapter creation
+- Child creation: volume → chapter, chapter → scene
+- Same-level creation
+- Rename
+- Delete confirmation with cascading child deletion
+- Same-level move up / move down
+- Status switching: draft / writing / done
+- Rust `move_document` and `update_document_status` commands
+
+Acceptance path:
+
+```txt
+Open a project
+→ Create a volume
+→ Create a chapter under the volume
+→ Create two scenes under the chapter
+→ Rename one node
+→ Move a scene up or down
+→ Change a chapter status to writing
+→ Delete a parent node and confirm child nodes are removed
+```
