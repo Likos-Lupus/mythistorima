@@ -144,3 +144,56 @@ cargo check
 cd ..
 bun run tauri:dev
 ```
+
+## Phase 1 Week 4 - Setting Cards
+
+Week 4 adds the setting-card workspace for novel worldbuilding.
+
+Implemented:
+
+- Rust `CardDto`, `CreateCardInput`, `UpdateCardInput`, and `CardReferenceDto`.
+- Rust card service and Tauri commands:
+    - `create_card`
+    - `update_card`
+    - `delete_card`
+    - `get_card`
+    - `list_cards`
+    - `search_cards`
+    - `list_card_references`
+- Setting card types:
+    - character
+    - location
+    - concept
+- Card workspace UI:
+    - `CardWorkspace`
+    - `CardList`
+    - `CardEditor`
+    - `CardTypeTabs`
+- Alias editing via comma or newline-separated input.
+- Basic `fields_json` templates for each card type.
+- Reserved card reference list area for Week 5 `@` insertion integration.
+- Card saves update the Phase 1 `search_index` foundation.
+
+Recommended verification:
+
+```bash
+bun install
+bun run typecheck
+cd src-tauri
+cargo check
+cd ..
+bun run tauri:dev
+```
+
+Acceptance path:
+
+```txt
+Open a project
+→ Switch the left workspace mode from Writing to Setting
+→ Create a character card
+→ Edit name, aliases, description, role, motivation, and notes
+→ Create a location card
+→ Create a concept card
+→ Filter by type
+→ Restart the app and confirm all cards persist
+```

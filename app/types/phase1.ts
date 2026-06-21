@@ -31,6 +31,7 @@ export interface CardReference {
     id: string
     projectId: string
     documentId: string
+    documentTitle?: string | null
     cardId: string
     displayText: string
     fromPos?: number | null

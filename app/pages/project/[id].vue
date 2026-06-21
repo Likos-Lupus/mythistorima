@@ -6,8 +6,26 @@
       @home="router.push('/')"
   >
     <div :class="{ 'is-focus-mode': focusMode }" class="workspace-layout">
-      <aside class="workspace-sidebar app-sidebar glass-panel" data-phase1-area="document-tree-sidebar">
+      <aside class="workspace-sidebar app-sidebar glass-panel" data-phase1-area="workspace-sidebar">
+        <nav aria-label="项目工作区" class="workspace-mode-switch">
+          <button
+              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'writing' }]"
+              type="button"
+              @click="workspaceMode = 'writing'"
+          >
+            写作
+          </button>
+          <button
+              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'cards' }]"
+              type="button"
+              @click="workspaceMode = 'cards'"
+          >
+            设定
+          </button>
+        </nav>
+
         <DocumentTree
+            v-if="workspaceMode === 'writing'"
             :active-document-id="documentStore.activeDocumentId"
             :items="documentStore.documentTree"
             @select="selectDocument"
@@ -17,34 +35,51 @@
             @rename-document="renameDocument"
             @update-status="updateDocumentStatus"
         />
+
+        <section v-else class="card-sidebar-summary">
+          <h2>设定卡</h2>
+          <p>管理人物、地点、概念。当前阶段先完成 CRUD 和引用章节列表预留。</p>
+          <ul>
+            <li>人物：角色身份、动机与备注</li>
+            <li>地点：氛围、场景提示</li>
+            <li>概念：规则、限制与说明</li>
+          </ul>
+        </section>
       </aside>
 
-      <main class="workspace-editor workspace-editor-host" data-phase1-area="novel-editor-host">
-        <EditorFocusOverlay v-if="focusMode" @exit="toggleFocusMode"/>
+      <main class="workspace-editor workspace-editor-host" data-phase1-area="main-workspace-host">
+        <template v-if="workspaceMode === 'writing'">
+          <EditorFocusOverlay v-if="focusMode" @exit="toggleFocusMode"/>
 
-        <NovelEditor
-            v-if="documentStore.activeDocumentId"
-            :key="documentStore.activeDocumentId"
-            :document-id="documentStore.activeDocumentId"
-            :focus-mode="focusMode"
+          <NovelEditor
+              v-if="documentStore.activeDocumentId"
+              :key="documentStore.activeDocumentId"
+              :document-id="documentStore.activeDocumentId"
+              :focus-mode="focusMode"
+              :project-id="projectId"
+              :settings="settingsStore.editorSettings"
+              :target-character-count="activeDocumentTarget"
+              @saved="handleSaved"
+              @session="handleEditorSession"
+              @status="handleEditorStatus"
+              @toggle-focus-mode="toggleFocusMode"
+          />
+
+          <section v-else class="editor-select-empty paper-card">
+            请选择或创建一个卷、章节或场景。
+          </section>
+        </template>
+
+        <CardWorkspace
+            v-else
             :project-id="projectId"
-            :settings="settingsStore.editorSettings"
-            :target-character-count="activeDocumentTarget"
-            @saved="handleSaved"
-            @session="handleEditorSession"
-            @status="handleEditorStatus"
-            @toggle-focus-mode="toggleFocusMode"
         />
-
-        <section v-else class="editor-select-empty paper-card">
-          请选择或创建一个卷、章节或场景。
-        </section>
       </main>
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 1 Week 3</h2>
-          <p class="status-panel-subtitle">编辑器增强：段落 ID、查找替换、专注模式、写作计时与编辑器设置。</p>
+          <h2 class="status-panel-title">Phase 1 Week 4</h2>
+          <p class="status-panel-subtitle">设定卡系统：人物、地点、概念 CRUD、别名、简介、字段模板和引用列表预留。</p>
         </div>
 
         <dl class="status-list">
@@ -159,6 +194,7 @@ import AppShell from '~/components/layout/AppShell.vue'
 import DocumentTree from '~/components/project/DocumentTree.vue'
 import NovelEditor from '~/components/editor/NovelEditor.vue'
 import EditorFocusOverlay from '~/components/editor/EditorFocusOverlay.vue'
+import CardWorkspace from '~/components/cards/CardWorkspace.vue'
 import type {ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
 import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
@@ -177,6 +213,7 @@ const projectStats = ref<ProjectStats | null>(null)
 const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
 const focusMode = ref(false)
+const workspaceMode = ref<'writing' | 'cards'>('writing')
 const targetDraft = ref<number | null>(null)
 
 const editorSnapshot = reactive({

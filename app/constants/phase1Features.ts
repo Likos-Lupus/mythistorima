@@ -1,7 +1,6 @@
 import type {Phase1FeatureFlag} from '~/types/phase1'
 
 export const phase1FeatureFlags: Phase1FeatureFlag[] = [
-
     {
         key: 'editor-week3',
         label: '编辑器增强与写作体验',
@@ -20,8 +19,8 @@ export const phase1FeatureFlags: Phase1FeatureFlag[] = [
         key: 'setting-cards',
         label: '设定卡',
         week: 4,
-        status: 'foundation',
-        description: 'cards 与 card_references 表已就绪；Week 4-5 实现 CRUD、@ 引用和悬浮预览。'
+        status: 'done',
+        description: '已实现人物 / 地点 / 概念设定卡 CRUD、设定工作区、别名编辑、字段模板和引用章节列表预留。'
     },
     {
         key: 'creative-notes',
