@@ -1,3 +1,9 @@
+pub mod asset;
+pub mod card;
 pub mod document;
+pub mod note;
 pub mod project;
+pub mod search;
+pub mod settings;
 pub mod stats;
+pub mod tag;

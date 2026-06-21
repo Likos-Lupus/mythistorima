@@ -1,5 +1,5 @@
-export type DocumentType = 'chapter' | 'volume' | 'scene' | string
-export type DocumentStatus = 'draft' | 'revising' | 'done' | string
+export type DocumentType = 'chapter' | 'volume' | 'scene' | 'note' | string
+export type DocumentStatus = 'draft' | 'writing' | 'revised' | 'done' | 'archived' | string
 
 export interface NovelDocument {
     id: string
@@ -9,6 +9,8 @@ export interface NovelDocument {
     title: string
     sortOrder: number
     status: DocumentStatus
+    summary?: string | null
+    metadataJson: string
     characterCount: number
     createdAt: number
     updatedAt: number

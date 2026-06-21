@@ -24,3 +24,11 @@ pub struct DocumentStatsDto {
     pub character_count: i64,
     pub updated_at: i64,
 }
+
+#[derive(Debug, Clone, Serialize, sqlx::FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct SchemaMigrationDto {
+    pub version: i64,
+    pub name: String,
+    pub applied_at: i64,
+}

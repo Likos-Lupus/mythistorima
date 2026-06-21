@@ -1,6 +1,10 @@
 use tauri::State;
 
-use crate::{AppState, errors::AppResult, models::stats::AppInfoDto};
+use crate::{
+    errors::AppResult,
+    models::stats::{AppInfoDto, SchemaMigrationDto},
+    AppState,
+};
 
 #[tauri::command]
 pub async fn app_ping() -> AppResult<String> {
@@ -21,4 +25,21 @@ pub async fn get_app_info(state: State<'_, AppState>) -> AppResult<AppInfoDto> {
         version: env!("CARGO_PKG_VERSION").to_string(),
         database_path: state.database_path.display().to_string(),
     })
+}
+
+#[tauri::command]
+pub async fn list_schema_migrations(
+    state: State<'_, AppState>,
+) -> AppResult<Vec<SchemaMigrationDto>> {
+    let migrations = sqlx::query_as::<_, SchemaMigrationDto>(
+        r#"
+        SELECT version, name, applied_at
+        FROM schema_migrations
+        ORDER BY version ASC
+        "#,
+    )
+    .fetch_all(&state.db)
+    .await?;
+
+    Ok(migrations)
 }

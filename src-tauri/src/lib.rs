@@ -35,6 +35,7 @@ pub fn run() {
             commands::app::app_ping,
             commands::app::db_health_check,
             commands::app::get_app_info,
+            commands::app::list_schema_migrations,
             commands::project::create_project,
             commands::project::list_projects,
             commands::project::get_project,

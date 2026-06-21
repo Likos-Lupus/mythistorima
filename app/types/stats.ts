@@ -16,3 +16,9 @@ export interface AppInfo {
     version: string
     databasePath: string
 }
+
+export interface SchemaMigration {
+    version: number
+    name: string
+    appliedAt: number
+}

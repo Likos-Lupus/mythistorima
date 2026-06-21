@@ -80,6 +80,16 @@ pub async fn create_document(
     .execute(&mut *tx)
     .await?;
 
+    upsert_document_search_index(
+        &mut tx,
+        &input.project_id,
+        &document_id,
+        &input.document_type,
+        &title,
+        "",
+    )
+    .await?;
+
     sqlx::query("UPDATE projects SET updated_at = ?1 WHERE id = ?2")
         .bind(now)
         .bind(&input.project_id)
@@ -102,6 +112,8 @@ pub async fn list_documents(pool: &SqlitePool, project_id: String) -> AppResult<
           title,
           sort_order,
           status,
+          summary,
+          metadata_json,
           character_count,
           created_at,
           updated_at
@@ -128,6 +140,8 @@ pub async fn get_document(pool: &SqlitePool, document_id: String) -> AppResult<D
           title,
           sort_order,
           status,
+          summary,
+          metadata_json,
           character_count,
           created_at,
           updated_at
@@ -243,6 +257,31 @@ pub async fn update_document_content(
     .execute(&mut *tx)
     .await?;
 
+    let search_row = sqlx::query(
+        r#"
+        SELECT project_id, type, title
+        FROM documents
+        WHERE id = ?1
+        "#,
+    )
+    .bind(&input.document_id)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    let search_project_id: String = search_row.try_get("project_id")?;
+    let search_document_type: String = search_row.try_get("type")?;
+    let search_title: String = search_row.try_get("title")?;
+
+    upsert_document_search_index(
+        &mut tx,
+        &search_project_id,
+        &input.document_id,
+        &search_document_type,
+        &search_title,
+        &input.content_text,
+    )
+    .await?;
+
     sqlx::query("UPDATE projects SET updated_at = ?1 WHERE id = ?2")
         .bind(now)
         .bind(project_id)
@@ -262,27 +301,97 @@ pub async fn rename_document(
     let title = validate_title(&title)?;
     let now = now_ms();
 
+    let mut tx = pool.begin().await?;
+
     let result = sqlx::query("UPDATE documents SET title = ?1, updated_at = ?2 WHERE id = ?3")
-        .bind(title)
+        .bind(&title)
         .bind(now)
         .bind(&document_id)
-        .execute(pool)
+        .execute(&mut *tx)
         .await?;
 
     if result.rows_affected() == 0 {
         return Err(AppError::not_found("document"));
     }
 
+    let row = sqlx::query(
+        r#"
+        SELECT d.project_id, d.type, COALESCE(c.content_text, '') AS content_text
+        FROM documents d
+        LEFT JOIN document_contents c ON c.document_id = d.id
+        WHERE d.id = ?1
+        "#,
+    )
+    .bind(&document_id)
+    .fetch_one(&mut *tx)
+    .await?;
+
+    let project_id: String = row.try_get("project_id")?;
+    let document_type: String = row.try_get("type")?;
+    let content_text: String = row.try_get("content_text")?;
+
+    upsert_document_search_index(
+        &mut tx,
+        &project_id,
+        &document_id,
+        &document_type,
+        &title,
+        &content_text,
+    )
+    .await?;
+
+    tx.commit().await?;
+
     get_document(pool, document_id).await
 }
 
 pub async fn delete_document(pool: &SqlitePool, document_id: String) -> AppResult<bool> {
-    let result = sqlx::query("DELETE FROM documents WHERE id = ?1")
-        .bind(document_id)
-        .execute(pool)
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("DELETE FROM search_index WHERE target_id = ?1 AND target_type IN ('volume', 'chapter', 'scene', 'note')")
+        .bind(&document_id)
+        .execute(&mut *tx)
         .await?;
 
+    let result = sqlx::query("DELETE FROM documents WHERE id = ?1")
+        .bind(document_id)
+        .execute(&mut *tx)
+        .await?;
+
+    tx.commit().await?;
+
     Ok(result.rows_affected() > 0)
+}
+
+async fn upsert_document_search_index(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    project_id: &str,
+    document_id: &str,
+    document_type: &str,
+    title: &str,
+    body: &str,
+) -> AppResult<()> {
+    sqlx::query("DELETE FROM search_index WHERE target_id = ?1 AND target_type = ?2")
+        .bind(document_id)
+        .bind(document_type)
+        .execute(&mut **tx)
+        .await?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO search_index (target_type, target_id, project_id, title, body)
+        VALUES (?1, ?2, ?3, ?4, ?5)
+        "#,
+    )
+    .bind(document_type)
+    .bind(document_id)
+    .bind(project_id)
+    .bind(title)
+    .bind(body)
+    .execute(&mut **tx)
+    .await?;
+
+    Ok(())
 }
 
 async fn next_sort_order(pool: &SqlitePool, project_id: &str) -> AppResult<i64> {

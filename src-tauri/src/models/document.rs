@@ -13,6 +13,8 @@ pub struct DocumentDto {
     pub title: String,
     pub sort_order: i64,
     pub status: String,
+    pub summary: Option<String>,
+    pub metadata_json: String,
     pub character_count: i64,
     pub created_at: i64,
     pub updated_at: i64,

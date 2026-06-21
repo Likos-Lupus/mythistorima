@@ -31,8 +31,10 @@ pub async fn create_project(pool: &SqlitePool, input: CreateProjectInput) -> App
 
     sqlx::query(
         r#"
-        INSERT INTO projects (id, title, author, description, status, created_at, updated_at)
-        VALUES (?1, ?2, ?3, ?4, 'active', ?5, ?6)
+        INSERT INTO projects
+          (id, title, author, description, status, language, metadata_json, created_at, updated_at)
+        VALUES
+          (?1, ?2, ?3, ?4, 'active', ?5, '{}', ?6, ?7)
         "#,
     )
     .bind(&project_id)
@@ -49,6 +51,7 @@ pub async fn create_project(pool: &SqlitePool, input: CreateProjectInput) -> App
             .as_deref()
             .filter(|value| !value.trim().is_empty()),
     )
+    .bind(input.language.as_deref().unwrap_or("zh-CN"))
     .bind(now)
     .bind(now)
     .execute(&mut *tx)
@@ -83,6 +86,17 @@ pub async fn create_project(pool: &SqlitePool, input: CreateProjectInput) -> App
     .execute(&mut *tx)
     .await?;
 
+    sqlx::query(
+        r#"
+        INSERT INTO search_index (target_type, target_id, project_id, title, body)
+        VALUES ('chapter', ?1, ?2, '第一章', '')
+        "#,
+    )
+    .bind(&first_document_id)
+    .bind(&project_id)
+    .execute(&mut *tx)
+    .await?;
+
     tx.commit().await?;
 
     get_project(pool, project_id).await
@@ -91,7 +105,19 @@ pub async fn create_project(pool: &SqlitePool, input: CreateProjectInput) -> App
 pub async fn list_projects(pool: &SqlitePool) -> AppResult<Vec<ProjectDto>> {
     let rows = sqlx::query_as::<_, ProjectDto>(
         r#"
-        SELECT id, title, author, description, status, created_at, updated_at
+        SELECT
+          id,
+          title,
+          author,
+          description,
+          status,
+          language,
+          cover_asset_id,
+          target_character_count,
+          daily_target_count,
+          metadata_json,
+          created_at,
+          updated_at
         FROM projects
         ORDER BY updated_at DESC, created_at DESC
         "#,
@@ -105,7 +131,19 @@ pub async fn list_projects(pool: &SqlitePool) -> AppResult<Vec<ProjectDto>> {
 pub async fn get_project(pool: &SqlitePool, project_id: String) -> AppResult<ProjectDto> {
     let project = sqlx::query_as::<_, ProjectDto>(
         r#"
-        SELECT id, title, author, description, status, created_at, updated_at
+        SELECT
+          id,
+          title,
+          author,
+          description,
+          status,
+          language,
+          cover_asset_id,
+          target_character_count,
+          daily_target_count,
+          metadata_json,
+          created_at,
+          updated_at
         FROM projects
         WHERE id = ?1
         "#,
@@ -119,10 +157,19 @@ pub async fn get_project(pool: &SqlitePool, project_id: String) -> AppResult<Pro
 }
 
 pub async fn delete_project(pool: &SqlitePool, project_id: String) -> AppResult<bool> {
+    let mut tx = pool.begin().await?;
+
+    sqlx::query("DELETE FROM search_index WHERE project_id = ?1")
+        .bind(&project_id)
+        .execute(&mut *tx)
+        .await?;
+
     let result = sqlx::query("DELETE FROM projects WHERE id = ?1")
         .bind(project_id)
-        .execute(pool)
+        .execute(&mut *tx)
         .await?;
+
+    tx.commit().await?;
 
     Ok(result.rows_affected() > 0)
 }
