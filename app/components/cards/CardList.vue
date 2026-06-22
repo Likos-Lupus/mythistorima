@@ -13,7 +13,7 @@
 
     <div v-if="loading" class="empty-panel">正在加载设定卡…</div>
     <div v-else-if="cards.length === 0" class="empty-panel">
-      还没有设定卡。创建一个人物、地点或概念，开始整理你的故事世界。
+      还没有设定卡。创建一个人物、地点、组织、道具、事件或概念，开始整理你的故事世界。
     </div>
 
     <div v-else class="card-list">
@@ -34,7 +34,7 @@
 </template>
 
 <script lang="ts" setup>
-import type {SettingCard} from '~/types/card'
+import {cardTypeLabel, type SettingCard} from '~/types/card'
 
 defineProps<{
   cards: SettingCard[]
@@ -49,18 +49,6 @@ defineEmits<{
   'update:query': [query: string]
 }>()
 
-function cardTypeLabel(type: string) {
-  switch (type) {
-    case 'character':
-      return '人物'
-    case 'location':
-      return '地点'
-    case 'concept':
-      return '概念'
-    default:
-      return '设定'
-  }
-}
 
 function aliasText(raw: string) {
   try {

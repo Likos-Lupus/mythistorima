@@ -3011,3 +3011,317 @@ body[data-theme="dark"] .outline-board-toolbar {
         grid-template-columns: repeat(3, minmax(240px, 86vw));
     }
 }
+
+/* Phase 2 Week 4: card relation graph */
+.relation-workspace {
+    display: grid;
+    gap: 1rem;
+    min-height: 0;
+}
+
+.relation-workspace-header,
+.relation-toolbar,
+.relation-panel-header,
+.relation-workspace-actions,
+.relation-editor-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.relation-workspace-header {
+    padding: 1.15rem 1.25rem;
+}
+
+.relation-workspace-kicker,
+.relation-panel-kicker {
+    margin: 0 0 0.25rem;
+    color: var(--accent) !important;
+    font-size: 0.76rem;
+    font-weight: 950;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.relation-workspace-header h1,
+.relation-panel-header h2 {
+    margin: 0;
+    color: var(--paper-text) !important;
+    font-weight: 950;
+}
+
+.relation-workspace-header p,
+.relation-graph-help {
+    margin: 0.28rem 0 0;
+    color: var(--paper-muted) !important;
+    line-height: 1.6;
+}
+
+.relation-toolbar {
+    flex-wrap: wrap;
+    padding: 1rem;
+}
+
+.relation-toolbar label {
+    display: grid;
+    gap: 0.38rem;
+    color: var(--paper-muted) !important;
+    font-size: 0.84rem;
+    font-weight: 800;
+}
+
+.relation-type-picker {
+    display: flex;
+    flex: 1 1 520px;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+}
+
+.relation-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid rgba(109, 67, 37, 0.16);
+    border-radius: 999px;
+    background: rgba(255, 250, 240, 0.78) !important;
+    color: var(--paper-muted) !important;
+    cursor: pointer;
+    padding: 0.38rem 0.66rem;
+    font-weight: 850;
+}
+
+.relation-filter-chip strong {
+    min-width: 1.45rem;
+    border-radius: 999px;
+    background: rgba(109, 67, 37, 0.1) !important;
+    color: var(--accent) !important;
+    padding: 0.08rem 0.36rem;
+    text-align: center;
+}
+
+.relation-filter-chip.is-active {
+    border-color: rgba(109, 67, 37, 0.42);
+    background: var(--accent-soft) !important;
+    color: var(--accent) !important;
+}
+
+.relation-layout {
+    display: grid;
+    grid-template-columns: minmax(520px, 1fr) minmax(340px, 0.42fr);
+    gap: 1rem;
+    min-height: 0;
+}
+
+.relation-side-stack {
+    display: grid;
+    gap: 1rem;
+    min-height: 0;
+}
+
+.relation-graph-panel,
+.relation-list-panel,
+.relation-editor-panel {
+    min-height: 0;
+    padding: 1rem;
+}
+
+.relation-graph-panel {
+    display: grid;
+    grid-template-rows: auto minmax(420px, 1fr);
+    gap: 0.85rem;
+}
+
+.relation-graph-canvas {
+    width: 100%;
+    min-height: 520px;
+    border: 1px solid rgba(96, 72, 48, 0.12);
+    border-radius: 1.3rem;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.78), rgba(250, 241, 225, 0.62)) !important;
+}
+
+.relation-edge {
+    cursor: pointer;
+}
+
+.relation-edge line {
+    stroke: rgba(109, 67, 37, 0.34);
+    stroke-width: 2.6;
+}
+
+.relation-edge rect {
+    fill: rgba(255, 250, 240, 0.92);
+    stroke: rgba(109, 67, 37, 0.18);
+}
+
+.relation-edge text {
+    fill: var(--accent);
+    font-size: 0.8rem;
+    font-weight: 950;
+    pointer-events: none;
+}
+
+.relation-edge.is-active line {
+    stroke-width: 4;
+    stroke: rgba(109, 67, 37, 0.78);
+}
+
+.relation-edge.is-active rect {
+    fill: var(--accent-soft);
+    stroke: rgba(109, 67, 37, 0.46);
+}
+
+#relation-arrow path {
+    fill: rgba(109, 67, 37, 0.62);
+}
+
+.relation-node {
+    cursor: pointer;
+}
+
+.relation-node rect {
+    fill: rgba(255, 252, 246, 0.95);
+    stroke: rgba(109, 67, 37, 0.22);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 12px 22px rgba(63, 45, 28, 0.12));
+}
+
+.relation-node.is-character rect {
+    fill: rgba(255, 247, 237, 0.96);
+}
+
+.relation-node.is-location rect {
+    fill: rgba(239, 247, 255, 0.96);
+}
+
+.relation-node.is-organization rect {
+    fill: rgba(245, 240, 255, 0.96);
+}
+
+.relation-node.is-item rect {
+    fill: rgba(255, 248, 220, 0.96);
+}
+
+.relation-node.is-event rect {
+    fill: rgba(255, 238, 238, 0.96);
+}
+
+.relation-node.is-concept rect {
+    fill: rgba(238, 248, 241, 0.96);
+}
+
+.relation-node:hover rect,
+.relation-node.is-selected rect {
+    stroke: rgba(109, 67, 37, 0.62);
+    stroke-width: 2.4;
+}
+
+.relation-node-type {
+    fill: var(--accent);
+    font-size: 0.76rem;
+    font-weight: 950;
+}
+
+.relation-node-name {
+    fill: var(--paper-text);
+    font-size: 0.96rem;
+    font-weight: 950;
+}
+
+.relation-graph-empty {
+    display: grid;
+    min-height: 420px;
+    place-items: center;
+    border: 1px dashed rgba(109, 67, 37, 0.22);
+    border-radius: 1.2rem;
+    color: var(--paper-muted) !important;
+    padding: 2rem;
+    text-align: center;
+}
+
+.relation-list {
+    display: grid;
+    gap: 0.55rem;
+    max-height: 310px;
+    overflow-y: auto;
+    padding-right: 0.18rem;
+}
+
+.relation-list-item {
+    display: grid;
+    gap: 0.28rem;
+    width: 100%;
+    border: 1px solid rgba(96, 72, 48, 0.12);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.68) !important;
+    cursor: pointer;
+    padding: 0.78rem 0.88rem;
+    text-align: left;
+}
+
+.relation-list-item.is-active,
+.relation-list-item:hover {
+    border-color: rgba(109, 67, 37, 0.38);
+    background: var(--accent-soft) !important;
+}
+
+.relation-list-type {
+    width: fit-content;
+    border-radius: 999px;
+    background: rgba(109, 67, 37, 0.1) !important;
+    color: var(--accent) !important;
+    padding: 0.12rem 0.42rem;
+    font-size: 0.74rem;
+    font-weight: 950;
+}
+
+.relation-list-item strong {
+    color: var(--paper-text) !important;
+    font-weight: 950;
+}
+
+.relation-list-item small {
+    color: var(--paper-muted) !important;
+    line-height: 1.55;
+}
+
+.relation-editor-form {
+    display: grid;
+    gap: 0.82rem;
+    margin-top: 0.85rem;
+}
+
+.relation-editor-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
+body[data-theme="dark"] .relation-filter-chip,
+body[data-theme="dark"] .relation-graph-panel,
+body[data-theme="dark"] .relation-list-panel,
+body[data-theme="dark"] .relation-editor-panel,
+body[data-theme="dark"] .relation-toolbar,
+body[data-theme="dark"] .relation-list-item,
+body[data-theme="dark"] .relation-edge rect {
+    background: rgba(31, 28, 25, 0.78) !important;
+}
+
+@media (max-width: 1280px) {
+    .relation-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .relation-workspace-header,
+    .relation-panel-header,
+    .relation-toolbar,
+    .relation-workspace-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .relation-graph-canvas {
+        min-height: 420px;
+    }
+}

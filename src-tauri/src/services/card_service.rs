@@ -15,9 +15,11 @@ fn now_ms() -> i64 {
 fn validate_card_type(card_type: &str) -> AppResult<String> {
     let normalized = card_type.trim();
     match normalized {
-        "character" | "location" | "concept" => Ok(normalized.to_string()),
+        "character" | "location" | "concept" | "organization" | "item" | "event" => {
+            Ok(normalized.to_string())
+        }
         _ => Err(AppError::invalid_input(
-            "设定卡类型必须是 character / location / concept",
+            "设定卡类型必须是 character / location / concept / organization / item / event",
         )),
     }
 }
@@ -106,6 +108,27 @@ fn default_fields_json(card_type: &str) -> String {
             "notes": ""
         })
         .to_string(),
+        "organization" => serde_json::json!({
+            "scope": "",
+            "goal": "",
+            "structure": "",
+            "notes": ""
+        })
+        .to_string(),
+        "item" => serde_json::json!({
+            "owner": "",
+            "power": "",
+            "limitations": "",
+            "notes": ""
+        })
+        .to_string(),
+        "event" => serde_json::json!({
+            "time": "",
+            "cause": "",
+            "consequence": "",
+            "notes": ""
+        })
+        .to_string(),
         _ => "{}".to_string(),
     }
 }
@@ -115,6 +138,9 @@ fn card_type_label(card_type: &str) -> &'static str {
         "character" => "人物",
         "location" => "地点",
         "concept" => "概念",
+        "organization" => "组织",
+        "item" => "道具",
+        "event" => "事件",
         _ => "设定",
     }
 }
@@ -273,6 +299,11 @@ pub async fn delete_card(pool: &SqlitePool, card_id: String) -> AppResult<bool> 
         .execute(&mut *tx)
         .await?;
 
+    sqlx::query("DELETE FROM card_relations WHERE source_card_id = ?1 OR target_card_id = ?1")
+        .bind(&card_id)
+        .execute(&mut *tx)
+        .await?;
+
     let result = sqlx::query("DELETE FROM cards WHERE id = ?1")
         .bind(&card_id)
         .execute(&mut *tx)
@@ -367,7 +398,10 @@ pub async fn list_cards(
             WHEN 'character' THEN 0
             WHEN 'location' THEN 1
             WHEN 'concept' THEN 2
-            ELSE 3
+            WHEN 'organization' THEN 3
+            WHEN 'item' THEN 4
+            WHEN 'event' THEN 5
+            ELSE 6
           END ASC,
           updated_at DESC,
           created_at DESC

@@ -1,17 +1,33 @@
 import type {CardReference, CardType, CreateCardInput, SettingCard, UpdateCardInput} from '~/types/card'
 
+const cardTypeOrder = new Map([
+    ['character', 0],
+    ['location', 1],
+    ['organization', 2],
+    ['item', 3],
+    ['event', 4],
+    ['concept', 5]
+])
+
 function sortCards(cards: SettingCard[]) {
-    const typeOrder = new Map([
-        ['character', 0],
-        ['location', 1],
-        ['concept', 2]
-    ])
     return [...cards].sort((a, b) => {
-        const orderA = typeOrder.get(a.type) ?? 99
-        const orderB = typeOrder.get(b.type) ?? 99
+        const orderA = cardTypeOrder.get(a.type) ?? 99
+        const orderB = cardTypeOrder.get(b.type) ?? 99
         if (orderA !== orderB) return orderA - orderB
         return b.updatedAt - a.updatedAt
     })
+}
+
+function emptyCounts(): Record<CardType, number> {
+    return {
+        all: 0,
+        character: 0,
+        location: 0,
+        organization: 0,
+        item: 0,
+        event: 0,
+        concept: 0
+    }
 }
 
 export const useCardStore = defineStore('card', () => {
@@ -36,15 +52,11 @@ export const useCardStore = defineStore('card', () => {
         })
     })
     const counts = computed(() => {
-        const result: Record<CardType, number> = {
-            all: cards.value.length,
-            character: 0,
-            location: 0,
-            concept: 0
-        }
+        const result = emptyCounts()
+        result.all = cards.value.length
         for (const card of cards.value) {
-            if (card.type === 'character' || card.type === 'location' || card.type === 'concept') {
-                result[card.type] += 1
+            if (card.type in result && card.type !== 'all') {
+                result[card.type as CardType] += 1
             }
         }
         return result

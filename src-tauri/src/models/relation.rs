@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
+use crate::models::card::CardDto;
+
 #[derive(Debug, Clone, Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct CardRelationDto {
@@ -26,4 +28,23 @@ pub struct CardRelationInput {
     pub description: Option<String>,
     pub direction: Option<String>,
     pub metadata_json: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateCardRelationInput {
+    pub relation_id: String,
+    pub source_card_id: Option<String>,
+    pub target_card_id: Option<String>,
+    pub relation_type: Option<String>,
+    pub description: Option<String>,
+    pub direction: Option<String>,
+    pub metadata_json: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CardGraphDto {
+    pub cards: Vec<CardDto>,
+    pub relations: Vec<CardRelationDto>,
 }

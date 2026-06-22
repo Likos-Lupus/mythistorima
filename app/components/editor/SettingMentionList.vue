@@ -28,13 +28,13 @@
     </button>
 
     <p v-if="cards.length === 0" class="setting-mention-empty">
-      没有匹配的设定卡。先在“设定”工作区创建人物、地点或概念。
+      没有匹配的设定卡。先在“设定”工作区创建人物、地点、组织、道具、事件或概念。
     </p>
   </div>
 </template>
 
 <script lang="ts" setup>
-import type {SettingCard} from '~/types/card'
+import {cardTypeLabel, type SettingCard} from '~/types/card'
 
 const props = defineProps<{
   cards: SettingCard[]
@@ -54,18 +54,6 @@ const positionStyle = computed(() => ({
   left: `${props.left}px`
 }))
 
-function cardTypeLabel(type: string) {
-  switch (type) {
-    case 'character':
-      return '人物'
-    case 'location':
-      return '地点'
-    case 'concept':
-      return '概念'
-    default:
-      return '设定'
-  }
-}
 
 function aliasesLabel(raw: string) {
   try {

@@ -76,10 +76,11 @@
 
         <section v-else-if="workspaceMode === 'cards'" class="card-sidebar-summary">
           <h2>设定卡</h2>
-          <p>管理人物、地点、概念；在正文输入 @ 即可插入设定引用。</p>
+          <p>管理人物、地点、组织、道具、事件和概念；在正文输入 @ 即可插入设定引用。</p>
           <ul>
             <li>人物：角色身份、动机与备注</li>
             <li>地点：氛围、场景提示</li>
+            <li>组织 / 道具 / 事件：用于关系图和世界观网络</li>
             <li>概念：规则、限制与说明</li>
           </ul>
         </section>
@@ -89,7 +90,8 @@
           <p>建立设定卡之间的人物关系、组织归属、道具持有和事件参与。</p>
           <ul>
             <li>card_relations 数据表已就绪</li>
-            <li>Week 4 接入关系图和关系编辑</li>
+            <li>支持节点点击打开设定卡</li>
+            <li>支持边点击编辑关系说明</li>
           </ul>
         </section>
 
@@ -218,7 +220,11 @@
             :project-id="projectId"
         />
 
-        <RelationWorkspace v-else-if="workspaceMode === 'relations'"/>
+        <RelationWorkspace
+            v-else-if="workspaceMode === 'relations'"
+            :project-id="projectId"
+            @open-card="openRelationCard"
+        />
 
         <StatsWorkspace v-else-if="workspaceMode === 'stats'"/>
 
@@ -678,6 +684,12 @@ async function handleImportedDocument() {
 function openOutlineDocument(documentId: string) {
   documentStore.selectDocument(documentId)
   workspaceMode.value = 'writing'
+}
+
+function openRelationCard(cardId: string) {
+  const cardStore = useCardStore()
+  cardStore.selectCard(cardId)
+  workspaceMode.value = 'cards'
 }
 
 function handleOpenSearchResult(result: SearchResult) {

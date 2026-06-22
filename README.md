@@ -157,3 +157,14 @@ The outline system now has a planning board: outline nodes are grouped into Plan
 their status can be changed either by dragging cards between columns or by using quick action buttons. The board keeps
 chapter / scene links visible and can jump back to the writing workspace. A Mermaid flowchart is generated from the
 outline tree, with a readable in-app preview and a copy button for the Mermaid source text.
+
+## Phase 2 Week 4 – Setting Card Expansion & Relation Graph
+
+The setting system has been upgraded from a card list into a worldbuilding graph. Setting cards now support Character,
+Location, Organization, Item, Event, and Concept types. The backend exposes `create_card_relation`,
+`update_card_relation`, `delete_card_relation`, `list_card_relations`, and `list_card_graph` commands backed by the
+`card_relations` table.
+
+The Relationship Diagram workspace is now active: cards render as graph nodes, relations render as clickable edges,
+node type and relation type filters are available, clicking a node opens the corresponding setting card, and clicking an
+edge opens the relation editor so the relation type, direction, and description can be updated.

@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import type {SettingCard} from '~/types/card'
+import {cardTypeLabel as baseCardTypeLabel, type SettingCard} from '~/types/card'
 
 const props = defineProps<{
   card: SettingCard
@@ -56,24 +56,19 @@ const fieldEntries = computed(() => {
 })
 
 function cardTypeLabel(type: string) {
-  switch (type) {
-    case 'character':
-      return '人物设定'
-    case 'location':
-      return '地点设定'
-    case 'concept':
-      return '概念设定'
-    default:
-      return '设定卡'
-  }
+  return `${baseCardTypeLabel(type)}设定`
 }
 
+
 function fieldLabel(key: string, type: string) {
-  const labels: Record<string, string> = type === 'character'
-      ? {role: '定位', motivation: '动机', notes: '备注'}
-      : type === 'location'
-          ? {atmosphere: '氛围', notes: '备注'}
-          : {rules: '规则', limits: '限制', notes: '备注'}
-  return labels[key] ?? key
+  const labelGroups: Record<string, Record<string, string>> = {
+    character: {role: '定位', motivation: '动机', notes: '备注'},
+    location: {atmosphere: '氛围', notes: '备注'},
+    organization: {scope: '范围', goal: '目标', structure: '结构', notes: '备注'},
+    item: {owner: '持有者', power: '作用', limitations: '限制', notes: '备注'},
+    event: {time: '时间', cause: '起因', consequence: '结果', notes: '备注'},
+    concept: {rules: '规则', limits: '限制', notes: '备注'}
+  }
+  return labelGroups[type]?.[key] ?? key
 }
 </script>

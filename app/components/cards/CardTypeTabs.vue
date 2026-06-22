@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import type {CardType} from '~/types/card'
+import {type CardType, cardTypeOptions} from '~/types/card'
 
 defineProps<{
   modelValue: CardType
@@ -25,10 +25,5 @@ defineEmits<{
   'update:modelValue': [value: CardType]
 }>()
 
-const items: Array<{ value: CardType, label: string }> = [
-  {value: 'all', label: '全部'},
-  {value: 'character', label: '人物'},
-  {value: 'location', label: '地点'},
-  {value: 'concept', label: '概念'}
-]
+const items: Array<{ value: CardType, label: string }> = cardTypeOptions
 </script>

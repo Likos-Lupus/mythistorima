@@ -2,7 +2,7 @@
   <section class="card-editor-panel paper-card">
     <div v-if="!card" class="card-editor-empty">
       <h2>选择或创建一张设定卡</h2>
-      <p>创建人物、地点或概念后，可以在正文中输入 @ 快捷插入引用。</p>
+      <p>创建人物、地点、组织、道具、事件或概念后，可以在正文中输入 @ 快捷插入引用。</p>
       <button class="primary-button" type="button" @click="$emit('create')">创建设定卡</button>
     </div>
 
@@ -23,6 +23,9 @@
         <select v-model="form.type" class="form-field">
           <option value="character">人物</option>
           <option value="location">地点</option>
+          <option value="organization">组织</option>
+          <option value="item">道具</option>
+          <option value="event">事件</option>
           <option value="concept">概念</option>
         </select>
       </label>
@@ -83,7 +86,13 @@
 </template>
 
 <script lang="ts" setup>
-import type {CardFieldDefinition, CardReference, SettingCard} from '~/types/card'
+import {
+  type CardFieldDefinition,
+  type CardReference,
+  cardTypeLabel,
+  normalizeCardType,
+  type SettingCard
+} from '~/types/card'
 
 const props = defineProps<{
   card: SettingCard | null
@@ -131,23 +140,6 @@ watch(() => form.type, type => {
   }
 })
 
-function normalizeCardType(type: string) {
-  if (type === 'location' || type === 'concept') return type
-  return 'character'
-}
-
-function cardTypeLabel(type: string) {
-  switch (type) {
-    case 'character':
-      return '人物'
-    case 'location':
-      return '地点'
-    case 'concept':
-      return '概念'
-    default:
-      return '设定'
-  }
-}
 
 function definitionsForType(type: string): CardFieldDefinition[] {
   switch (type) {
@@ -155,6 +147,27 @@ function definitionsForType(type: string): CardFieldDefinition[] {
       return [
         {key: 'atmosphere', label: '氛围', placeholder: '这个地点给人的感觉、视觉特征或气味。', multiline: true},
         {key: 'notes', label: '备注', placeholder: '与剧情、角色或伏笔相关的备注。', multiline: true}
+      ]
+    case 'organization':
+      return [
+        {key: 'scope', label: '范围', placeholder: '组织影响的地域、行业、阶层或势力范围。', multiline: true},
+        {key: 'goal', label: '目标', placeholder: '组织公开或隐藏的核心目标。', multiline: true},
+        {key: 'structure', label: '结构', placeholder: '首领、派系、层级、成员关系。', multiline: true},
+        {key: 'notes', label: '备注', placeholder: '与人物、事件或地点相关的备注。', multiline: true}
+      ]
+    case 'item':
+      return [
+        {key: 'owner', label: '持有者', placeholder: '当前持有者或曾经拥有者。'},
+        {key: 'power', label: '作用', placeholder: '道具能力、象征意义或剧情用途。', multiline: true},
+        {key: 'limitations', label: '限制', placeholder: '使用条件、代价或弱点。', multiline: true},
+        {key: 'notes', label: '备注', placeholder: '出现章节、伏笔或回收安排。', multiline: true}
+      ]
+    case 'event':
+      return [
+        {key: 'time', label: '时间', placeholder: '故事内时间标，例如：三年前、月蚀夜。'},
+        {key: 'cause', label: '起因', placeholder: '事件为何发生？', multiline: true},
+        {key: 'consequence', label: '结果', placeholder: '事件造成了什么改变？', multiline: true},
+        {key: 'notes', label: '备注', placeholder: '参与者、地点、后续影响。', multiline: true}
       ]
     case 'concept':
       return [
@@ -170,6 +183,7 @@ function definitionsForType(type: string): CardFieldDefinition[] {
       ]
   }
 }
+
 
 function parseAliases(raw: string) {
   try {

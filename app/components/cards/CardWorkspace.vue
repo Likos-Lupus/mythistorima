@@ -4,7 +4,7 @@
       <div>
         <p class="card-workspace-kicker">Phase 1 Week 5</p>
         <h1>设定卡</h1>
-        <p>管理人物、地点和概念，并查看它们在正文中的 @ 引用章节。</p>
+        <p>管理人物、地点、组织、道具、事件和概念，并查看它们在正文中的 @ 引用章节。</p>
       </div>
       <button class="primary-button" type="button" @click="createCard">新建设定卡</button>
     </header>
@@ -39,7 +39,7 @@
 import CardEditor from '~/components/cards/CardEditor.vue'
 import CardList from '~/components/cards/CardList.vue'
 import CardTypeTabs from '~/components/cards/CardTypeTabs.vue'
-import type {CardType, UpdateCardInput} from '~/types/card'
+import {type CardType, defaultCardName, defaultFieldsJson, normalizeCardType, type UpdateCardInput} from '~/types/card'
 import {toAppErrorMessage} from '~/utils/appError'
 
 const props = defineProps<{
@@ -98,29 +98,7 @@ async function deleteCard(cardId: string) {
 }
 
 function defaultCreateType(type: CardType) {
-  return type === 'location' || type === 'concept' ? type : 'character'
-}
-
-function defaultCardName(type: string) {
-  switch (type) {
-    case 'location':
-      return '未命名地点'
-    case 'concept':
-      return '未命名概念'
-    default:
-      return '未命名人物'
-  }
-}
-
-function defaultFieldsJson(type: string) {
-  switch (type) {
-    case 'location':
-      return JSON.stringify({atmosphere: '', notes: ''})
-    case 'concept':
-      return JSON.stringify({rules: '', limits: '', notes: ''})
-    default:
-      return JSON.stringify({role: '', motivation: '', notes: ''})
-  }
+  return type === 'all' ? 'character' : normalizeCardType(type)
 }
 
 </script>
