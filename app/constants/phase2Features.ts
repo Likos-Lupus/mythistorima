@@ -43,7 +43,7 @@ export const phase2FeatureFlags: Phase2FeatureFlag[] = [
         status: 'foundation',
         description: '剧情节点看板与 Mermaid 预览。'
     },
-    {key: 'timeline', label: '时间线', week: 5, status: 'foundation', description: '事件顺序、参与角色和地点过滤。'},
+    {key: 'timeline', label: '时间线', week: 5, status: 'active', description: '事件顺序、参与角色和地点过滤。'},
     {key: 'relations', label: '关系图', week: 4, status: 'active', description: '设定卡关系和人物关系图。'},
     {
         key: 'foreshadowThreads',

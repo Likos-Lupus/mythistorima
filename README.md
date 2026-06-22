@@ -168,3 +168,15 @@ Location, Organization, Item, Event, and Concept types. The backend exposes `cre
 The Relationship Diagram workspace is now active: cards render as graph nodes, relations render as clickable edges,
 node type and relation type filters are available, clicking a node opens the corresponding setting card, and clicking an
 edge opens the relation editor so the relation type, direction, and description can be updated.
+
+## Phase 2 Week 5 – Timeline System
+
+The Timeline workspace is now active. The backend exposes `create_timeline_event`, `update_timeline_event`,
+`delete_timeline_event`, `list_timeline_events`, `attach_card_to_timeline_event`,
+`detach_card_from_timeline_event`, `list_timeline_event_cards`, and `reorder_timeline_event` commands backed by
+`timeline_events` and `timeline_event_cards`. Timeline events are synced into the full-text search index.
+
+Authors can create story events, set a human-readable `starts_at_label`, adjust `sort_key`, bind an event to a
+chapter / scene, assign a location card, and attach participating characters, organizations, items, events, or concepts.
+The workspace provides list and lane views, participant and location filters, quick reordering, and jumps to related
+chapters or setting cards.

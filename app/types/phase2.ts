@@ -44,6 +44,14 @@ export interface TimelineEvent {
     updatedAt: number
 }
 
+export interface TimelineEventCard {
+    id: string
+    projectId: string
+    timelineEventId: string
+    cardId: string
+    role: string
+}
+
 export interface ForeshadowThread {
     id: string
     projectId: string

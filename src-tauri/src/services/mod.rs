@@ -10,3 +10,4 @@ pub mod relation_service;
 pub mod search_service;
 pub mod settings_service;
 pub mod stats_service;
+pub mod timeline_service;

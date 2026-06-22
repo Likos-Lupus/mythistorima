@@ -43,3 +43,34 @@ pub struct TimelineEventInput {
     pub location_card_id: Option<String>,
     pub metadata_json: Option<String>,
 }
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateTimelineEventInput {
+    pub timeline_event_id: String,
+    pub linked_card_id: Option<Option<String>>,
+    pub linked_document_id: Option<Option<String>>,
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub starts_at_label: Option<Option<String>>,
+    pub ends_at_label: Option<Option<String>>,
+    pub sort_key: Option<i64>,
+    pub location_card_id: Option<Option<String>>,
+    pub metadata_json: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachTimelineEventCardInput {
+    pub project_id: String,
+    pub timeline_event_id: String,
+    pub card_id: String,
+    pub role: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReorderTimelineEventInput {
+    pub timeline_event_id: String,
+    pub sort_key: i64,
+}

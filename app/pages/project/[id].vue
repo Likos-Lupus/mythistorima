@@ -69,8 +69,9 @@
           <h2>时间线</h2>
           <p>管理故事事件顺序、参与角色和地点过滤。</p>
           <ul>
-            <li>timeline_events 数据表已就绪</li>
-            <li>timeline_event_cards 参与者表已就绪</li>
+            <li>创建、编辑、删除时间线事件</li>
+            <li>绑定章节、地点与参与设定</li>
+            <li>按人物 / 地点筛选角色经历</li>
           </ul>
         </section>
 
@@ -213,7 +214,13 @@
             @open-document="openOutlineDocument"
         />
 
-        <TimelineWorkspace v-else-if="workspaceMode === 'timeline'"/>
+        <TimelineWorkspace
+            v-else-if="workspaceMode === 'timeline'"
+            :documents="documentStore.documents"
+            :project-id="projectId"
+            @open-card="openTimelineCard"
+            @open-document="openOutlineDocument"
+        />
 
         <CardWorkspace
             v-else-if="workspaceMode === 'cards'"
@@ -686,6 +693,13 @@ function openOutlineDocument(documentId: string) {
   workspaceMode.value = 'writing'
 }
 
+
+function openTimelineCard(cardId: string) {
+  const cardStore = useCardStore()
+  cardStore.selectCard(cardId)
+  workspaceMode.value = 'cards'
+}
+
 function openRelationCard(cardId: string) {
   const cardStore = useCardStore()
   cardStore.selectCard(cardId)
@@ -708,6 +722,12 @@ function handleOpenSearchResult(result: SearchResult) {
     workspaceMode.value = 'outline'
     const outlineStore = useOutlineStore()
     void outlineStore.loadOutlineNodes(projectId.value).then(() => outlineStore.selectOutlineNode(result.targetId))
+    return
+  }
+  if (result.targetType === 'timeline') {
+    workspaceMode.value = 'timeline'
+    const timelineStore = useTimelineStore()
+    void timelineStore.loadTimeline(projectId.value).then(() => timelineStore.selectEvent(result.targetId))
     return
   }
   workspaceMode.value = 'writing'
