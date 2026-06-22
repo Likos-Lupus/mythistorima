@@ -35,7 +35,7 @@ export interface Phase2WorkspaceNavGroup {
 }
 
 export const phase2FeatureFlags: Phase2FeatureFlag[] = [
-    {key: 'outline', label: '大纲系统', week: 2, status: 'foundation', description: '大纲树、章节绑定和剧情节点。'},
+    {key: 'outline', label: '大纲系统', week: 2, status: 'active', description: '大纲树、章节绑定和剧情节点。'},
     {
         key: 'outlineBoard',
         label: '大纲看板',

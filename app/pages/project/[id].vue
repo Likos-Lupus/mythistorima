@@ -47,11 +47,11 @@
 
         <section v-else-if="workspaceMode === 'outline'" class="card-sidebar-summary">
           <h2>大纲</h2>
-          <p>规划剧情节点、冲突、转折、支线和主题，并准备在 Week 2 绑定章节。</p>
+          <p>规划剧情节点、冲突、转折、支线和主题，并绑定到章节或场景。</p>
           <ul>
             <li>outline_nodes 数据表已就绪</li>
             <li>支持剧情、冲突、转折等节点类型</li>
-            <li>后续将接入大纲树 CRUD</li>
+            <li>可绑定章节或场景并快速跳转</li>
           </ul>
         </section>
 
@@ -196,7 +196,12 @@
           </section>
         </template>
 
-        <OutlineWorkspace v-else-if="workspaceMode === 'outline'"/>
+        <OutlineWorkspace
+            v-else-if="workspaceMode === 'outline'"
+            :documents="documentStore.documents"
+            :project-id="projectId"
+            @open-document="openOutlineDocument"
+        />
 
         <OutlineBoardWorkspace v-else-if="workspaceMode === 'board'"/>
 
@@ -664,6 +669,11 @@ async function handleImportedDocument() {
   await refreshStats()
 }
 
+function openOutlineDocument(documentId: string) {
+  documentStore.selectDocument(documentId)
+  workspaceMode.value = 'writing'
+}
+
 function handleOpenSearchResult(result: SearchResult) {
   if (result.targetType === 'card') {
     workspaceMode.value = 'cards'
@@ -674,6 +684,12 @@ function handleOpenSearchResult(result: SearchResult) {
   if (result.targetType === 'note') {
     workspaceMode.value = 'notes'
     noteStore.selectNote(result.targetId)
+    return
+  }
+  if (result.targetType === 'outline') {
+    workspaceMode.value = 'outline'
+    const outlineStore = useOutlineStore()
+    void outlineStore.loadOutlineNodes(projectId.value).then(() => outlineStore.selectOutlineNode(result.targetId))
     return
   }
   workspaceMode.value = 'writing'

@@ -143,3 +143,10 @@ The data baseline and workspace skeleton for Phase 2 have been integrated:
 - The search index rebuild has reserved scope for the new Phase 2 objects.
 
 In the following Week 2, concrete interactions will be implemented starting with outline tree and chapter binding.
+
+## Phase 2 Week 2 – Outline Tree & Chapter Binding
+
+The first version of the independent outline system is complete: it supports Plot, Conflict, Twist, Event, Subplot,
+Theme, and Note node types; multi-level trees, status filtering, move up/down, and summary editing are available. Nodes
+can be bound to chapters or scenes and then jump to the writing workspace. Outline nodes are synced into the search
+index.
