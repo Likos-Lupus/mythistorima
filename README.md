@@ -130,3 +130,16 @@ The following remain intentionally out of Phase 1 and should be handled in Phase
 - Advanced proofreading rules.
 - Cloud sync, collaboration and project encryption.
 - Plugin system.
+
+## Phase 2 Week 1
+
+The data baseline and workspace skeleton for Phase 2 have been integrated:
+
+- `MIGRATION_0003` creates tables related to outlines, relationship diagrams, timelines, foreshadowing threads,
+  character appearance statistics, export templates, and proofreading rules.
+- The project page navigation has been upgraded to the grouping "Writing / Materials / Review / Output".
+- Placeholder entries are now provided for the Outline, Kanban, Timeline, Relationship Diagram, Statistics,
+  Foreshadowing, and Proofreading workspaces.
+- The search index rebuild has reserved scope for the new Phase 2 objects.
+
+In the following Week 2, concrete interactions will be implemented starting with outline tree and chapter binding.

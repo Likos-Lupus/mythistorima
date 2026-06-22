@@ -2197,3 +2197,98 @@ body[data-theme="dark"] .error-banner {
         justify-content: flex-start;
     }
 }
+
+/* Phase 2 foundation workspace navigation and placeholders */
+.phase2-workspace-nav {
+    align-items: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.workspace-mode-group {
+    border: 1px solid rgba(94, 68, 42, 0.14);
+    border-radius: 18px;
+    background: rgba(255, 250, 240, 0.42);
+    padding: 0.7rem;
+}
+
+.workspace-mode-group h3 {
+    margin: 0 0 0.5rem;
+    color: var(--paper-muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+}
+
+.phase2-placeholder {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.25rem;
+    overflow: auto;
+}
+
+.phase2-placeholder-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--line-soft);
+    padding-bottom: 1rem;
+}
+
+.phase2-placeholder-header h2 {
+    margin: 0.15rem 0 0.4rem;
+    color: var(--paper-text);
+    font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+}
+
+.phase2-placeholder-header p {
+    max-width: 58rem;
+    margin: 0;
+    color: var(--paper-muted);
+    line-height: 1.75;
+}
+
+.phase2-status-pill {
+    flex: 0 0 auto;
+    border: 1px solid rgba(109, 67, 37, 0.22);
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.42rem 0.8rem;
+    font-size: 0.82rem;
+    font-weight: 900;
+    white-space: nowrap;
+}
+
+.phase2-placeholder-body {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.phase2-placeholder-card {
+    border: 1px solid var(--line-soft);
+    border-radius: 22px;
+    background: rgba(255, 250, 240, 0.68);
+    padding: 1.1rem;
+}
+
+.phase2-placeholder-card h3 {
+    margin: 0 0 0.55rem;
+    color: var(--paper-text);
+}
+
+.phase2-placeholder-card p,
+.phase2-placeholder-card li {
+    color: var(--paper-muted);
+    line-height: 1.7;
+}
+
+.phase2-placeholder-card ul {
+    margin: 0;
+    padding-left: 1.15rem;
+}

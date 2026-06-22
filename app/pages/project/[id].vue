@@ -1,62 +1,26 @@
 <template>
   <AppShell
       :status="topbarStatus"
-      :subtitle="activeDocument?.title || '小说工作台 MVP'"
+      :subtitle="activeDocument?.title || '长篇创作工作台'"
       :title="projectStore.currentProject?.title || 'Mythistorima'"
       @home="router.push('/')"
   >
     <div :class="{ 'is-focus-mode': focusMode }" class="workspace-layout">
       <aside class="workspace-sidebar app-sidebar glass-panel" data-phase1-area="workspace-sidebar">
-        <nav aria-label="项目工作区" class="workspace-mode-switch">
-          <button
-              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'dashboard' }]"
-              type="button"
-              @click="workspaceMode = 'dashboard'"
-          >
-            概览
-          </button>
-          <button
-              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'writing' }]"
-              type="button"
-              @click="workspaceMode = 'writing'"
-          >
-            写作
-          </button>
-          <button
-              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'cards' }]"
-              type="button"
-              @click="workspaceMode = 'cards'"
-          >
-            设定
-          </button>
-          <button
-              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'notes' }]"
-              type="button"
-              @click="workspaceMode = 'notes'"
-          >
-            事项
-          </button>
-          <button
-              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'search' }]"
-              type="button"
-              @click="workspaceMode = 'search'"
-          >
-            搜索
-          </button>
-          <button
-              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'export' }]"
-              type="button"
-              @click="workspaceMode = 'export'"
-          >
-            导出
-          </button>
-          <button
-              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'settings' }]"
-              type="button"
-              @click="workspaceMode = 'settings'"
-          >
-            设置
-          </button>
+        <nav aria-label="项目工作区" class="workspace-mode-switch phase2-workspace-nav">
+          <section v-for="group in phase2WorkspaceGroups" :key="group.label" class="workspace-mode-group">
+            <h3>{{ group.label }}</h3>
+            <button
+                v-for="item in group.items"
+                :key="item.mode"
+                :class="['workspace-mode-button', { 'is-active': workspaceMode === item.mode }]"
+                :title="item.description"
+                type="button"
+                @click="workspaceMode = item.mode"
+            >
+              {{ item.label }}
+            </button>
+          </section>
         </nav>
 
         <section v-if="workspaceMode === 'dashboard'" class="card-sidebar-summary">
@@ -81,6 +45,34 @@
             @update-status="updateDocumentStatus"
         />
 
+        <section v-else-if="workspaceMode === 'outline'" class="card-sidebar-summary">
+          <h2>大纲</h2>
+          <p>规划剧情节点、冲突、转折、支线和主题，并准备在 Week 2 绑定章节。</p>
+          <ul>
+            <li>outline_nodes 数据表已就绪</li>
+            <li>支持剧情、冲突、转折等节点类型</li>
+            <li>后续将接入大纲树 CRUD</li>
+          </ul>
+        </section>
+
+        <section v-else-if="workspaceMode === 'board'" class="card-sidebar-summary">
+          <h2>看板</h2>
+          <p>以 planned / drafting / done 管理大纲节点状态，并准备 Mermaid 视图。</p>
+          <ul>
+            <li>Week 3 接入大纲看板</li>
+            <li>支持 Mermaid 预览占位</li>
+          </ul>
+        </section>
+
+        <section v-else-if="workspaceMode === 'timeline'" class="card-sidebar-summary">
+          <h2>时间线</h2>
+          <p>管理故事事件顺序、参与角色和地点过滤。</p>
+          <ul>
+            <li>timeline_events 数据表已就绪</li>
+            <li>timeline_event_cards 参与者表已就绪</li>
+          </ul>
+        </section>
+
         <section v-else-if="workspaceMode === 'cards'" class="card-sidebar-summary">
           <h2>设定卡</h2>
           <p>管理人物、地点、概念；在正文输入 @ 即可插入设定引用。</p>
@@ -91,6 +83,24 @@
           </ul>
         </section>
 
+        <section v-else-if="workspaceMode === 'relations'" class="card-sidebar-summary">
+          <h2>关系图</h2>
+          <p>建立设定卡之间的人物关系、组织归属、道具持有和事件参与。</p>
+          <ul>
+            <li>card_relations 数据表已就绪</li>
+            <li>Week 4 接入关系图和关系编辑</li>
+          </ul>
+        </section>
+
+        <section v-else-if="workspaceMode === 'stats'" class="card-sidebar-summary">
+          <h2>统计</h2>
+          <p>追踪角色出场、章节矩阵和长篇结构统计。</p>
+          <ul>
+            <li>appearance_stats 缓存表已就绪</li>
+            <li>Week 6 接入出场统计</li>
+          </ul>
+        </section>
+
         <section v-else-if="workspaceMode === 'notes'" class="card-sidebar-summary">
           <h2>创作事项</h2>
           <p>管理备忘、待办、伏笔、问题和灵感。</p>
@@ -98,6 +108,24 @@
             <li>项目级：全局待办和灵感</li>
             <li>章节级：本章修订事项</li>
             <li>段落级：伏笔与情节提示</li>
+          </ul>
+        </section>
+
+        <section v-else-if="workspaceMode === 'foreshadow'" class="card-sidebar-summary">
+          <h2>伏笔线程</h2>
+          <p>把 Phase 1 的伏笔事项升级为提出 / 回收 / 状态追踪。</p>
+          <ul>
+            <li>foreshadow_threads 数据表已就绪</li>
+            <li>Week 6 接入伏笔线程工作流</li>
+          </ul>
+        </section>
+
+        <section v-else-if="workspaceMode === 'proofreading'" class="card-sidebar-summary">
+          <h2>校对</h2>
+          <p>本地规则检查重复词、标点、超长句、敏感词和名称一致性。</p>
+          <ul>
+            <li>proofreading_rules 数据表已就绪</li>
+            <li>内置基础规则种子已准备</li>
           </ul>
         </section>
 
@@ -168,16 +196,30 @@
           </section>
         </template>
 
+        <OutlineWorkspace v-else-if="workspaceMode === 'outline'"/>
+
+        <OutlineBoardWorkspace v-else-if="workspaceMode === 'board'"/>
+
+        <TimelineWorkspace v-else-if="workspaceMode === 'timeline'"/>
+
         <CardWorkspace
             v-else-if="workspaceMode === 'cards'"
             :project-id="projectId"
         />
+
+        <RelationWorkspace v-else-if="workspaceMode === 'relations'"/>
+
+        <StatsWorkspace v-else-if="workspaceMode === 'stats'"/>
 
         <NoteWorkspace
             v-else-if="workspaceMode === 'notes'"
             :active-document-id="documentStore.activeDocumentId"
             :project-id="projectId"
         />
+
+        <ForeshadowWorkspace v-else-if="workspaceMode === 'foreshadow'"/>
+
+        <ProofreadingWorkspace v-else-if="workspaceMode === 'proofreading'"/>
 
         <SearchWorkspace
             v-else-if="workspaceMode === 'search'"
@@ -197,8 +239,8 @@
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 1 MVP</h2>
-          <p class="status-panel-subtitle">项目、写作、设定、事项、搜索、导出、备份与设置已完成闭环。</p>
+          <h2 class="status-panel-title">Phase 2 Foundation</h2>
+          <p class="status-panel-subtitle">长篇增强版数据基线、导航分组和高级工作区入口已接入。</p>
         </div>
 
         <dl class="status-list">
@@ -372,6 +414,14 @@ import NoteWorkspace from '~/components/notes/NoteWorkspace.vue'
 import SearchWorkspace from '~/components/search/SearchWorkspace.vue'
 import ExportWorkspace from '~/components/export/ExportWorkspace.vue'
 import SettingsWorkspace from '~/components/settings/SettingsWorkspace.vue'
+import OutlineWorkspace from '~/components/outline/OutlineWorkspace.vue'
+import OutlineBoardWorkspace from '~/components/outline/OutlineBoardWorkspace.vue'
+import TimelineWorkspace from '~/components/timeline/TimelineWorkspace.vue'
+import RelationWorkspace from '~/components/relations/RelationWorkspace.vue'
+import ForeshadowWorkspace from '~/components/foreshadow/ForeshadowWorkspace.vue'
+import StatsWorkspace from '~/components/stats/StatsWorkspace.vue'
+import ProofreadingWorkspace from '~/components/proofreading/ProofreadingWorkspace.vue'
+import {phase2WorkspaceGroups, type Phase2WorkspaceMode} from '~/constants/phase2Features'
 import {toAppErrorMessage} from '~/utils/appError'
 import type {ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
@@ -397,7 +447,7 @@ const projectStats = ref<ProjectStats | null>(null)
 const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
 const focusMode = ref(false)
-const workspaceMode = ref<'dashboard' | 'writing' | 'cards' | 'notes' | 'search' | 'export' | 'settings'>('writing')
+const workspaceMode = ref<Phase2WorkspaceMode>('writing')
 const targetDraft = ref<number | null>(null)
 const currentDocumentNotes = ref<CreativeNote[]>([])
 const projectSaving = ref(false)

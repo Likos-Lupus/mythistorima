@@ -3,6 +3,7 @@ use sqlx::{Row, SqlitePool};
 
 const MIGRATION_0001_NAME: &str = "phase0_initial_local_writing_loop";
 const MIGRATION_0002_NAME: &str = "phase1_workspace_foundation";
+const MIGRATION_0003_NAME: &str = "phase2_advanced_authoring_foundation";
 
 const MIGRATION_0001_STATEMENTS: &[&str] = &[
     r#"
@@ -262,6 +263,221 @@ USING fts5(
     "#,
 ];
 
+const MIGRATION_0003_STATEMENTS: &[&str] = &[
+    r#"
+CREATE TABLE IF NOT EXISTS outline_nodes (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  parent_id TEXT,
+  linked_document_id TEXT,
+  title TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'plot',
+  summary TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'planned',
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (parent_id) REFERENCES outline_nodes(id) ON DELETE CASCADE,
+  FOREIGN KEY (linked_document_id) REFERENCES documents(id) ON DELETE SET NULL
+)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_outline_nodes_project_id
+ON outline_nodes(project_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_outline_nodes_parent_id
+ON outline_nodes(parent_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_outline_nodes_linked_document_id
+ON outline_nodes(linked_document_id)
+    "#,
+    r#"
+CREATE TABLE IF NOT EXISTS card_relations (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  source_card_id TEXT NOT NULL,
+  target_card_id TEXT NOT NULL,
+  relation_type TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  direction TEXT NOT NULL DEFAULT 'directed',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (source_card_id) REFERENCES cards(id) ON DELETE CASCADE,
+  FOREIGN KEY (target_card_id) REFERENCES cards(id) ON DELETE CASCADE
+)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_card_relations_project_id
+ON card_relations(project_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_card_relations_source
+ON card_relations(source_card_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_card_relations_target
+ON card_relations(target_card_id)
+    "#,
+    r#"
+CREATE TABLE IF NOT EXISTS timeline_events (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  linked_card_id TEXT,
+  linked_document_id TEXT,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  starts_at_label TEXT,
+  ends_at_label TEXT,
+  sort_key INTEGER NOT NULL DEFAULT 0,
+  location_card_id TEXT,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (linked_card_id) REFERENCES cards(id) ON DELETE SET NULL,
+  FOREIGN KEY (linked_document_id) REFERENCES documents(id) ON DELETE SET NULL,
+  FOREIGN KEY (location_card_id) REFERENCES cards(id) ON DELETE SET NULL
+)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_timeline_events_project_id
+ON timeline_events(project_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_timeline_events_sort_key
+ON timeline_events(project_id, sort_key)
+    "#,
+    r#"
+CREATE TABLE IF NOT EXISTS timeline_event_cards (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  timeline_event_id TEXT NOT NULL,
+  card_id TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'participant',
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (timeline_event_id) REFERENCES timeline_events(id) ON DELETE CASCADE,
+  FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_timeline_event_cards_event
+ON timeline_event_cards(timeline_event_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_timeline_event_cards_card
+ON timeline_event_cards(card_id)
+    "#,
+    r#"
+CREATE TABLE IF NOT EXISTS foreshadow_threads (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'open',
+  setup_note_id TEXT,
+  payoff_note_id TEXT,
+  setup_document_id TEXT,
+  payoff_document_id TEXT,
+  priority TEXT NOT NULL DEFAULT 'normal',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (setup_note_id) REFERENCES notes(id) ON DELETE SET NULL,
+  FOREIGN KEY (payoff_note_id) REFERENCES notes(id) ON DELETE SET NULL,
+  FOREIGN KEY (setup_document_id) REFERENCES documents(id) ON DELETE SET NULL,
+  FOREIGN KEY (payoff_document_id) REFERENCES documents(id) ON DELETE SET NULL
+)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_foreshadow_threads_project_id
+ON foreshadow_threads(project_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_foreshadow_threads_status
+ON foreshadow_threads(project_id, status)
+    "#,
+    r#"
+CREATE TABLE IF NOT EXISTS appearance_stats (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  document_id TEXT NOT NULL,
+  card_id TEXT NOT NULL,
+  mention_count INTEGER NOT NULL DEFAULT 0,
+  first_seen_position INTEGER,
+  updated_at INTEGER NOT NULL,
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+  FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
+)
+    "#,
+    r#"
+CREATE UNIQUE INDEX IF NOT EXISTS idx_appearance_stats_unique
+ON appearance_stats(document_id, card_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_appearance_stats_project_card
+ON appearance_stats(project_id, card_id)
+    "#,
+    r#"
+CREATE TABLE IF NOT EXISTS export_templates (
+  id TEXT PRIMARY KEY,
+  project_id TEXT,
+  name TEXT NOT NULL,
+  format TEXT NOT NULL,
+  config_json TEXT NOT NULL DEFAULT '{}',
+  is_builtin INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_export_templates_project_id
+ON export_templates(project_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_export_templates_format
+ON export_templates(format)
+    "#,
+    r#"
+CREATE TABLE IF NOT EXISTS proofreading_rules (
+  id TEXT PRIMARY KEY,
+  project_id TEXT,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  pattern TEXT,
+  config_json TEXT NOT NULL DEFAULT '{}',
+  severity TEXT NOT NULL DEFAULT 'warning',
+  enabled INTEGER NOT NULL DEFAULT 1,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_proofreading_rules_project_id
+ON proofreading_rules(project_id)
+    "#,
+    r#"
+CREATE INDEX IF NOT EXISTS idx_proofreading_rules_type
+ON proofreading_rules(project_id, type)
+    "#,
+];
+
 pub async fn run_migrations(pool: &SqlitePool) -> anyhow::Result<()> {
     sqlx::query("PRAGMA foreign_keys = ON")
         .execute(pool)
@@ -277,6 +493,11 @@ pub async fn run_migrations(pool: &SqlitePool) -> anyhow::Result<()> {
     if !is_migration_applied(pool, 2).await? {
         run_migration_0002(pool).await?;
         record_migration(pool, 2, MIGRATION_0002_NAME).await?;
+    }
+
+    if !is_migration_applied(pool, 3).await? {
+        run_migration_0003(pool).await?;
+        record_migration(pool, 3, MIGRATION_0003_NAME).await?;
     }
 
     Ok(())
@@ -383,6 +604,12 @@ async fn run_migration_0002(pool: &SqlitePool) -> anyhow::Result<()> {
     Ok(())
 }
 
+async fn run_migration_0003(pool: &SqlitePool) -> anyhow::Result<()> {
+    execute_statements(pool, MIGRATION_0003_STATEMENTS).await?;
+    seed_phase2_defaults(pool).await?;
+    Ok(())
+}
+
 async fn add_column_if_missing(
     pool: &SqlitePool,
     table_info_sql: &'static str,
@@ -465,6 +692,97 @@ async fn seed_default_settings(pool: &SqlitePool) -> anyhow::Result<()> {
         )
         .bind(key)
         .bind(value_json)
+        .bind(now)
+        .execute(pool)
+        .await?;
+    }
+
+    Ok(())
+}
+
+async fn seed_phase2_defaults(pool: &SqlitePool) -> anyhow::Result<()> {
+    let now = now_ms();
+    let templates = [
+        (
+            "builtin_txt_submission",
+            "投稿 TXT 模板",
+            "txt",
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"paragraphSeparator":"\n\n"}"#,
+        ),
+        (
+            "builtin_html_review",
+            "审稿 HTML 模板",
+            "html",
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"fontFamily":"serif","lineHeight":1.8}"#,
+        ),
+        (
+            "builtin_pixiv_basic",
+            "Pixiv 基础模板",
+            "pixiv",
+            r#"{"includeTitle":true,"includeChapterTitle":true,"paragraphSeparator":"\n\n","pixivRuby":false}"#,
+        ),
+    ];
+
+    for (id, name, format, config_json) in templates {
+        sqlx::query(
+            r#"
+            INSERT OR IGNORE INTO export_templates
+              (id, project_id, name, format, config_json, is_builtin, created_at, updated_at)
+            VALUES (?1, NULL, ?2, ?3, ?4, 1, ?5, ?6)
+            "#,
+        )
+        .bind(id)
+        .bind(name)
+        .bind(format)
+        .bind(config_json)
+        .bind(now)
+        .bind(now)
+        .execute(pool)
+        .await?;
+    }
+
+    let rules = [
+        (
+            "builtin_duplicate_word",
+            "重复词检查",
+            "duplicate_word",
+            None::<&str>,
+            r#"{"maxRepeat":2}"#,
+            "warning",
+        ),
+        (
+            "builtin_long_sentence",
+            "超长句检查",
+            "long_sentence",
+            None::<&str>,
+            r#"{"maxCharacters":120}"#,
+            "info",
+        ),
+        (
+            "builtin_long_paragraph",
+            "超长段落检查",
+            "long_paragraph",
+            None::<&str>,
+            r#"{"maxCharacters":500}"#,
+            "info",
+        ),
+    ];
+
+    for (id, name, rule_type, pattern, config_json, severity) in rules {
+        sqlx::query(
+            r#"
+            INSERT OR IGNORE INTO proofreading_rules
+              (id, project_id, name, type, pattern, config_json, severity, enabled, created_at, updated_at)
+            VALUES (?1, NULL, ?2, ?3, ?4, ?5, ?6, 1, ?7, ?8)
+            "#,
+        )
+        .bind(id)
+        .bind(name)
+        .bind(rule_type)
+        .bind(pattern)
+        .bind(config_json)
+        .bind(severity)
+        .bind(now)
         .bind(now)
         .execute(pool)
         .await?;

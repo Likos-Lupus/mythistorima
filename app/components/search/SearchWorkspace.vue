@@ -61,7 +61,12 @@ const scopeOptions: Array<{ label: string; value: SearchScope }> = [
   {label: '全部', value: 'all'},
   {label: '正文', value: 'documents'},
   {label: '设定', value: 'cards'},
-  {label: '事项', value: 'notes'}
+  {label: '事项', value: 'notes'},
+  {label: '大纲', value: 'outline'},
+  {label: '时间线', value: 'timeline'},
+  {label: '伏笔', value: 'foreshadow'},
+  {label: '校对', value: 'proofreading'},
+  {label: '导出模板', value: 'exportTemplates'}
 ]
 
 async function runSearch() {
@@ -98,6 +103,16 @@ function targetTypeLabel(type: string) {
       return '设定'
     case 'note':
       return '事项'
+    case 'outline':
+      return '大纲'
+    case 'timeline':
+      return '时间线'
+    case 'foreshadow':
+      return '伏笔'
+    case 'proofreadingRule':
+      return '校对规则'
+    case 'exportTemplate':
+      return '导出模板'
     case 'volume':
       return '卷'
     case 'scene':

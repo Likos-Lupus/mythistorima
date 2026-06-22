@@ -1,4 +1,13 @@
-export type SearchScope = 'all' | 'documents' | 'cards' | 'notes'
+export type SearchScope =
+    'all'
+    | 'documents'
+    | 'cards'
+    | 'notes'
+    | 'outline'
+    | 'timeline'
+    | 'foreshadow'
+    | 'proofreading'
+    | 'exportTemplates'
 
 export interface SearchResult {
     targetType: string
