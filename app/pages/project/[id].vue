@@ -57,10 +57,11 @@
 
         <section v-else-if="workspaceMode === 'board'" class="card-sidebar-summary">
           <h2>看板</h2>
-          <p>以 planned / drafting / done 管理大纲节点状态，并准备 Mermaid 视图。</p>
+          <p>以 planned / drafting / done 管理大纲节点状态，并生成 Mermaid 剧情流程图。</p>
           <ul>
-            <li>Week 3 接入大纲看板</li>
-            <li>支持 Mermaid 预览占位</li>
+            <li>拖动卡片切换剧情状态</li>
+            <li>一键复制 Mermaid flowchart 文本</li>
+            <li>预览剧情节点和章节绑定关系</li>
           </ul>
         </section>
 
@@ -203,7 +204,12 @@
             @open-document="openOutlineDocument"
         />
 
-        <OutlineBoardWorkspace v-else-if="workspaceMode === 'board'"/>
+        <OutlineBoardWorkspace
+            v-else-if="workspaceMode === 'board'"
+            :documents="documentStore.documents"
+            :project-id="projectId"
+            @open-document="openOutlineDocument"
+        />
 
         <TimelineWorkspace v-else-if="workspaceMode === 'timeline'"/>
 

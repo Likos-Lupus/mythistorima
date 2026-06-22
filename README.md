@@ -150,3 +150,10 @@ The first version of the independent outline system is complete: it supports Plo
 Theme, and Note node types; multi-level trees, status filtering, move up/down, and summary editing are available. Nodes
 can be bound to chapters or scenes and then jump to the writing workspace. Outline nodes are synced into the search
 index.
+
+## Phase 2 Week 3 – Outline Board & Mermaid View
+
+The outline system now has a planning board: outline nodes are grouped into Planned, Drafting, and Done columns, and
+their status can be changed either by dragging cards between columns or by using quick action buttons. The board keeps
+chapter / scene links visible and can jump back to the writing workspace. A Mermaid flowchart is generated from the
+outline tree, with a readable in-app preview and a copy button for the Mermaid source text.
