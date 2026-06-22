@@ -9,6 +9,13 @@
       <aside class="workspace-sidebar app-sidebar glass-panel" data-phase1-area="workspace-sidebar">
         <nav aria-label="项目工作区" class="workspace-mode-switch">
           <button
+              :class="['workspace-mode-button', { 'is-active': workspaceMode === 'dashboard' }]"
+              type="button"
+              @click="workspaceMode = 'dashboard'"
+          >
+            概览
+          </button>
+          <button
               :class="['workspace-mode-button', { 'is-active': workspaceMode === 'writing' }]"
               type="button"
               @click="workspaceMode = 'writing'"
@@ -52,8 +59,18 @@
           </button>
         </nav>
 
+        <section v-if="workspaceMode === 'dashboard'" class="card-sidebar-summary">
+          <h2>项目概览</h2>
+          <p>编辑作品信息、查看进度、创建备份，并快速进入各个工作区。</p>
+          <ul>
+            <li>作品标题、作者和简介</li>
+            <li>项目 / 每日目标字数</li>
+            <li>最近备份与快速入口</li>
+          </ul>
+        </section>
+
         <DocumentTree
-            v-if="workspaceMode === 'writing'"
+            v-else-if="workspaceMode === 'writing'"
             :active-document-id="documentStore.activeDocumentId"
             :items="documentStore.documentTree"
             @select="selectDocument"
@@ -116,7 +133,19 @@
       </aside>
 
       <main class="workspace-editor workspace-editor-host" data-phase1-area="main-workspace-host">
-        <template v-if="workspaceMode === 'writing'">
+        <ProjectDashboard
+            v-if="workspaceMode === 'dashboard' && projectStore.currentProject"
+            :backups="exportStore.backups"
+            :project="projectStore.currentProject"
+            :saving="projectSaving"
+            :stats="projectStats"
+            @backup="createManualBackup"
+            @delete-project="deleteCurrentProject"
+            @open-mode="workspaceMode = $event"
+            @update-project="updateProjectInfo"
+        />
+
+        <template v-else-if="workspaceMode === 'writing'">
           <EditorFocusOverlay v-if="focusMode" @exit="toggleFocusMode"/>
 
           <NovelEditor
@@ -168,8 +197,8 @@
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
         <div>
-          <h2 class="status-panel-title">Phase 1 Week 8</h2>
-          <p class="status-panel-subtitle">主题、设置、i18n、空状态和稳定性收尾已接入。</p>
+          <h2 class="status-panel-title">Phase 1 MVP</h2>
+          <p class="status-panel-subtitle">项目、写作、设定、事项、搜索、导出、备份与设置已完成闭环。</p>
         </div>
 
         <dl class="status-list">
@@ -335,6 +364,7 @@
 <script lang="ts" setup>
 import AppShell from '~/components/layout/AppShell.vue'
 import DocumentTree from '~/components/project/DocumentTree.vue'
+import ProjectDashboard from '~/components/project/ProjectDashboard.vue'
 import NovelEditor from '~/components/editor/NovelEditor.vue'
 import EditorFocusOverlay from '~/components/editor/EditorFocusOverlay.vue'
 import CardWorkspace from '~/components/cards/CardWorkspace.vue'
@@ -346,6 +376,7 @@ import {toAppErrorMessage} from '~/utils/appError'
 import type {ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
 import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
+import type {UpdateProjectInput} from '~/types/project'
 import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
 import type {CreativeNote, EditorParagraphNoteRequest, NoteType} from '~/types/note'
 import type {SearchResult} from '~/types/search'
@@ -366,9 +397,11 @@ const projectStats = ref<ProjectStats | null>(null)
 const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
 const focusMode = ref(false)
-const workspaceMode = ref<'writing' | 'cards' | 'notes' | 'search' | 'export' | 'settings'>('writing')
+const workspaceMode = ref<'dashboard' | 'writing' | 'cards' | 'notes' | 'search' | 'export' | 'settings'>('writing')
 const targetDraft = ref<number | null>(null)
 const currentDocumentNotes = ref<CreativeNote[]>([])
+const projectSaving = ref(false)
+let backupInterval: ReturnType<typeof setInterval> | null = null
 
 const editorSnapshot = reactive({
   saveState: 'idle' as SaveState,
@@ -417,9 +450,11 @@ const themeLabel = computed(() => {
 
 onMounted(async () => {
   await loadProjectWorkspace()
+  startBackupInterval()
 })
 
 onBeforeUnmount(() => {
+  stopBackupInterval()
   timerStore.finishSession()
 })
 
@@ -522,6 +557,55 @@ async function createStartupBackup() {
     await exportStore.listBackups(projectId.value)
   } catch (error) {
     console.warn('[backup] startup backup failed', error)
+  }
+}
+
+function startBackupInterval() {
+  stopBackupInterval()
+  backupInterval = setInterval(() => {
+    void exportStore.createBackup(projectId.value)
+        .then(() => exportStore.listBackups(projectId.value))
+        .catch(error => console.warn('[backup] scheduled backup failed', error))
+  }, 15 * 60 * 1000)
+}
+
+function stopBackupInterval() {
+  if (backupInterval) {
+    clearInterval(backupInterval)
+    backupInterval = null
+  }
+}
+
+async function createManualBackup() {
+  pageError.value = null
+  try {
+    await exportStore.createBackup(projectId.value)
+    await exportStore.listBackups(projectId.value)
+  } catch (error) {
+    pageError.value = toAppErrorMessage(error, '创建备份失败')
+  }
+}
+
+async function updateProjectInfo(input: UpdateProjectInput) {
+  projectSaving.value = true
+  pageError.value = null
+  try {
+    await projectStore.updateProject(input)
+    await projectStore.loadProjects()
+  } catch (error) {
+    pageError.value = toAppErrorMessage(error, '保存项目信息失败')
+  } finally {
+    projectSaving.value = false
+  }
+}
+
+async function deleteCurrentProject() {
+  pageError.value = null
+  try {
+    await projectStore.deleteProject(projectId.value)
+    await router.push('/')
+  } catch (error) {
+    pageError.value = toAppErrorMessage(error, '删除项目失败')
   }
 }
 

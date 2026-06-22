@@ -4,7 +4,7 @@
       <div class="mb-5 flex items-start justify-between gap-4">
         <div>
           <h2 class="text-2xl font-bold">新建小说项目</h2>
-          <p class="mt-1 text-sm text-muted-paper">Phase 0 会自动为项目创建“第一章”。</p>
+          <p class="mt-1 text-sm text-muted-paper">Phase 1 会自动创建“第一章”，之后可继续扩展卷、章和场景。</p>
         </div>
         <button class="rounded-full px-3 py-1 text-lg hover:bg-(--accent-soft)" type="button"
                 @click="$emit('close')">×

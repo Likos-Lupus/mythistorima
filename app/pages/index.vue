@@ -6,13 +6,13 @@
   >
     <div class="mx-auto grid max-w-295 gap-6 lg:grid-cols-[1fr_420px]">
       <section class="paper-card rounded-4xl p-8 md:p-10">
-        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-[#7b4f2c]">Phase 0 · Local Writing
-          Loop</p>
+        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-[#7b4f2c]">Phase 1 · Novel Workspace
+          MVP</p>
         <h2 class="max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
           像纸一样安静，像数据库一样可靠。
         </h2>
         <p class="mt-5 max-w-2xl text-lg leading-8 text-[#5f5348]">
-          当前版本验证桌面端本地写作闭环：创建项目、创建章节、富文本写作、SQLite 自动保存与重启恢复。
+          当前版本已经形成可用的小说工作台：卷章场景、设定卡、@ 引用、事项、搜索、导入导出、备份和主题设置。
         </p>
 
         <div class="mt-8 flex flex-wrap gap-3">
@@ -51,7 +51,7 @@
           </div>
           <span v-if="projectStore.loading" class="text-sm text-muted-paper">加载中…</span>
         </div>
-        <ProjectList :projects="projectStore.projects" @open="openProject"/>
+        <ProjectList :projects="projectStore.projects" @delete="deleteProject" @open="openProject"/>
       </section>
     </div>
 
@@ -116,5 +116,18 @@ async function createProject(input: CreateProjectInput) {
 
 async function openProject(projectId: string) {
   await router.push(`/project/${projectId}`)
+}
+
+async function deleteProject(projectId: string) {
+  const project = projectStore.projects.find(item => item.id === projectId)
+  const confirmed = window.confirm(`确定删除项目“${project?.title ?? projectId}”吗？此操作会删除项目、文档、设定和事项。`)
+  if (!confirmed) return
+
+  try {
+    await projectStore.deleteProject(projectId)
+  } catch (error) {
+    console.error(error)
+    alert('删除项目失败')
+  }
 }
 </script>

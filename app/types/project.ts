@@ -21,3 +21,14 @@ export interface CreateProjectInput {
     description?: string | null
     language?: string | null
 }
+
+export interface UpdateProjectInput {
+    projectId: string
+    title: string
+    author?: string | null
+    description?: string | null
+    language?: string | null
+    status?: ProjectStatus | string | null
+    targetCharacterCount?: number | null
+    dailyTargetCount?: number | null
+}

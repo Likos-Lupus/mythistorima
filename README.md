@@ -1,22 +1,36 @@
 # Mythistorima
 
-Mythistorima is a local desktop writing tool for novel authors. The current implementation in this repository is **Phase
-0 - Local Writing Loop**: validating a complete local writing workflow using Nuxt 4 + Tauri 2 + Rust + SQLite + Tiptap.
+Mythistorima is a local desktop writing workspace for novel authors. The current implementation in this repository is *
+*Phase 1 - Usable Novel Workspace MVP**: a Nuxt 4 + Tauri 2 + Rust + SQLite + Tiptap application for local-first novel
+drafting, worldbuilding, notes, search, export, backup and theme customization.
 
-## Current Phase 0 Capabilities
+## Current Phase 1 Capabilities
 
-- Nuxt 4 frontend skeleton
-- Nuxt UI / Tailwind CSS paper-style base interface
-- Tauri 2 desktop shell
-- Rust command/service/db layered architecture
-- SQLite local database initialization with idempotent migrations
-- Project creation and recent project list
-- Auto-creation of "Chapter 1" when starting a new project
-- Chapter creation and chapter switching
-- Tiptap rich text editor
-- 1-second debounce auto-save
-- Word count for current chapter and total project word count
-- Restore project, chapters, and content after closing and reopening
+- Nuxt 4 frontend with Nuxt UI / Tailwind paper-style interface.
+- Tauri 2 desktop shell with Rust command/service/db layered architecture.
+- SQLite local database with versioned migrations.
+- Project creation, recent project list, editing, delete confirmation and project dashboard.
+- Novel document tree with volume / chapter / scene hierarchy.
+- Document create, rename, delete, move up/down and status updates.
+- Tiptap rich text editor with autosave.
+- Paragraph IDs for paragraph-level anchors.
+- Current-document find and replace.
+- Focus mode.
+- Writing timer, today writing stats and current document targets.
+- Setting cards for characters, locations and concepts.
+- `@` setting references in the editor with hover previews.
+- Automatic extraction of setting references on save.
+- Creative notes: memo, todo, foreshadow, issue and idea.
+- Notes can bind to projects, documents and paragraphs.
+- Search workspace for documents, setting cards and notes.
+- Search index rebuild.
+- Export to TXT / Markdown / HTML / project package.
+- Import TXT / Markdown / HTML as new chapters.
+- Manual, startup and scheduled local SQLite backups.
+- Paper / light / dark themes.
+- Font family, font size, line height, page width and autosave interval settings.
+- Language setting foundation for `zh-CN` and `en`.
+- Shared empty states and error banners.
 
 ## Environment Requirements
 
@@ -60,7 +74,7 @@ bun run tauri:build
 
 ## Database Location
 
-Phase 0 uses a single SQLite database:
+Phase 1 uses a single SQLite database:
 
 ```txt
 AppData/Mythistorima/mythistorima.sqlite
@@ -68,73 +82,30 @@ AppData/Mythistorima/mythistorima.sqlite
 
 The actual path can be viewed on the home screen status.
 
-## Phase 0 Acceptance Path
+## Phase 1 Acceptance Path
 
 ```txt
 Launch Mythistorima
-→ Create a new project "Test Novel"
-→ "Chapter 1" is auto-generated
-→ Write content in the rich text editor
-→ Auto-saves after 1 second
-→ Close the application
-→ Reopen the application
-→ Project, chapters, and content are fully restored
+→ Create a new project
+→ Open the project dashboard and edit title / author / description / targets
+→ Create a volume, chapters and scenes
+→ Write rich text in the editor
+→ Use find / replace and focus mode
+→ Create character / location / concept cards
+→ Insert a setting card in the editor with @
+→ Hover the setting reference and see its preview
+→ Add a memo / todo / foreshadow note to a document or paragraph
+→ Search body text, cards and notes
+→ Export TXT / Markdown / HTML
+→ Export a project package
+→ Import TXT / Markdown / HTML as a chapter
+→ Create a manual backup and confirm startup/scheduled backup behavior
+→ Switch themes and editor settings
+→ Close and reopen the app
+→ Confirm project, documents, cards, notes, references and settings persist
 ```
 
-## Not Yet Included
-
-- Setting cards
-- @Character / #Location quick insert
-- Outlines, mind maps, Mermaid diagrams
-- Foreshadowing / notes / to-do anchors
-- docx / epub / pdf / Pixiv export
-- Proofreading rules
-- Cloud sync and project encryption
-
-These belong to Phase 1 or later stages.
-
-## Phase 1 Week 2 - Document Tree
-
-Week 2 upgrades the Phase 0 single chapter list into a novel document tree.
-
-Implemented:
-
-- Volume / chapter / scene document types
-- `parent_id` hierarchy
-- Root volume and root chapter creation
-- Child creation: volume → chapter, chapter → scene
-- Same-level creation
-- Rename
-- Delete confirmation with cascading child deletion
-- Same-level move up / move down
-- Status switching: draft / writing / done
-- Rust `move_document` and `update_document_status` commands
-
-Acceptance path:
-
-```txt
-Open a project
-→ Create a volume
-→ Create a chapter under the volume
-→ Create two scenes under the chapter
-→ Rename one node
-→ Move a scene up or down
-→ Change a chapter status to writing
-→ Delete a parent node and confirm child nodes are removed
-```
-
-## Phase 1 Week 3
-
-Week 3 adds editor-focused writing features:
-
-- Paragraph IDs for every paragraph in the Tiptap document.
-- Current-chapter find and replace.
-- Focus mode that hides the document tree and status panel.
-- Writing timer and today writing stats backed by `writing_sessions`.
-- Current document target character count stored in `documents.metadata_json`.
-- Editor settings for font size, line height, and paper width stored in `app_settings`.
-
-Recommended verification:
+## Verification
 
 ```bash
 bun install
@@ -145,190 +116,17 @@ cd ..
 bun run tauri:dev
 ```
 
-## Phase 1 Week 4 - Setting Cards
+## Phase 1 Documentation
 
-Week 4 adds the setting-card workspace for novel worldbuilding.
+- `PHASE1.md`: original Phase 1 implementation plan.
+- `PHASE1_FINAL_AUDIT.md`: final completion audit and acceptance checklist.
 
-Implemented:
+## Later Phases
 
-- Rust `CardDto`, `CreateCardInput`, `UpdateCardInput`, and `CardReferenceDto`.
-- Rust card service and Tauri commands:
-    - `create_card`
-    - `update_card`
-    - `delete_card`
-    - `get_card`
-    - `list_cards`
-    - `search_cards`
-    - `list_card_references`
-- Setting card types:
-    - character
-    - location
-    - concept
-- Card workspace UI:
-    - `CardWorkspace`
-    - `CardList`
-    - `CardEditor`
-    - `CardTypeTabs`
-- Alias editing via comma or newline-separated input.
-- Basic `fields_json` templates for each card type.
-- Reserved card reference list area for Week 5 `@` insertion integration.
-- Card saves update the Phase 1 `search_index` foundation.
+The following remain intentionally out of Phase 1 and should be handled in Phase 2 or later:
 
-Recommended verification:
-
-```bash
-bun install
-bun run typecheck
-cd src-tauri
-cargo check
-cd ..
-bun run tauri:dev
-```
-
-Acceptance path:
-
-```txt
-Open a project
-→ Switch the left workspace mode from Writing to Setting
-→ Create a character card
-→ Edit name, aliases, description, role, motivation, and notes
-→ Create a location card
-→ Create a concept card
-→ Filter by type
-→ Restart the app and confirm all cards persist
-```
-
-## Phase 1 Week 5 - Setting References
-
-Week 5 connects setting cards to the editor through inline `@` references.
-
-Implemented:
-
-- Tiptap `SettingReference` mark.
-- Editor-side `@` setting suggestion list.
-- Keyboard support for suggestions:
-    - Arrow up / down to move selection
-    - Enter / Tab to insert
-    - Escape to close
-- Inline rendering for setting references in the prose editor.
-- Hover preview for referenced cards.
-- Automatic extraction of `settingReference` marks when document content is saved.
-- Refreshing `card_references` for the saved document.
-- Card detail reference list now shows real referenced documents after saving.
-
-Recommended verification:
-
-```bash
-bun install
-bun run typecheck
-cd src-tauri
-cargo check
-cd ..
-bun run tauri:dev
-```
-
-Acceptance path:
-
-```txt
-Open a project
-→ Switch to Setting
-→ Create a character card named 林澈
-→ Switch back to Writing
-→ Type @林 in the editor
-→ Select 林澈 from the suggestion list
-→ Confirm 林澈 is inserted as highlighted inline text
-→ Hover 林澈 and confirm the setting preview appears
-→ Wait for autosave
-→ Switch to Setting and open 林澈
-→ Confirm the reference list shows the current document
-```
-
-## Phase 1 Week 7
-
-Search, import/export, and backup are now implemented:
-
-- SearchWorkspace: search through body text, setting cards, and notes.
-- Manual rebuild of `search_index` is supported.
-- Export to TXT / Markdown / HTML is supported.
-- Export as a JSON project package is supported.
-- Import from txt / markdown / html file paths as new chapters is supported.
-- Creating and viewing local SQLite backups is supported.
-- A backup is attempted once when the project page starts.
-
-If the export path is left empty, files are written to the `exports` folder under the app data directory; backup files
-are written to the `backups/<project_id>` folder under the app data directory.
-
-## Phase 1 Week 8 - Theme, Settings, i18n, Stability
-
-Week 8 polishes Phase 1 into a usable MVP.
-
-Implemented:
-
-- Settings workspace added to the project page.
-- Theme settings:
-    - paper
-    - light
-    - dark
-- Editor settings:
-    - font family
-    - font size
-    - line height
-    - page width
-- Autosave interval setting, persisted through `app_settings`.
-- Language setting foundation for `zh-CN` and `en`.
-- Expanded `i18n.config.ts` message structure.
-- Unified error message helper: `toAppErrorMessage`.
-- Shared empty and error UI components:
-    - `EmptyState`
-    - `ErrorBanner`
-- Phase 1 acceptance documentation.
-
-Recommended verification:
-
-```bash
-bun install
-bun run typecheck
-cd src-tauri
-cargo check
-cd ..
-bun run tauri:dev
-```
-
-Acceptance path:
-
-```txt
-Open a project
-→ Switch to Settings
-→ Change theme to Light, Paper, and Dark
-→ Change font, font size, line height, and page width
-→ Change autosave interval
-→ Switch language between zh-CN and English
-→ Return to Writing
-→ Confirm editor settings are applied
-→ Restart the app
-→ Confirm settings persist
-```
-
-## Phase 1 MVP Acceptance Summary
-
-```txt
-[ ] Create / open / delete projects
-[ ] Create volume / chapter / scene nodes
-[ ] Rename, delete, reorder, and change document status
-[ ] Write rich text with autosave
-[ ] Use paragraph ids for paragraph-level anchors
-[ ] Use find / replace in the current document
-[ ] Enter focus mode
-[ ] Track writing time and today character count
-[ ] Create character / location / concept cards
-[ ] Insert setting references with @
-[ ] Hover setting references for previews
-[ ] Create memo / todo / foreshadow notes
-[ ] Bind notes to documents and paragraphs
-[ ] Search documents, cards, and notes
-[ ] Export TXT / Markdown / HTML / project package
-[ ] Import TXT / Markdown / HTML as chapters
-[ ] Create local backups
-[ ] Switch themes and editor settings
-[ ] Persist settings after restart
-```
+- docx / epub / pdf / Pixiv-specific export templates.
+- Mermaid and mind-map outline views.
+- Advanced proofreading rules.
+- Cloud sync, collaboration and project encryption.
+- Plugin system.

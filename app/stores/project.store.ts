@@ -1,5 +1,5 @@
 import type {AppInfo, ProjectStats} from '~/types/stats'
-import type {CreateProjectInput, Project} from '~/types/project'
+import type {CreateProjectInput, Project, UpdateProjectInput} from '~/types/project'
 
 export const useProjectStore = defineStore('project', () => {
     const projects = ref<Project[]>([])
@@ -46,6 +46,13 @@ export const useProjectStore = defineStore('project', () => {
         return project
     }
 
+    async function updateProject(input: UpdateProjectInput) {
+        const project = await call<Project>('update_project', {input})
+        projects.value = projects.value.map(item => item.id === project.id ? project : item)
+        if (currentProject.value?.id === project.id) currentProject.value = project
+        return project
+    }
+
     async function deleteProject(projectId: string) {
         await call<boolean>('delete_project', {projectId})
         projects.value = projects.value.filter(item => item.id !== projectId)
@@ -68,6 +75,7 @@ export const useProjectStore = defineStore('project', () => {
         loadProjects,
         loadProject,
         createProject,
+        updateProject,
         deleteProject,
         loadProjectStats
     }

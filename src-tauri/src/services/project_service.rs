@@ -4,13 +4,41 @@ use uuid::Uuid;
 
 use crate::{
     errors::{AppError, AppResult},
-    models::project::{CreateProjectInput, ProjectDto},
+    models::project::{CreateProjectInput, ProjectDto, UpdateProjectInput},
 };
 
 const EMPTY_DOCUMENT_JSON: &str = r#"{"type":"doc","content":[{"type":"paragraph"}]}"#;
 
 fn now_ms() -> i64 {
     Utc::now().timestamp_millis()
+}
+
+fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value
+        .map(|item| item.trim().to_string())
+        .filter(|item| !item.is_empty())
+}
+
+fn normalize_language(value: Option<String>) -> String {
+    let normalized = value
+        .map(|item| item.trim().to_string())
+        .filter(|item| !item.is_empty())
+        .unwrap_or_else(|| "zh-CN".to_string());
+    match normalized.as_str() {
+        "zh-CN" | "en" => normalized,
+        _ => "zh-CN".to_string(),
+    }
+}
+
+fn normalize_project_status(value: Option<String>) -> String {
+    match value.as_deref().map(str::trim) {
+        Some("archived") => "archived".to_string(),
+        _ => "active".to_string(),
+    }
+}
+
+fn normalize_optional_count(value: Option<i64>) -> Option<i64> {
+    value.filter(|item| *item > 0)
 }
 
 fn validate_title(title: &str) -> AppResult<String> {
@@ -154,6 +182,49 @@ pub async fn get_project(pool: &SqlitePool, project_id: String) -> AppResult<Pro
     .ok_or_else(|| AppError::not_found("project"))?;
 
     Ok(project)
+}
+
+pub async fn update_project(pool: &SqlitePool, input: UpdateProjectInput) -> AppResult<ProjectDto> {
+    let title = validate_title(&input.title)?;
+    let author = normalize_optional_text(input.author);
+    let description = normalize_optional_text(input.description);
+    let language = normalize_language(input.language);
+    let status = normalize_project_status(input.status);
+    let target_character_count = normalize_optional_count(input.target_character_count);
+    let daily_target_count = normalize_optional_count(input.daily_target_count);
+    let now = now_ms();
+
+    let result = sqlx::query(
+        r#"
+        UPDATE projects SET
+          title = ?2,
+          author = ?3,
+          description = ?4,
+          language = ?5,
+          status = ?6,
+          target_character_count = ?7,
+          daily_target_count = ?8,
+          updated_at = ?9
+        WHERE id = ?1
+        "#,
+    )
+    .bind(&input.project_id)
+    .bind(&title)
+    .bind(author.as_deref())
+    .bind(description.as_deref())
+    .bind(&language)
+    .bind(&status)
+    .bind(target_character_count)
+    .bind(daily_target_count)
+    .bind(now)
+    .execute(pool)
+    .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError::not_found("project"));
+    }
+
+    get_project(pool, input.project_id).await
 }
 
 pub async fn delete_project(pool: &SqlitePool, project_id: String) -> AppResult<bool> {

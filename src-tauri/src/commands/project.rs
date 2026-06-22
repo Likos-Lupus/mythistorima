@@ -1,10 +1,10 @@
 use tauri::State;
 
 use crate::{
-    AppState,
     errors::AppResult,
-    models::project::{CreateProjectInput, ProjectDto},
+    models::project::{CreateProjectInput, ProjectDto, UpdateProjectInput},
     services::project_service,
+    AppState,
 };
 
 #[tauri::command]
@@ -23,6 +23,14 @@ pub async fn list_projects(state: State<'_, AppState>) -> AppResult<Vec<ProjectD
 #[tauri::command]
 pub async fn get_project(project_id: String, state: State<'_, AppState>) -> AppResult<ProjectDto> {
     project_service::get_project(&state.db, project_id).await
+}
+
+#[tauri::command]
+pub async fn update_project(
+    input: UpdateProjectInput,
+    state: State<'_, AppState>,
+) -> AppResult<ProjectDto> {
+    project_service::update_project(&state.db, input).await
 }
 
 #[tauri::command]

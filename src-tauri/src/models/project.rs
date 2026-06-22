@@ -26,3 +26,16 @@ pub struct CreateProjectInput {
     pub description: Option<String>,
     pub language: Option<String>,
 }
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateProjectInput {
+    pub project_id: String,
+    pub title: String,
+    pub author: Option<String>,
+    pub description: Option<String>,
+    pub language: Option<String>,
+    pub status: Option<String>,
+    pub target_character_count: Option<i64>,
+    pub daily_target_count: Option<i64>,
+}

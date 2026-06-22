@@ -3,7 +3,7 @@
     <article
         v-for="project in projects"
         :key="project.id"
-        class="group cursor-pointer rounded-3xl border border-(--line-soft) bg-white/45 p-4 transition hover:-translate-y-0.5 hover:bg-white/65 hover:shadow-xl hover:shadow-[#4a2f1b]/10"
+        class="project-list-card group"
         @click="$emit('open', project.id)"
     >
       <div class="flex items-start justify-between gap-3">
@@ -13,9 +13,12 @@
             {{ project.author || '未填写作者' }} · {{ formatDate(project.updatedAt) }}
           </p>
         </div>
-        <span class="rounded-full bg-(--accent-soft) px-3 py-1 text-xs font-semibold text-[#6d4325]">
-          {{ project.status }}
-        </span>
+        <div class="project-list-actions" @click.stop>
+          <span class="rounded-full bg-(--accent-soft) px-3 py-1 text-xs font-semibold text-[#6d4325]">
+            {{ project.status === 'archived' ? '已归档' : '进行中' }}
+          </span>
+          <button class="tree-action-button" type="button" @click="$emit('delete', project.id)">删除</button>
+        </div>
       </div>
       <p v-if="project.description" class="mt-3 line-clamp-2 text-sm leading-6 text-[#5f5348]">{{
           project.description
@@ -24,7 +27,7 @@
 
     <div v-if="!projects.length"
          class="rounded-3xl border border-dashed border-(--line-soft) bg-white/35 p-8 text-center text-muted-paper">
-      还没有项目。创建一个项目，开始 Phase 0 写作闭环测试。
+      还没有项目。创建一个项目，开始小说工作台 MVP。
     </div>
   </div>
 </template>
@@ -38,6 +41,7 @@ defineProps<{
 
 defineEmits<{
   open: [projectId: string]
+  delete: [projectId: string]
 }>()
 
 function formatDate(timestamp: number) {
