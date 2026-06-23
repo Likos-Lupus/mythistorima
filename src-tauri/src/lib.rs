@@ -106,7 +106,13 @@ pub fn run() {
             commands::stats::record_writing_session,
             commands::appearance::rebuild_appearance_stats,
             commands::appearance::list_card_appearances,
-            commands::appearance::get_project_appearance_summary
+            commands::appearance::get_project_appearance_summary,
+            commands::proofreading::create_proofreading_rule,
+            commands::proofreading::update_proofreading_rule,
+            commands::proofreading::delete_proofreading_rule,
+            commands::proofreading::list_proofreading_rules,
+            commands::proofreading::run_proofreading_on_document,
+            commands::proofreading::run_proofreading_on_project
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

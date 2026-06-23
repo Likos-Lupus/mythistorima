@@ -191,3 +191,17 @@ The Statistics workspace now tracks character appearances. Saving document conte
 setting references, and the backend exposes `rebuild_appearance_stats`, `list_card_appearances`, and
 `get_project_appearance_summary`. Authors can see which characters appear in which chapters, inspect per-character
 appearance details, rebuild stale stats manually, and jump from stats back to the relevant chapter or setting card.
+
+## Phase 2 Week 7 – Proofreading Rule Engine
+
+The Proofreading workspace is now active. The backend exposes `create_proofreading_rule`,
+`update_proofreading_rule`, `delete_proofreading_rule`, `list_proofreading_rules`,
+`run_proofreading_on_document`, and `run_proofreading_on_project` commands backed by `proofreading_rules`.
+
+The rule engine is local and non-AI. Built-in rules cover duplicate words, continuous punctuation, mixed Chinese /
+English punctuation, long sentences, long paragraphs, sensitive words, setting-name consistency for character cards, and
+custom regular expressions. Rules are configurable per project with severity, enabled state, pattern, and JSON config.
+
+Authors can run checks on the active chapter or the whole project, review grouped issues, jump back to affected
+chapters, and copy built-in rules into project-specific editable rules. The service seeds missing built-in Week 7 rules
+at runtime, so databases that already applied Phase 2 migration 0003 still receive the new defaults.

@@ -63,7 +63,7 @@ export const phase2FeatureFlags: Phase2FeatureFlag[] = [
         key: 'proofreading',
         label: '校对规则',
         week: 7,
-        status: 'foundation',
+        status: 'active',
         description: '重复词、标点、超长句和敏感词规则。'
     },
     {

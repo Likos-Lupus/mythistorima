@@ -9,6 +9,7 @@ pub mod import;
 pub mod note;
 pub mod outline;
 pub mod project;
+pub mod proofreading;
 pub mod relation;
 pub mod search;
 pub mod settings;

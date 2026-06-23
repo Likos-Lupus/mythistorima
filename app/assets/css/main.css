@@ -3933,3 +3933,308 @@ body[data-theme="dark"] .timeline-lane-dot {
         grid-template-columns: 1fr;
     }
 }
+
+
+/* Phase 2 Week 7 - Proofreading workspace */
+.proofreading-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.proofreading-workspace-header,
+.proofreading-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.proofreading-workspace-header {
+    padding: 1.25rem;
+}
+
+.proofreading-workspace-kicker {
+    margin: 0 0 0.25rem;
+    color: var(--paper-muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.proofreading-workspace-header h1,
+.proofreading-panel-header h2 {
+    margin: 0;
+}
+
+.proofreading-workspace-header p,
+.proofreading-panel-header p {
+    margin: 0.25rem 0 0;
+    color: var(--paper-muted);
+}
+
+.proofreading-workspace-actions,
+.proofreading-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: flex-end;
+}
+
+.proofreading-summary-row {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.proofreading-summary-card {
+    padding: 1rem;
+}
+
+.proofreading-summary-card strong {
+    display: block;
+    font-size: 1.6rem;
+}
+
+.proofreading-summary-card span {
+    color: var(--paper-muted);
+}
+
+.proofreading-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(280px, 340px);
+    gap: 1rem;
+    align-items: start;
+}
+
+.proofreading-main-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.proofreading-panel {
+    padding: 1rem;
+}
+
+.proofreading-rule-list,
+.proofreading-rule-editor,
+.proofreading-result-list,
+.proofreading-inline-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.proofreading-rule-item,
+.proofreading-issue-item,
+.proofreading-inline-issue {
+    width: 100%;
+    border: 1px solid var(--line-soft);
+    border-radius: 1rem;
+    background: var(--surface);
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.proofreading-rule-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.8rem;
+}
+
+.proofreading-rule-item:hover,
+.proofreading-issue-item:hover,
+.proofreading-inline-issue:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.proofreading-rule-item.is-active,
+.proofreading-issue-item.is-active,
+.proofreading-inline-issue.is-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.proofreading-rule-item.is-disabled {
+    opacity: 0.62;
+}
+
+.proofreading-rule-main,
+.proofreading-rule-badges,
+.proofreading-issue-item,
+.proofreading-inline-issue {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.proofreading-rule-main small,
+.proofreading-issue-meta,
+.proofreading-inline-issue small,
+.proofreading-inline-issue span {
+    color: var(--paper-muted);
+}
+
+.proofreading-rule-badges {
+    align-items: flex-end;
+    flex-shrink: 0;
+}
+
+.proofreading-badge,
+.proofreading-status-dot {
+    border-radius: 999px;
+    padding: 0.18rem 0.5rem;
+    font-size: 0.72rem;
+}
+
+.proofreading-badge {
+    background: rgba(102, 93, 84, 0.12);
+    color: var(--paper-muted);
+}
+
+.proofreading-status-dot.is-on {
+    background: rgba(34, 197, 94, 0.12);
+    color: rgb(22, 101, 52);
+}
+
+.proofreading-status-dot.is-off {
+    background: rgba(148, 163, 184, 0.18);
+    color: var(--paper-muted);
+}
+
+.proofreading-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.proofreading-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-weight: 600;
+}
+
+.proofreading-form input,
+.proofreading-form select,
+.proofreading-form textarea {
+    width: 100%;
+    border: 1px solid var(--line-soft);
+    border-radius: 0.8rem;
+    background: #fffdf7;
+    color: inherit;
+    padding: 0.65rem 0.75rem;
+    font: inherit;
+}
+
+.proofreading-form textarea {
+    resize: vertical;
+}
+
+.proofreading-form small {
+    color: var(--paper-muted);
+    font-weight: 400;
+}
+
+.proofreading-checkbox-row {
+    flex-direction: row !important;
+    align-items: center;
+}
+
+.proofreading-checkbox-row input {
+    width: auto;
+}
+
+.proofreading-result-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.proofreading-result-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.proofreading-result-group > header {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: var(--paper-muted);
+}
+
+.proofreading-result-group > header strong {
+    color: var(--paper-text);
+}
+
+.proofreading-issue-item,
+.proofreading-inline-issue {
+    padding: 0.85rem;
+}
+
+.proofreading-issue-item.is-error,
+.proofreading-inline-issue.is-error {
+    border-color: rgba(239, 68, 68, 0.55);
+}
+
+.proofreading-issue-item.is-warning,
+.proofreading-inline-issue.is-warning {
+    border-color: rgba(245, 158, 11, 0.55);
+}
+
+.proofreading-issue-item.is-info,
+.proofreading-inline-issue.is-info {
+    border-color: rgba(59, 130, 246, 0.45);
+}
+
+.proofreading-empty {
+    border: 1px dashed var(--line-soft);
+    border-radius: 1rem;
+    color: var(--paper-muted);
+    padding: 1rem;
+    text-align: center;
+}
+
+.text-button {
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0;
+}
+
+.text-button:disabled {
+    color: var(--paper-muted);
+    cursor: not-allowed;
+}
+
+@media (max-width: 1180px) {
+    .proofreading-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .proofreading-summary-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 720px) {
+    .proofreading-workspace-header,
+    .proofreading-panel-header,
+    .proofreading-workspace-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .proofreading-summary-row {
+        grid-template-columns: 1fr;
+    }
+}

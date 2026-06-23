@@ -747,8 +747,24 @@ async fn seed_phase2_defaults(pool: &SqlitePool) -> anyhow::Result<()> {
             "重复词检查",
             "duplicate_word",
             None::<&str>,
-            r#"{"maxRepeat":2}"#,
+            r#"{"maxUnitCharacters":4}"#,
             "warning",
+        ),
+        (
+            "builtin_continuous_punctuation",
+            "连续标点检查",
+            "continuous_punctuation",
+            Some(r#"[!！?？。…~、，,；;：:]{3,}"#),
+            r#"{"minCount":3}"#,
+            "warning",
+        ),
+        (
+            "builtin_mixed_punctuation",
+            "中英文标点混用检查",
+            "mixed_punctuation",
+            None::<&str>,
+            r#"{"pairs":["，,","，.","。,","。.","！!","!！","？?","?？","：:",":：","；;",";；"]}"#,
+            "info",
         ),
         (
             "builtin_long_sentence",
@@ -765,6 +781,22 @@ async fn seed_phase2_defaults(pool: &SqlitePool) -> anyhow::Result<()> {
             None::<&str>,
             r#"{"maxCharacters":500}"#,
             "info",
+        ),
+        (
+            "builtin_sensitive_word",
+            "敏感词检查",
+            "sensitive_word",
+            Some("敏感词,违禁词"),
+            r#"{"words":["敏感词","违禁词"]}"#,
+            "warning",
+        ),
+        (
+            "builtin_name_consistency",
+            "设定名称一致性检查",
+            "name_consistency",
+            None::<&str>,
+            r#"{"maxDistance":1,"minNameCharacters":2}"#,
+            "warning",
         ),
     ];
 

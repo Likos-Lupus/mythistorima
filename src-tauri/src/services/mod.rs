@@ -8,6 +8,7 @@ pub mod import_service;
 pub mod note_service;
 pub mod outline_service;
 pub mod project_service;
+pub mod proofreading_service;
 pub mod relation_service;
 pub mod search_service;
 pub mod settings_service;

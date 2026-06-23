@@ -254,7 +254,13 @@
             @open-document="openOutlineDocument"
         />
 
-        <ProofreadingWorkspace v-else-if="workspaceMode === 'proofreading'"/>
+        <ProofreadingWorkspace
+            v-else-if="workspaceMode === 'proofreading'"
+            :active-document-id="documentStore.activeDocumentId"
+            :documents="documentStore.documents"
+            :project-id="projectId"
+            @open-document="openOutlineDocument"
+        />
 
         <SearchWorkspace
             v-else-if="workspaceMode === 'search'"
