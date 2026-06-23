@@ -180,3 +180,14 @@ Authors can create story events, set a human-readable `starts_at_label`, adjust 
 chapter / scene, assign a location card, and attach participating characters, organizations, items, events, or concepts.
 The workspace provides list and lane views, participant and location filters, quick reordering, and jumps to related
 chapters or setting cards.
+
+## Phase 2 Week 6 – Foreshadow Threads & Character Appearance Stats
+
+The Foreshadow workspace is now active. It exposes full `foreshadow_threads` CRUD, can create a thread directly from a
+`foreshadow` note, tracks setup and payoff chapters, supports paid-off marking, and provides unpaid / status / priority
+filters so long-running promises are easy to audit.
+
+The Statistics workspace now tracks character appearances. Saving document content refreshes `appearance_stats` from
+setting references, and the backend exposes `rebuild_appearance_stats`, `list_card_appearances`, and
+`get_project_appearance_summary`. Authors can see which characters appear in which chapters, inspect per-character
+appearance details, rebuild stale stats manually, and jump from stats back to the relevant chapter or setting card.

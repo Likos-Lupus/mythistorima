@@ -49,14 +49,14 @@ export const phase2FeatureFlags: Phase2FeatureFlag[] = [
         key: 'foreshadowThreads',
         label: '伏笔线程',
         week: 6,
-        status: 'foundation',
+        status: 'active',
         description: '提出、回收、状态追踪和跳转。'
     },
     {
         key: 'appearanceStats',
         label: '出场统计',
         week: 6,
-        status: 'foundation',
+        status: 'active',
         description: '角色在章节、卷和项目中的出场统计。'
     },
     {

@@ -53,6 +53,12 @@ pub fn run() {
             commands::relation::delete_card_relation,
             commands::relation::list_card_relations,
             commands::relation::list_card_graph,
+            commands::foreshadow::create_foreshadow_thread,
+            commands::foreshadow::create_foreshadow_thread_from_note,
+            commands::foreshadow::update_foreshadow_thread,
+            commands::foreshadow::mark_foreshadow_paid_off,
+            commands::foreshadow::delete_foreshadow_thread,
+            commands::foreshadow::list_foreshadow_threads,
             commands::timeline::create_timeline_event,
             commands::timeline::update_timeline_event,
             commands::timeline::delete_timeline_event,
@@ -97,7 +103,10 @@ pub fn run() {
             commands::settings::get_app_setting,
             commands::settings::list_app_settings,
             commands::stats::get_today_writing_stats,
-            commands::stats::record_writing_session
+            commands::stats::record_writing_session,
+            commands::appearance::rebuild_appearance_stats,
+            commands::appearance::list_card_appearances,
+            commands::appearance::get_project_appearance_summary
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

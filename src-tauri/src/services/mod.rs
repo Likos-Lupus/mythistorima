@@ -1,7 +1,9 @@
+pub mod appearance_service;
 pub mod backup_service;
 pub mod card_service;
 pub mod document_service;
 pub mod export_service;
+pub mod foreshadow_service;
 pub mod import_service;
 pub mod note_service;
 pub mod outline_service;

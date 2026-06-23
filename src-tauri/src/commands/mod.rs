@@ -1,8 +1,10 @@
 pub mod app;
+pub mod appearance;
 pub mod backup;
 pub mod card;
 pub mod document;
 pub mod export;
+pub mod foreshadow;
 pub mod import;
 pub mod note;
 pub mod outline;

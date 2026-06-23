@@ -9,6 +9,7 @@ use crate::{
         CreateDocumentInput, DocumentContentDto, DocumentDto, MoveDocumentInput,
         UpdateDocumentContentInput, UpdateDocumentGoalInput, UpdateDocumentStatusInput,
     },
+    services::appearance_service,
 };
 
 const EMPTY_DOCUMENT_JSON: &str = r#"{"type":"doc","content":[{"type":"paragraph"}]}"#;
@@ -337,6 +338,14 @@ pub async fn update_document_content(
         &search_project_id,
         &input.document_id,
         &input.content_json,
+        now,
+    )
+    .await?;
+
+    appearance_service::rebuild_document_appearance_stats_tx(
+        &mut tx,
+        &search_project_id,
+        &input.document_id,
         now,
     )
     .await?;

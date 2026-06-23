@@ -233,7 +233,13 @@
             @open-card="openRelationCard"
         />
 
-        <StatsWorkspace v-else-if="workspaceMode === 'stats'"/>
+        <StatsWorkspace
+            v-else-if="workspaceMode === 'stats'"
+            :documents="documentStore.documents"
+            :project-id="projectId"
+            @open-card="openStatsCard"
+            @open-document="openOutlineDocument"
+        />
 
         <NoteWorkspace
             v-else-if="workspaceMode === 'notes'"
@@ -241,7 +247,12 @@
             :project-id="projectId"
         />
 
-        <ForeshadowWorkspace v-else-if="workspaceMode === 'foreshadow'"/>
+        <ForeshadowWorkspace
+            v-else-if="workspaceMode === 'foreshadow'"
+            :documents="documentStore.documents"
+            :project-id="projectId"
+            @open-document="openOutlineDocument"
+        />
 
         <ProofreadingWorkspace v-else-if="workspaceMode === 'proofreading'"/>
 
@@ -706,6 +717,12 @@ function openRelationCard(cardId: string) {
   workspaceMode.value = 'cards'
 }
 
+function openStatsCard(cardId: string) {
+  const cardStore = useCardStore()
+  cardStore.selectCard(cardId)
+  workspaceMode.value = 'cards'
+}
+
 function handleOpenSearchResult(result: SearchResult) {
   if (result.targetType === 'card') {
     workspaceMode.value = 'cards'
@@ -728,6 +745,13 @@ function handleOpenSearchResult(result: SearchResult) {
     workspaceMode.value = 'timeline'
     const timelineStore = useTimelineStore()
     void timelineStore.loadTimeline(projectId.value).then(() => timelineStore.selectEvent(result.targetId))
+    return
+  }
+  if (result.targetType === 'foreshadow') {
+    workspaceMode.value = 'foreshadow'
+    const foreshadowStore = useForeshadowStore()
+    foreshadowStore.setFilters('all', 'all', false)
+    void foreshadowStore.loadThreads(projectId.value).then(() => foreshadowStore.selectThread(result.targetId))
     return
   }
   workspaceMode.value = 'writing'
