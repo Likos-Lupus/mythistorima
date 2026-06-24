@@ -4238,3 +4238,312 @@ body[data-theme="dark"] .timeline-lane-dot {
         grid-template-columns: 1fr;
     }
 }
+
+.export-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.export-workspace-header {
+    padding: 1.25rem;
+}
+
+.export-workspace-header h2,
+.export-template-panel-header h3,
+.export-template-panel-header h4 {
+    margin: 0;
+}
+
+.export-workspace-header p,
+.export-template-panel-header p {
+    margin: .3rem 0 0;
+    color: var(--paper-muted);
+}
+
+.export-template-workspace {
+    display: grid;
+    grid-template-columns: minmax(210px, 260px) minmax(360px, 1fr) minmax(280px, 360px);
+    gap: 1rem;
+    align-items: start;
+}
+
+.export-template-list,
+.export-template-editor,
+.export-range-picker,
+.export-output-card,
+.export-template-preview,
+.export-legacy-tools {
+    padding: 1rem;
+}
+
+.export-template-panel-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .8rem;
+    margin-bottom: .85rem;
+}
+
+.export-template-items,
+.export-template-output-stack,
+.export-template-form,
+.export-style-editor,
+.export-style-grid,
+.export-range-options,
+.export-document-selection,
+.export-output-card,
+.export-grid,
+.backup-list {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+}
+
+.export-template-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .6rem;
+    width: 100%;
+    border: 1px solid var(--line-soft);
+    border-radius: .85rem;
+    background: var(--surface);
+    color: inherit;
+    cursor: pointer;
+    padding: .75rem;
+    text-align: left;
+}
+
+.export-template-item:hover,
+.export-template-item.is-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.export-template-item-main {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: .2rem;
+}
+
+.export-template-item-main strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.export-template-item-main small,
+.export-template-empty,
+.export-style-editor small,
+.export-range-options small,
+.export-document-check small,
+.export-preview-empty {
+    color: var(--paper-muted);
+}
+
+.export-template-badge,
+.export-template-format-pill,
+.export-document-type {
+    border-radius: 999px;
+    background: rgba(102, 93, 84, .12);
+    color: var(--paper-muted);
+    font-size: .72rem;
+    font-weight: 800;
+    padding: .2rem .5rem;
+    white-space: nowrap;
+}
+
+.export-template-badge.is-project,
+.export-template-format-pill {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+.export-template-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 170px;
+}
+
+.export-template-form label,
+.export-style-grid label,
+.export-output-card label,
+.export-card label {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+    color: var(--paper-muted);
+    font-size: .88rem;
+    font-weight: 700;
+}
+
+.export-style-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.export-style-wide {
+    grid-column: 1 / -1;
+}
+
+.export-check-row {
+    flex-direction: row !important;
+    align-items: center;
+    min-height: 2.25rem;
+}
+
+.export-check-row input {
+    width: auto;
+}
+
+.export-style-editor.is-readonly {
+    pointer-events: none;
+    opacity: .82;
+}
+
+.export-template-editor-actions,
+.export-output-actions,
+.export-selection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    margin-top: .9rem;
+}
+
+.export-range-options label {
+    display: flex;
+    align-items: flex-start;
+    gap: .65rem;
+    border: 1px solid var(--line-soft);
+    border-radius: .85rem;
+    cursor: pointer;
+    padding: .7rem;
+}
+
+.export-range-options label.is-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.export-range-options label > span {
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+}
+
+.export-document-selection {
+    max-height: 360px;
+    overflow: auto;
+    border-top: 1px solid var(--line-soft);
+    padding-top: .75rem;
+}
+
+.export-document-check {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .5rem;
+    padding-left: calc(var(--export-depth, 0) * 1rem);
+}
+
+.export-document-check input {
+    width: auto;
+}
+
+.export-output-card {
+    gap: .7rem;
+}
+
+.export-template-preview {
+    min-height: 220px;
+}
+
+.export-preview-text {
+    max-height: 520px;
+    overflow: auto;
+    margin: 0;
+    border: 1px solid var(--line-soft);
+    border-radius: .85rem;
+    background: #fffdf8;
+    color: #302b27;
+    padding: 1rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .86rem;
+    line-height: 1.65;
+    white-space: pre-wrap;
+}
+
+.export-preview-frame {
+    width: 100%;
+    min-height: 520px;
+    border: 1px solid var(--line-soft);
+    border-radius: .85rem;
+    background: white;
+}
+
+.export-legacy-tools > summary {
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.export-legacy-tools[open] > summary {
+    margin-bottom: 1rem;
+}
+
+.export-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.export-card,
+.backup-item {
+    display: flex;
+    flex-direction: column;
+    gap: .7rem;
+    border: 1px solid var(--line-soft);
+    border-radius: .9rem;
+    padding: .85rem;
+}
+
+.backup-item small {
+    overflow-wrap: anywhere;
+    color: var(--paper-muted);
+}
+
+@media (max-width: 1280px) {
+    .export-template-workspace {
+        grid-template-columns: 240px minmax(0, 1fr);
+    }
+
+    .export-template-output-stack {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 860px) {
+    .export-template-workspace,
+    .export-template-output-stack,
+    .export-grid,
+    .export-template-form,
+    .export-style-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .export-template-output-stack {
+        display: grid;
+    }
+
+    .export-style-wide {
+        grid-column: auto;
+    }
+
+    .export-template-panel-header,
+    .export-output-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

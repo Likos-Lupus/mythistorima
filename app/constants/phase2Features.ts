@@ -70,7 +70,7 @@ export const phase2FeatureFlags: Phase2FeatureFlag[] = [
         key: 'exportTemplates',
         label: '导出模板',
         week: 8,
-        status: 'foundation',
+        status: 'active',
         description: '可复用导出模板与高级格式。'
     },
     {

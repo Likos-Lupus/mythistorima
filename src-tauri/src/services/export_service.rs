@@ -9,7 +9,12 @@ use sqlx::{Row, SqlitePool};
 
 use crate::{
     errors::{AppError, AppResult},
-    models::export::{ExportDocumentsInput, ExportProjectInput, ExportResultDto},
+    models::{
+        export::{ExportDocumentsInput, ExportProjectInput, ExportResultDto},
+        export_template::{
+            ExportPreviewDto, ExportTemplateConfig, ExportTemplateDto, ExportWithTemplateInput,
+        },
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -24,6 +29,12 @@ struct ExportDocumentRow {
     content_json: String,
     character_count: i64,
     depth: usize,
+}
+
+struct ProjectRow {
+    title: String,
+    author: Option<String>,
+    raw: Value,
 }
 
 fn now_ms() -> i64 {
@@ -58,7 +69,7 @@ fn ensure_output_dir(database_path: &Path) -> AppResult<PathBuf> {
 
 fn default_extension(format: &str) -> &'static str {
     match format {
-        "txt" => "txt",
+        "txt" | "pixiv" => "txt",
         "markdown" | "md" => "md",
         "html" => "html",
         "project_package" | "package" => "mythistorima.json",
@@ -71,9 +82,10 @@ fn normalize_format(format: &str) -> AppResult<String> {
         "txt" => Ok("txt".to_string()),
         "markdown" | "md" => Ok("markdown".to_string()),
         "html" => Ok("html".to_string()),
+        "pixiv" => Ok("pixiv".to_string()),
         "project_package" | "package" => Ok("project_package".to_string()),
         _ => Err(AppError::invalid_input(
-            "导出格式必须是 txt / markdown / html / project_package",
+            "导出格式必须是 txt / markdown / html / pixiv / project_package",
         )),
     }
 }
@@ -157,28 +169,134 @@ async fn export_documents_as_format(
         return Err(AppError::invalid_input("没有可导出的文档"));
     }
 
-    let rendered = match format.as_str() {
-        "txt" => render_txt(&documents),
-        "markdown" => render_markdown(&documents),
-        "html" => render_html(&project.title, &documents),
-        _ => {
-            return Err(AppError::invalid_input(
-                "文档导出格式必须是 txt / markdown / html",
-            ));
-        }
-    };
+    let config = legacy_config(&format);
+    let rendered = render_with_config(&project, &documents, &format, &config)?;
     let path = resolve_output_path(database_path, input.output_path, &project.title, &format)?;
     fs::write(&path, rendered).map_err(|error| {
         AppError::with_detail("EXPORT_WRITE_FAILED", "写入导出文件失败", error.to_string())
     })?;
 
-    Ok(ExportResultDto {
-        path: path.to_string_lossy().to_string(),
+    Ok(export_result(&path, &format, &documents))
+}
+
+pub async fn export_with_template_config(
+    pool: &SqlitePool,
+    database_path: &Path,
+    input: ExportWithTemplateInput,
+    template: &ExportTemplateDto,
+    config: &ExportTemplateConfig,
+) -> AppResult<ExportResultDto> {
+    let format = normalize_format(&template.format)?;
+    if format == "project_package" {
+        return Err(AppError::invalid_input(
+            "项目包不使用导出模板，请使用项目包导出功能",
+        ));
+    }
+
+    let project = get_project_row(pool, &input.project_id).await?;
+    let documents = get_export_documents(
+        pool,
+        &input.project_id,
+        &ExportDocumentsInput {
+            project_id: input.project_id.clone(),
+            format: format.clone(),
+            range: input.range.clone(),
+            document_id: input.document_id.clone(),
+            document_ids: input.document_ids.clone(),
+            output_path: input.output_path.clone(),
+        },
+    )
+    .await?;
+
+    if documents.is_empty() {
+        return Err(AppError::invalid_input("没有可导出的文档"));
+    }
+
+    let rendered = render_with_config(&project, &documents, &format, config)?;
+    let path = resolve_output_path(database_path, input.output_path, &project.title, &format)?;
+    fs::write(&path, rendered).map_err(|error| {
+        AppError::with_detail(
+            "EXPORT_WRITE_FAILED",
+            "写入模板导出文件失败",
+            error.to_string(),
+        )
+    })?;
+
+    Ok(export_result(&path, &format, &documents))
+}
+
+pub async fn preview_with_template_config(
+    pool: &SqlitePool,
+    input: ExportWithTemplateInput,
+    template: &ExportTemplateDto,
+    config: &ExportTemplateConfig,
+) -> AppResult<ExportPreviewDto> {
+    let format = normalize_format(&template.format)?;
+    let project = get_project_row(pool, &input.project_id).await?;
+    let documents = get_export_documents(
+        pool,
+        &input.project_id,
+        &ExportDocumentsInput {
+            project_id: input.project_id.clone(),
+            format: format.clone(),
+            range: input.range,
+            document_id: input.document_id,
+            document_ids: input.document_ids,
+            output_path: None,
+        },
+    )
+    .await?;
+
+    if documents.is_empty() {
+        return Err(AppError::invalid_input("没有可预览的文档"));
+    }
+
+    let preview_document_count = documents.len().min(8);
+    let preview_documents = &documents[..preview_document_count];
+    let rendered = render_with_config(&project, preview_documents, &format, config)?;
+    let (content, content_truncated) = truncate_chars(rendered, 30_000);
+
+    Ok(ExportPreviewDto {
         format,
+        content,
+        document_count: documents.len() as i64,
+        character_count: documents.iter().map(|item| item.character_count).sum(),
+        truncated: content_truncated || documents.len() > preview_document_count,
+    })
+}
+
+fn export_result(path: &Path, format: &str, documents: &[ExportDocumentRow]) -> ExportResultDto {
+    ExportResultDto {
+        path: path.to_string_lossy().to_string(),
+        format: format.to_string(),
         document_count: documents.len() as i64,
         character_count: documents.iter().map(|item| item.character_count).sum(),
         created_at: now_ms(),
-    })
+    }
+}
+
+fn legacy_config(format: &str) -> ExportTemplateConfig {
+    let mut config = ExportTemplateConfig::default();
+    config.include_author = false;
+    config.chapter_title_format = "{title}".to_string();
+    config.first_line_indent = false;
+    config.pixiv_page_break = true;
+
+    match format {
+        "txt" | "markdown" => config.include_title = false,
+        "html" | "pixiv" => config.include_title = true,
+        _ => {}
+    }
+    config
+}
+
+fn truncate_chars(value: String, max_chars: usize) -> (String, bool) {
+    if value.chars().count() <= max_chars {
+        return (value, false);
+    }
+    let mut truncated: String = value.chars().take(max_chars).collect();
+    truncated.push_str("\n\n……预览内容已截断……");
+    (truncated, true)
 }
 
 async fn export_project_package(
@@ -228,18 +346,7 @@ async fn export_project_package(
         AppError::with_detail("EXPORT_WRITE_FAILED", "写入项目包失败", error.to_string())
     })?;
 
-    Ok(ExportResultDto {
-        path: path.to_string_lossy().to_string(),
-        format: "project_package".to_string(),
-        document_count: documents.len() as i64,
-        character_count: documents.iter().map(|item| item.character_count).sum(),
-        created_at: now_ms(),
-    })
-}
-
-struct ProjectRow {
-    title: String,
-    raw: Value,
+    Ok(export_result(&path, "project_package", &documents))
 }
 
 async fn get_project_row(pool: &SqlitePool, project_id: &str) -> AppResult<ProjectRow> {
@@ -256,12 +363,14 @@ async fn get_project_row(pool: &SqlitePool, project_id: &str) -> AppResult<Proje
     .ok_or_else(|| AppError::not_found("project"))?;
 
     let title: String = row.try_get("title")?;
+    let author: Option<String> = row.try_get("author")?;
     Ok(ProjectRow {
         title: title.clone(),
+        author: author.clone(),
         raw: json!({
             "id": row.try_get::<String, _>("id")?,
             "title": title,
-            "author": row.try_get::<Option<String>, _>("author")?,
+            "author": author,
             "description": row.try_get::<Option<String>, _>("description")?,
             "status": row.try_get::<String, _>("status")?,
             "language": row.try_get::<String, _>("language")?,
@@ -361,7 +470,12 @@ async fn get_export_documents(
                 .filter(|item| ids.contains(&item.id))
                 .collect()
         }
-        _ => all,
+        "all" => all,
+        _ => {
+            return Err(AppError::invalid_input(
+                "导出范围必须是 all / current / selected",
+            ));
+        }
     };
     Ok(selected)
 }
@@ -450,69 +564,263 @@ fn collect_subtree(items: &[ExportDocumentRow], document_id: &str) -> Vec<Export
     out
 }
 
-fn render_txt(documents: &[ExportDocumentRow]) -> String {
+fn render_with_config(
+    project: &ProjectRow,
+    documents: &[ExportDocumentRow],
+    format: &str,
+    config: &ExportTemplateConfig,
+) -> AppResult<String> {
+    match format {
+        "txt" => Ok(render_plain_text(project, documents, config, false)),
+        "markdown" => Ok(render_markdown(project, documents, config)),
+        "html" => Ok(render_html(project, documents, config)),
+        "pixiv" => Ok(render_plain_text(project, documents, config, true)),
+        _ => Err(AppError::invalid_input(
+            "模板导出格式必须是 txt / markdown / html / pixiv",
+        )),
+    }
+}
+
+fn render_plain_text(
+    project: &ProjectRow,
+    documents: &[ExportDocumentRow],
+    config: &ExportTemplateConfig,
+    pixiv: bool,
+) -> String {
+    let mut header = Vec::new();
+    if config.include_title {
+        header.push(project.title.clone());
+    }
+    if config.include_author {
+        if let Some(author) = project
+            .author
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            header.push(format!("作者：{}", author.trim()));
+        }
+    }
+
+    let mut sections = Vec::new();
+    for (index, document) in documents.iter().enumerate() {
+        let mut parts = Vec::new();
+        if config.include_chapter_title {
+            parts.push(format_document_title(
+                document,
+                index,
+                &config.chapter_title_format,
+            ));
+        }
+        let body = format_plain_body(
+            &document.content_text,
+            &config.paragraph_separator,
+            config.first_line_indent,
+        );
+        if !body.is_empty() {
+            parts.push(body);
+        }
+        if !parts.is_empty() {
+            sections.push(parts.join("\n\n"));
+        }
+    }
+
+    let mut output = String::new();
+    if !header.is_empty() {
+        output.push_str(&header.join("\n"));
+        if !sections.is_empty() {
+            output.push_str("\n\n");
+        }
+    }
+
+    let document_separator = if pixiv && config.pixiv_page_break {
+        "\n\n[newpage]\n\n"
+    } else {
+        "\n\n"
+    };
+    output.push_str(&sections.join(document_separator));
+    if !output.ends_with('\n') {
+        output.push('\n');
+    }
+    output
+}
+
+fn render_markdown(
+    project: &ProjectRow,
+    documents: &[ExportDocumentRow],
+    config: &ExportTemplateConfig,
+) -> String {
     let mut out = String::new();
-    for doc in documents {
-        out.push_str(&doc.title);
+    if config.include_title {
+        out.push_str("# ");
+        out.push_str(&project.title);
         out.push_str("\n\n");
-        if !doc.content_text.trim().is_empty() {
-            out.push_str(doc.content_text.trim());
+    }
+    if config.include_author {
+        if let Some(author) = project
+            .author
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+        {
+            out.push_str("*作者：");
+            out.push_str(author.trim());
+            out.push_str("*\n\n");
+        }
+    }
+
+    for (index, document) in documents.iter().enumerate() {
+        if config.include_chapter_title {
+            let base_level = if config.include_title { 2 } else { 1 };
+            let level = (base_level + document.depth).clamp(1, 6);
+            out.push_str(&"#".repeat(level));
+            out.push(' ');
+            out.push_str(&format_document_title(
+                document,
+                index,
+                &config.chapter_title_format,
+            ));
+            out.push_str("\n\n");
+        }
+        let body = format_plain_body(
+            &document.content_text,
+            &config.paragraph_separator,
+            config.first_line_indent,
+        );
+        if !body.is_empty() {
+            out.push_str(&body);
             out.push_str("\n\n");
         }
     }
     out
 }
 
-fn render_markdown(documents: &[ExportDocumentRow]) -> String {
+fn render_html(
+    project: &ProjectRow,
+    documents: &[ExportDocumentRow],
+    config: &ExportTemplateConfig,
+) -> String {
+    let font_family = css_font_family(&config.font_family);
+    let text_indent = if config.first_line_indent { "2em" } else { "0" };
     let mut out = String::new();
-    for doc in documents {
-        let level = (doc.depth + 1).clamp(1, 6);
-        out.push_str(&"#".repeat(level));
-        out.push(' ');
-        out.push_str(&doc.title);
-        out.push_str("\n\n");
-        if !doc.content_text.trim().is_empty() {
-            out.push_str(doc.content_text.trim());
-            out.push_str("\n\n");
-        }
-    }
-    out
-}
+    out.push_str("<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>");
+    out.push_str(&escape_html(&project.title));
+    out.push_str("</title><style>");
+    out.push_str("body{box-sizing:border-box;max-width:820px;margin:48px auto;padding:0 28px;color:#2f2a24;background:#fffdf8;");
+    out.push_str("font-family:");
+    out.push_str(font_family);
+    out.push_str(";font-size:");
+    out.push_str(&format!("{:.1}pt", config.font_size));
+    out.push_str(";line-height:");
+    out.push_str(&format!("{:.2}", config.line_height));
+    out.push_str("}h1{margin-bottom:.25em}header.book-header{margin-bottom:3rem}.author{color:#6f665e}section{margin-bottom:2.8rem}section .content p{text-indent:");
+    out.push_str(text_indent);
+    out.push_str(";margin:.75em 0}blockquote{border-left:3px solid #b7a88f;margin:1em 0;padding:.2em 1em;color:#665f57}ul,ol{padding-left:2em}</style></head><body>");
 
-fn render_html(project_title: &str, documents: &[ExportDocumentRow]) -> String {
-    let mut out = String::new();
-    out.push_str("<!doctype html><html lang=\"zh-CN\"><head><meta charset=\"utf-8\"><title>");
-    out.push_str(&escape_html(project_title));
-    out.push_str("</title><style>body{font-family:serif;line-height:1.8;max-width:760px;margin:48px auto;padding:0 24px;color:#2f2a24;background:#f7f1e5}section{margin-bottom:2.5rem}</style></head><body>");
-    out.push_str("<h1>");
-    out.push_str(&escape_html(project_title));
-    out.push_str("</h1>");
-    for doc in documents {
-        let level = (doc.depth + 2).clamp(2, 6);
-        out.push_str("<section><h");
-        out.push_str(&level.to_string());
-        out.push('>');
-        out.push_str(&escape_html(&doc.title));
-        out.push_str("</h");
-        out.push_str(&level.to_string());
-        out.push('>');
-        if doc.content_html.trim().is_empty() {
-            for paragraph in doc
+    if config.include_title || config.include_author {
+        out.push_str("<header class=\"book-header\">");
+        if config.include_title {
+            out.push_str("<h1>");
+            out.push_str(&escape_html(&project.title));
+            out.push_str("</h1>");
+        }
+        if config.include_author {
+            if let Some(author) = project
+                .author
+                .as_deref()
+                .filter(|value| !value.trim().is_empty())
+            {
+                out.push_str("<p class=\"author\">作者：");
+                out.push_str(&escape_html(author.trim()));
+                out.push_str("</p>");
+            }
+        }
+        out.push_str("</header>");
+    }
+
+    for (index, document) in documents.iter().enumerate() {
+        out.push_str("<section data-document-id=\"");
+        out.push_str(&escape_html(&document.id));
+        out.push_str("\">");
+        if config.include_chapter_title {
+            let base_level = if config.include_title { 2 } else { 1 };
+            let level = (base_level + document.depth).clamp(1, 6);
+            out.push_str("<h");
+            out.push_str(&level.to_string());
+            out.push('>');
+            out.push_str(&escape_html(&format_document_title(
+                document,
+                index,
+                &config.chapter_title_format,
+            )));
+            out.push_str("</h");
+            out.push_str(&level.to_string());
+            out.push('>');
+        }
+        out.push_str("<div class=\"content\">");
+        if document.content_html.trim().is_empty() {
+            for paragraph in document
                 .content_text
-                .split('\n')
-                .filter(|line| !line.trim().is_empty())
+                .lines()
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
             {
                 out.push_str("<p>");
-                out.push_str(&escape_html(paragraph.trim()));
+                out.push_str(&escape_html(paragraph));
                 out.push_str("</p>");
             }
         } else {
-            out.push_str(&doc.content_html);
+            out.push_str(&document.content_html);
         }
-        out.push_str("</section>");
+        out.push_str("</div></section>");
     }
     out.push_str("</body></html>");
     out
+}
+
+fn format_plain_body(
+    content_text: &str,
+    paragraph_separator: &str,
+    first_line_indent: bool,
+) -> String {
+    content_text
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(|paragraph| {
+            if first_line_indent {
+                format!("　　{}", paragraph)
+            } else {
+                paragraph.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(paragraph_separator)
+}
+
+fn format_document_title(document: &ExportDocumentRow, index: usize, pattern: &str) -> String {
+    pattern
+        .replace("{index}", &(index + 1).to_string())
+        .replace("{title}", &document.title)
+        .replace("{type}", document_type_label(&document.document_type))
+        .replace("{depth}", &document.depth.to_string())
+}
+
+fn document_type_label(document_type: &str) -> &'static str {
+    match document_type {
+        "volume" => "卷",
+        "chapter" => "章",
+        "scene" => "场景",
+        "note" => "文档",
+        _ => "文档",
+    }
+}
+
+fn css_font_family(font_family: &str) -> &'static str {
+    match font_family {
+        "sans-serif" => "Inter,'Noto Sans SC','Microsoft YaHei',sans-serif",
+        "monospace" => "'JetBrains Mono','Noto Sans Mono CJK SC',monospace",
+        "system" => "system-ui,-apple-system,'Segoe UI','Microsoft YaHei',sans-serif",
+        _ => "Georgia,'Times New Roman','Noto Serif SC','Songti SC',serif",
+    }
 }
 
 fn escape_html(value: &str) -> String {

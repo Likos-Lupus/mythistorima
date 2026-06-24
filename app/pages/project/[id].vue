@@ -145,11 +145,11 @@
 
         <section v-else-if="workspaceMode === 'export'" class="card-sidebar-summary">
           <h2>导入导出</h2>
-          <p>导出 txt / markdown / html / 项目包，并创建本地备份。</p>
+          <p>使用可复用模板导出 TXT、Markdown、HTML、Pixiv 文本或项目包。</p>
           <ul>
-            <li>全项目导出</li>
-            <li>当前文档导出</li>
-            <li>导入文本为章节</li>
+            <li>内置与项目级模板</li>
+            <li>全项目 / 当前树 / 自选文档</li>
+            <li>样式配置与精确预览</li>
           </ul>
         </section>
 
@@ -244,6 +244,7 @@
         <NoteWorkspace
             v-else-if="workspaceMode === 'notes'"
             :active-document-id="documentStore.activeDocumentId"
+            :documents="documentStore.documents"
             :project-id="projectId"
         />
 
@@ -271,6 +272,7 @@
         <ExportWorkspace
             v-else-if="workspaceMode === 'export'"
             :active-document-id="documentStore.activeDocumentId"
+            :documents="documentStore.documents"
             :project-id="projectId"
             @imported="handleImportedDocument"
         />

@@ -707,19 +707,25 @@ async fn seed_phase2_defaults(pool: &SqlitePool) -> anyhow::Result<()> {
             "builtin_txt_submission",
             "投稿 TXT 模板",
             "txt",
-            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"paragraphSeparator":"\n\n"}"#,
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"第 {index} 章 {title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":false}"#,
+        ),
+        (
+            "builtin_markdown_archive",
+            "归档 Markdown 模板",
+            "markdown",
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"{title}","paragraphSeparator":"\n\n","firstLineIndent":false,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":false}"#,
         ),
         (
             "builtin_html_review",
             "审稿 HTML 模板",
             "html",
-            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"fontFamily":"serif","lineHeight":1.8}"#,
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"第 {index} 章 {title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.8,"pixivPageBreak":false}"#,
         ),
         (
             "builtin_pixiv_basic",
             "Pixiv 基础模板",
             "pixiv",
-            r#"{"includeTitle":true,"includeChapterTitle":true,"paragraphSeparator":"\n\n","pixivRuby":false}"#,
+            r#"{"includeTitle":true,"includeAuthor":false,"includeChapterTitle":true,"chapterTitleFormat":"{title}","paragraphSeparator":"\n\n","firstLineIndent":false,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":true}"#,
         ),
     ];
 

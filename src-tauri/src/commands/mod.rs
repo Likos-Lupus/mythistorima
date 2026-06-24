@@ -4,6 +4,7 @@ pub mod backup;
 pub mod card;
 pub mod document;
 pub mod export;
+pub mod export_template;
 pub mod foreshadow;
 pub mod import;
 pub mod note;
