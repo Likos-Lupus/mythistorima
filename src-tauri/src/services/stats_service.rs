@@ -1,10 +1,13 @@
+use std::collections::HashSet;
+
 use sqlx::{Row, SqlitePool};
 
 use crate::{
     errors::{AppError, AppResult},
     models::stats::{
-        DocumentStatsDto, ProjectStatsDto, RecordWritingSessionInput, TodayWritingStatsDto,
-        WritingSessionDto,
+        DocumentStatsDto, OverviewCharacterDto, OverviewDocumentDto, OverviewForeshadowDto,
+        OverviewNoteDto, ProjectOverviewDto, ProjectOverviewInput, ProjectStatsDto,
+        RecordWritingSessionInput, TodayWritingStatsDto, WritingSessionDto, WritingTrendPointDto,
     },
 };
 
@@ -168,5 +171,235 @@ pub async fn get_today_writing_stats(
         project_id,
         character_count: row.try_get("character_count")?,
         elapsed_ms: row.try_get("elapsed_ms")?,
+    })
+}
+
+pub async fn get_project_overview(
+    pool: &SqlitePool,
+    input: ProjectOverviewInput,
+) -> AppResult<ProjectOverviewDto> {
+    let project_exists: Option<(String,)> = sqlx::query_as("SELECT id FROM projects WHERE id = ?1")
+        .bind(&input.project_id)
+        .fetch_optional(pool)
+        .await?;
+
+    if project_exists.is_none() {
+        return Err(AppError::not_found("project"));
+    }
+
+    let stats = sqlx::query(
+        r#"
+        SELECT
+          COUNT(id) AS document_count,
+          COALESCE(SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END), 0) AS completed_document_count,
+          COALESCE(SUM(character_count), 0) AS character_count
+        FROM documents
+        WHERE project_id = ?1
+        "#,
+    )
+    .bind(&input.project_id)
+    .fetch_one(pool)
+    .await?;
+
+    let today = sqlx::query(
+        r#"
+        SELECT
+          COALESCE(SUM(
+            CASE
+              WHEN characters_after > characters_before
+              THEN characters_after - characters_before
+              ELSE 0
+            END
+          ), 0) AS character_count,
+          COALESCE(SUM(
+            CASE
+              WHEN ended_at IS NOT NULL AND ended_at > started_at
+              THEN ended_at - started_at
+              ELSE 0
+            END
+          ), 0) AS elapsed_ms
+        FROM writing_sessions
+        WHERE project_id = ?1
+          AND started_at >= ?2
+          AND started_at < ?3
+        "#,
+    )
+    .bind(&input.project_id)
+    .bind(input.day_start)
+    .bind(input.day_end)
+    .fetch_one(pool)
+    .await?;
+
+    let recent_documents = sqlx::query_as::<_, OverviewDocumentDto>(
+        r#"
+        SELECT
+          id,
+          title,
+          type AS document_type,
+          status,
+          character_count,
+          updated_at
+        FROM documents
+        WHERE project_id = ?1
+          AND type IN ('chapter', 'scene')
+        ORDER BY updated_at DESC, sort_order ASC
+        LIMIT 6
+        "#,
+    )
+    .bind(&input.project_id)
+    .fetch_all(pool)
+    .await?;
+
+    let open_notes = sqlx::query_as::<_, OverviewNoteDto>(
+        r#"
+        SELECT
+          n.id,
+          n.title,
+          n.type AS note_type,
+          n.status,
+          n.priority,
+          n.document_id,
+          d.title AS document_title,
+          n.updated_at
+        FROM notes n
+        LEFT JOIN documents d ON d.id = n.document_id
+        WHERE n.project_id = ?1
+          AND n.status IN ('open', 'doing')
+        ORDER BY
+          CASE n.priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END,
+          n.updated_at DESC
+        LIMIT 6
+        "#,
+    )
+    .bind(&input.project_id)
+    .fetch_all(pool)
+    .await?;
+
+    let unresolved_foreshadows = sqlx::query_as::<_, OverviewForeshadowDto>(
+        r#"
+        SELECT
+          f.id,
+          f.title,
+          f.status,
+          f.priority,
+          COALESCE(f.setup_document_id, setup_note.document_id) AS setup_document_id,
+          COALESCE(setup_document.title, setup_note_document.title) AS setup_document_title,
+          f.updated_at
+        FROM foreshadow_threads f
+        LEFT JOIN notes setup_note ON setup_note.id = f.setup_note_id
+        LEFT JOIN documents setup_document ON setup_document.id = f.setup_document_id
+        LEFT JOIN documents setup_note_document ON setup_note_document.id = setup_note.document_id
+        WHERE f.project_id = ?1
+          AND f.status IN ('open', 'planned')
+        ORDER BY
+          CASE f.priority WHEN 'high' THEN 0 WHEN 'normal' THEN 1 ELSE 2 END,
+          f.updated_at DESC
+        LIMIT 6
+        "#,
+    )
+    .bind(&input.project_id)
+    .fetch_all(pool)
+    .await?;
+
+    let top_characters = sqlx::query_as::<_, OverviewCharacterDto>(
+        r#"
+        SELECT
+          a.card_id,
+          c.name AS card_name,
+          COUNT(DISTINCT a.document_id) AS document_count,
+          COALESCE(SUM(a.mention_count), 0) AS mention_count
+        FROM appearance_stats a
+        JOIN cards c ON c.id = a.card_id
+        WHERE a.project_id = ?1
+          AND c.type = 'character'
+        GROUP BY a.card_id, c.name
+        ORDER BY mention_count DESC, document_count DESC, c.name ASC
+        LIMIT 6
+        "#,
+    )
+    .bind(&input.project_id)
+    .fetch_all(pool)
+    .await?;
+
+    let writing_trend = sqlx::query_as::<_, WritingTrendPointDto>(
+        r#"
+        SELECT
+          ?2 + CAST((started_at - ?2) / 86400000 AS INTEGER) * 86400000 AS day_start,
+          COALESCE(SUM(
+            CASE
+              WHEN characters_after > characters_before
+              THEN characters_after - characters_before
+              ELSE 0
+            END
+          ), 0) AS character_count,
+          COALESCE(SUM(
+            CASE
+              WHEN ended_at IS NOT NULL AND ended_at > started_at
+              THEN ended_at - started_at
+              ELSE 0
+            END
+          ), 0) AS elapsed_ms
+        FROM writing_sessions
+        WHERE project_id = ?1
+          AND started_at >= ?2
+          AND started_at < ?3
+        GROUP BY CAST((started_at - ?2) / 86400000 AS INTEGER)
+        ORDER BY day_start ASC
+        "#,
+    )
+    .bind(&input.project_id)
+    .bind(input.trend_start)
+    .bind(input.day_end)
+    .fetch_all(pool)
+    .await?;
+
+    let streak_start = input.day_start - 365 * 86400000;
+    let streak_rows = sqlx::query(
+        r#"
+        SELECT DISTINCT
+          ?2 + CAST((started_at - ?2) / 86400000 AS INTEGER) * 86400000 AS day_start
+        FROM writing_sessions
+        WHERE project_id = ?1
+          AND started_at >= ?2
+          AND started_at < ?3
+          AND characters_after > characters_before
+        ORDER BY day_start DESC
+        "#,
+    )
+    .bind(&input.project_id)
+    .bind(streak_start)
+    .bind(input.day_end)
+    .fetch_all(pool)
+    .await?;
+
+    let active_days: HashSet<i64> = streak_rows
+        .into_iter()
+        .map(|row| row.try_get::<i64, _>("day_start"))
+        .collect::<Result<_, _>>()?;
+
+    let mut cursor = if active_days.contains(&input.day_start) {
+        input.day_start
+    } else {
+        input.day_start - 86400000
+    };
+    let mut writing_streak_days = 0_i64;
+    while active_days.contains(&cursor) {
+        writing_streak_days += 1;
+        cursor -= 86400000;
+    }
+
+    Ok(ProjectOverviewDto {
+        project_id: input.project_id,
+        document_count: stats.try_get("document_count")?,
+        completed_document_count: stats.try_get("completed_document_count")?,
+        character_count: stats.try_get("character_count")?,
+        today_character_count: today.try_get("character_count")?,
+        today_elapsed_ms: today.try_get("elapsed_ms")?,
+        writing_streak_days,
+        recent_documents,
+        open_notes,
+        unresolved_foreshadows,
+        top_characters,
+        writing_trend,
     })
 }

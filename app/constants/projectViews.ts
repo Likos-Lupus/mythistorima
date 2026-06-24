@@ -7,7 +7,6 @@ export type ProjectPrimaryView =
 
 export type ProjectWorkspaceMode =
     | 'dashboard'
-    | 'stats'
     | 'outline'
     | 'board'
     | 'timeline'
@@ -78,16 +77,9 @@ export const projectWorkspaceDefinitions: ProjectWorkspaceDefinition[] = [
     {
         mode: 'dashboard',
         primaryView: 'overview',
-        label: '项目',
-        description: '编辑作品资料、目标和项目级选项。',
-        icon: 'i-lucide-notebook-text'
-    },
-    {
-        mode: 'stats',
-        primaryView: 'overview',
-        label: '统计',
-        description: '查看字数、人物出场和结构统计。',
-        icon: 'i-lucide-chart-no-axes-column'
+        label: '概览',
+        description: '作品信息、统计与项目级设置。',
+        icon: 'i-lucide-layout-dashboard'
     },
     {
         mode: 'board',

@@ -117,6 +117,15 @@ select {
     font-family: inherit;
 }
 
+/* Sprint 2 radius baseline: panels and fields use rounded-lg = --ui-radius. */
+:where(.rounded-xl, .rounded-2xl, .rounded-3xl) {
+    border-radius: var(--ui-radius) !important;
+}
+
+:where(.rounded-md, .rounded-lg) {
+    border-radius: var(--ui-radius) !important;
+}
+
 .app-shell,
 .app-page {
     color: var(--ui-text);
@@ -156,7 +165,7 @@ select {
 .glass-panel,
 .paper-card {
     border: 1px solid var(--ui-border);
-    border-radius: calc(var(--ui-radius) * 1.5) !important;
+    border-radius: var(--ui-radius) !important;
     background: var(--ui-bg-elevated) !important;
     color: var(--ui-text) !important;
     box-shadow: none;
@@ -164,7 +173,7 @@ select {
 }
 
 .editor-paper {
-    border-radius: calc(var(--ui-radius) * 1.5) !important;
+    border-radius: var(--ui-radius) !important;
     background: var(--ui-bg-elevated) !important;
     box-shadow: var(--shadow-paper) !important;
 }
@@ -212,7 +221,7 @@ select {
 .current-notes-card,
 .empty-state,
 .error-banner {
-    border-radius: calc(var(--ui-radius) * 1.5) !important;
+    border-radius: var(--ui-radius) !important;
 }
 
 .settings-workspace,
@@ -237,7 +246,7 @@ select {
 
 .workspace-sidebar,
 .workspace-status {
-    border-radius: calc(var(--ui-radius) * 1.5) !important;
+    border-radius: var(--ui-radius) !important;
 }
 
 .project-primary-navigation {

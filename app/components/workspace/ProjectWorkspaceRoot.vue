@@ -35,5 +35,7 @@ const controller = provideProjectWorkspace(useProjectWorkspaceController())
 const showSidebar = computed(() =>
     controller.workspaceMode.value === 'writing' && !controller.focusMode.value
 )
-const showInspector = computed(() => !controller.focusMode.value)
+const showInspector = computed(() =>
+    !controller.focusMode.value && controller.workspaceMode.value !== 'dashboard'
+)
 </script>

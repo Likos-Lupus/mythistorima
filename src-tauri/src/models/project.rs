@@ -38,4 +38,5 @@ pub struct UpdateProjectInput {
     pub status: Option<String>,
     pub target_character_count: Option<i64>,
     pub daily_target_count: Option<i64>,
+    pub metadata_json: Option<String>,
 }

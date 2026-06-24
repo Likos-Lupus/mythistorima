@@ -1,4 +1,5 @@
 use chrono::Utc;
+use serde_json::Value;
 use sqlx::SqlitePool;
 use uuid::Uuid;
 
@@ -39,6 +40,27 @@ fn normalize_project_status(value: Option<String>) -> String {
 
 fn normalize_optional_count(value: Option<i64>) -> Option<i64> {
     value.filter(|item| *item > 0)
+}
+
+fn normalize_metadata_json(value: Option<String>) -> AppResult<Option<String>> {
+    let Some(raw) = value else {
+        return Ok(None);
+    };
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        return Ok(Some("{}".to_string()));
+    }
+
+    let parsed: Value = serde_json::from_str(trimmed).map_err(|error| {
+        AppError::invalid_input(format!("项目 metadata 不是有效 JSON：{error}"))
+    })?;
+    if !parsed.is_object() {
+        return Err(AppError::invalid_input("项目 metadata 必须是 JSON 对象"));
+    }
+
+    serde_json::to_string(&parsed)
+        .map(Some)
+        .map_err(|error| AppError::invalid_input(format!("项目 metadata 无法序列化：{error}")))
 }
 
 fn validate_title(title: &str) -> AppResult<String> {
@@ -192,6 +214,7 @@ pub async fn update_project(pool: &SqlitePool, input: UpdateProjectInput) -> App
     let status = normalize_project_status(input.status);
     let target_character_count = normalize_optional_count(input.target_character_count);
     let daily_target_count = normalize_optional_count(input.daily_target_count);
+    let metadata_json = normalize_metadata_json(input.metadata_json)?;
     let now = now_ms();
 
     let result = sqlx::query(
@@ -204,7 +227,8 @@ pub async fn update_project(pool: &SqlitePool, input: UpdateProjectInput) -> App
           status = ?6,
           target_character_count = ?7,
           daily_target_count = ?8,
-          updated_at = ?9
+          metadata_json = COALESCE(?9, metadata_json),
+          updated_at = ?10
         WHERE id = ?1
         "#,
     )
@@ -216,6 +240,7 @@ pub async fn update_project(pool: &SqlitePool, input: UpdateProjectInput) -> App
     .bind(&status)
     .bind(target_character_count)
     .bind(daily_target_count)
+    .bind(metadata_json.as_deref())
     .bind(now)
     .execute(pool)
     .await?;

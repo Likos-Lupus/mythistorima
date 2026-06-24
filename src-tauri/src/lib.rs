@@ -104,6 +104,7 @@ pub fn run() {
             commands::backup::create_backup,
             commands::backup::list_backups,
             commands::stats::get_project_stats,
+            commands::stats::get_project_overview,
             commands::stats::get_document_stats,
             commands::settings::set_app_setting,
             commands::settings::get_app_setting,

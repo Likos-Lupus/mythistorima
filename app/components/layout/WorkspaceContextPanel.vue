@@ -91,19 +91,6 @@
       <ContextEmpty v-else title="未选择校对规则或问题"/>
     </template>
 
-    <template v-else-if="workspace === 'stats'">
-      <ContextEmpty v-if="!appearanceStore.activeCardSummary" title="未选择人物"/>
-      <template v-else>
-        <ContextField :value="appearanceStore.activeCardSummary.cardName" label="人物"/>
-        <ContextField :value="`${appearanceStore.activeCardSummary.documentCount}`" label="出现文档"/>
-        <ContextField :value="`${appearanceStore.activeCardSummary.totalMentions}`" label="提及次数"/>
-        <button class="secondary-button full-width-button" type="button"
-                @click="openAppearanceCard">
-          打开人物设定
-        </button>
-      </template>
-    </template>
-
     <template v-else-if="workspace === 'outline' || workspace === 'board'">
       <ContextEmpty v-if="!outlineStore.activeNode" title="未选择大纲节点"/>
       <template v-else>
@@ -202,7 +189,6 @@ const timelineStore = useTimelineStore()
 const relationStore = useRelationStore()
 const foreshadowStore = useForeshadowStore()
 const proofreadingStore = useProofreadingStore()
-const appearanceStore = useAppearanceStore()
 const outlineStore = useOutlineStore()
 const cardStore = useCardStore()
 const noteStore = useNoteStore()
@@ -222,7 +208,6 @@ const workspaceLabel = computed(() => {
     timeline: '时间线',
     cards: '设定',
     relations: '关系图',
-    stats: '统计',
     notes: '事项',
     foreshadow: '伏笔',
     proofreading: '校对',
@@ -277,12 +262,6 @@ function openRelationCard(side: 'source' | 'target') {
     type: 'card',
     targetId: side === 'source' ? relation.sourceCardId : relation.targetCardId
   })
-}
-
-function openAppearanceCard() {
-  const card = appearanceStore.activeCardSummary
-  if (!card) return
-  emitTarget({type: 'card', targetId: card.cardId})
 }
 
 function openOutlineDocument() {

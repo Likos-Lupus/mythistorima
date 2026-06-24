@@ -4,7 +4,7 @@ import {toAppErrorMessage} from '~/utils/appError'
 import {appCommandRegistry} from '~/constants/commandRegistry'
 import {cardTypeLabel, defaultCardName, defaultFieldsJson} from '~/types/card'
 import type {AppCommandId, CommandPaletteItem} from '~/types/command'
-import type {ProjectStats, TodayWritingStats} from '~/types/stats'
+import type {ProjectOverview, ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
 import {useAppShortcuts} from '~/composables/useAppShortcuts'
 import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
@@ -43,6 +43,7 @@ export function useProjectWorkspaceController() {
     } = storeToRefs(shellStore)
 
     const projectStats = ref<ProjectStats | null>(null)
+    const projectOverview = ref<ProjectOverview | null>(null)
     const todayStats = ref<TodayWritingStats | null>(null)
     const pageError = ref<string | null>(null)
     const targetDraft = ref<number | null>(null)
@@ -68,6 +69,11 @@ export function useProjectWorkspaceController() {
 
     watch(() => documentStore.activeDocumentId, async () => {
         await refreshCurrentDocumentNotes()
+    })
+
+
+    watch(workspaceMode, mode => {
+        if (mode === 'dashboard') void refreshOverview()
     })
 
     const saveStateLabel = computed(() => {
@@ -176,6 +182,7 @@ export function useProjectWorkspaceController() {
             await documentStore.loadDocuments(projectId.value)
             await refreshStats()
             await refreshTodayStats()
+            await refreshOverview()
             await refreshCurrentDocumentNotes()
             await createStartupBackup()
         } catch (error) {
@@ -198,6 +205,17 @@ export function useProjectWorkspaceController() {
         timerStore.setTodayStats(todayStats.value)
     }
 
+
+    async function refreshOverview() {
+        const range = getOverviewRange()
+        projectOverview.value = await projectStore.loadProjectOverview({
+            projectId: projectId.value,
+            dayStart: range.dayStart,
+            dayEnd: range.dayEnd,
+            trendStart: range.trendStart
+        })
+        return projectOverview.value
+    }
 
     async function refreshCurrentDocumentNotes() {
         if (!documentStore.activeDocumentId) {
@@ -444,6 +462,7 @@ export function useProjectWorkspaceController() {
         try {
             await noteStore.updateNoteStatus(noteId, 'done')
             await refreshCurrentDocumentNotes()
+            await refreshOverview()
         } catch (error) {
             pageError.value = toAppErrorMessage(error, '更新事项失败')
         }
@@ -490,6 +509,7 @@ export function useProjectWorkspaceController() {
         try {
             await projectStore.updateProject(input)
             await projectStore.loadProjects()
+            await refreshOverview()
         } catch (error) {
             pageError.value = toAppErrorMessage(error, '保存项目信息失败')
         } finally {
@@ -510,6 +530,7 @@ export function useProjectWorkspaceController() {
     async function handleImportedDocument() {
         await documentStore.loadDocuments(projectId.value)
         await refreshStats()
+        await refreshOverview()
     }
 
     async function openTarget(target: OpenTarget) {
@@ -726,6 +747,7 @@ export function useProjectWorkspaceController() {
         await refreshStats()
         await refreshTodayStats()
         await refreshCurrentDocumentNotes()
+        if (workspaceMode.value === 'dashboard') await refreshOverview()
     }
 
     function handleEditorSession(payload: EditorSessionSnapshot) {
@@ -782,6 +804,15 @@ export function useProjectWorkspaceController() {
                 : null
         } catch {
             return null
+        }
+    }
+
+
+    function getOverviewRange() {
+        const today = getTodayRange()
+        return {
+            ...today,
+            trendStart: today.dayStart - 13 * 86400000
         }
     }
 
@@ -888,6 +919,7 @@ export function useProjectWorkspaceController() {
     return {
         projectId,
         projectStats,
+        projectOverview,
         todayStats,
         pageError,
         commandFeedback,
@@ -916,6 +948,7 @@ export function useProjectWorkspaceController() {
         handleParagraphNote,
         markNoteDone,
         createManualBackup,
+        refreshOverview,
         updateProjectInfo,
         deleteCurrentProject,
         handleImportedDocument,

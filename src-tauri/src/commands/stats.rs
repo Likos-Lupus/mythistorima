@@ -3,8 +3,8 @@ use tauri::State;
 use crate::{
     errors::AppResult,
     models::stats::{
-        DocumentStatsDto, ProjectStatsDto, RecordWritingSessionInput, TodayWritingStatsDto,
-        WritingSessionDto,
+        DocumentStatsDto, ProjectOverviewDto, ProjectOverviewInput, ProjectStatsDto,
+        RecordWritingSessionInput, TodayWritingStatsDto, WritingSessionDto,
     },
     services::stats_service,
     AppState,
@@ -42,4 +42,12 @@ pub async fn get_today_writing_stats(
     state: State<'_, AppState>,
 ) -> AppResult<TodayWritingStatsDto> {
     stats_service::get_today_writing_stats(&state.db, project_id, day_start, day_end).await
+}
+
+#[tauri::command]
+pub async fn get_project_overview(
+    input: ProjectOverviewInput,
+    state: State<'_, AppState>,
+) -> AppResult<ProjectOverviewDto> {
+    stats_service::get_project_overview(&state.db, input).await
 }

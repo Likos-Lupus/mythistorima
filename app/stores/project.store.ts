@@ -1,4 +1,4 @@
-import type {AppInfo, ProjectStats} from '~/types/stats'
+import type {AppInfo, ProjectOverview, ProjectOverviewInput, ProjectStats} from '~/types/stats'
 import type {CreateProjectInput, Project, UpdateProjectInput} from '~/types/project'
 
 export const useProjectStore = defineStore('project', () => {
@@ -7,6 +7,8 @@ export const useProjectStore = defineStore('project', () => {
     const appInfo = ref<AppInfo | null>(null)
     const databaseReady = ref(false)
     const loading = ref(false)
+    const projectListStats = ref<Record<string, ProjectStats>>({})
+    const currentOverview = ref<ProjectOverview | null>(null)
 
     const {call} = useTauriInvoke()
 
@@ -34,6 +36,25 @@ export const useProjectStore = defineStore('project', () => {
         }
     }
 
+
+    async function loadProjectListStats() {
+        const entries = await Promise.all(projects.value.map(async project => {
+            try {
+                const stats = await call<ProjectStats>('get_project_stats', {projectId: project.id})
+                return [project.id, stats] as const
+            } catch {
+                return null
+            }
+        }))
+        projectListStats.value = Object.fromEntries(entries.filter(Boolean) as Array<readonly [string, ProjectStats]>)
+        return projectListStats.value
+    }
+
+    async function loadProjectOverview(input: ProjectOverviewInput) {
+        currentOverview.value = await call<ProjectOverview>('get_project_overview', {input})
+        return currentOverview.value
+    }
+
     async function loadProject(projectId: string) {
         currentProject.value = await call<Project>('get_project', {projectId})
         return currentProject.value
@@ -42,6 +63,15 @@ export const useProjectStore = defineStore('project', () => {
     async function createProject(input: CreateProjectInput) {
         const project = await call<Project>('create_project', {input})
         projects.value = [project, ...projects.value.filter(item => item.id !== project.id)]
+        projectListStats.value = {
+            ...projectListStats.value,
+            [project.id]: {
+                projectId: project.id,
+                documentCount: 1,
+                characterCount: 0,
+                updatedAt: project.updatedAt
+            }
+        }
         currentProject.value = project
         return project
     }
@@ -56,7 +86,13 @@ export const useProjectStore = defineStore('project', () => {
     async function deleteProject(projectId: string) {
         await call<boolean>('delete_project', {projectId})
         projects.value = projects.value.filter(item => item.id !== projectId)
-        if (currentProject.value?.id === projectId) currentProject.value = null
+        const nextStats = {...projectListStats.value}
+        delete nextStats[projectId]
+        projectListStats.value = nextStats
+        if (currentProject.value?.id === projectId) {
+            currentProject.value = null
+            currentOverview.value = null
+        }
     }
 
     async function loadProjectStats(projectId: string) {
@@ -69,10 +105,14 @@ export const useProjectStore = defineStore('project', () => {
         appInfo,
         databaseReady,
         loading,
+        projectListStats,
+        currentOverview,
         ping,
         loadAppInfo,
         checkDatabase,
         loadProjects,
+        loadProjectListStats,
+        loadProjectOverview,
         loadProject,
         createProject,
         updateProject,

@@ -1,82 +1,134 @@
 <template>
-  <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center bg-[#1f160f]/35 p-4 backdrop-blur-sm">
-    <section class="paper-card w-full max-w-xl rounded-[2rem] p-6">
-      <div class="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h2 class="text-2xl font-bold">新建小说项目</h2>
-          <p class="mt-1 text-sm text-muted-paper">创建项目后会自动生成“第一章”，之后可继续扩展卷、章和场景。</p>
+  <UModal
+      v-model:open="modalOpen"
+      :ui="{ content: 'max-w-xl' }"
+      description="创建后会自动生成第一章。"
+      title="新建小说项目"
+  >
+    <template #body>
+      <UForm :state="form" class="space-y-4" @submit="submit">
+        <UFormField label="项目标题" name="title" required>
+          <UInput
+              v-model="form.title"
+              autofocus
+              class="w-full"
+              placeholder="例如：雾中的王国"
+              size="sm"
+          />
+        </UFormField>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <UFormField label="作者 / 笔名" name="author">
+            <UInput v-model="form.author" class="w-full" placeholder="可选" size="sm"/>
+          </UFormField>
+
+          <UFormField label="语言" name="language">
+            <USelect
+                v-model="form.language"
+                :items="languageOptions"
+                class="w-full"
+                label-key="label"
+                size="sm"
+                value-key="value"
+            />
+          </UFormField>
         </div>
-        <button class="rounded-full px-3 py-1 text-lg hover:bg-(--accent-soft)" type="button"
-                @click="$emit('close')">×
-        </button>
-      </div>
 
-      <form class="space-y-4" @submit.prevent="submit">
-        <label class="block">
-          <span class="mb-2 block text-sm font-semibold">项目标题</span>
-          <input v-model.trim="title" autofocus class="form-field" placeholder="例如：雾中的王国"/>
-        </label>
+        <UFormField label="简介" name="description">
+          <UTextarea
+              v-model="form.description"
+              :rows="4"
+              autoresize
+              class="w-full"
+              placeholder="记录这个项目的核心想法"
+              size="sm"
+          />
+        </UFormField>
 
-        <label class="block">
-          <span class="mb-2 block text-sm font-semibold">作者 / 笔名</span>
-          <input v-model.trim="author" class="form-field" placeholder="可选"/>
-        </label>
+        <UAlert
+            v-if="localError || error"
+            :description="localError || error || ''"
+            color="error"
+            icon="i-lucide-circle-alert"
+            title="无法创建项目"
+            variant="subtle"
+        />
 
-        <label class="block">
-          <span class="mb-2 block text-sm font-semibold">简介</span>
-          <textarea v-model.trim="description" class="form-field min-h-28 resize-none"
-                    placeholder="可选，记录这个项目的核心想法"/>
-        </label>
-
-        <p v-if="error" class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700">{{ error }}</p>
-
-        <div class="flex justify-end gap-3 pt-2">
-          <button class="rounded-full px-5 py-2 text-muted-paper hover:bg-(--accent-soft)" type="button"
-                  @click="$emit('close')">
-            取消
-          </button>
-          <button
-              :disabled="submitting"
-              class="rounded-full bg-[#6d4325] px-5 py-2 font-semibold text-white shadow-lg shadow-[#6d4325]/20 disabled:opacity-60"
-              type="submit">
-            {{ submitting ? '创建中…' : '创建项目' }}
-          </button>
+        <div class="flex justify-end gap-2">
+          <UButton color="neutral" label="取消" size="sm" variant="ghost" @click="modalOpen = false"/>
+          <UButton
+              :loading="submitting"
+              icon="i-lucide-plus"
+              label="创建项目"
+              size="sm"
+              type="submit"
+          />
         </div>
-      </form>
-    </section>
-  </div>
+      </UForm>
+    </template>
+  </UModal>
 </template>
 
 <script lang="ts" setup>
-const props = defineProps<{
+import type {CreateProjectInput} from '~/types/project'
+
+const props = withDefaults(defineProps<{
   open: boolean
   submitting?: boolean
   error?: string | null
-}>()
+}>(), {
+  submitting: false,
+  error: null
+})
 
 const emit = defineEmits<{
   close: []
-  submit: [payload: { title: string, author?: string | null, description?: string | null }]
+  submit: [payload: CreateProjectInput]
 }>()
 
-const title = ref('')
-const author = ref('')
-const description = ref('')
+const form = reactive({
+  title: '',
+  author: '',
+  description: '',
+  language: 'zh-CN'
+})
+const localError = ref<string | null>(null)
 
-watch(() => props.open, (open) => {
-  if (!open) {
-    title.value = ''
-    author.value = ''
-    description.value = ''
+const modalOpen = computed({
+  get: () => props.open,
+  set: value => {
+    if (!value) emit('close')
   }
 })
 
+const languageOptions = [
+  {label: '简体中文', value: 'zh-CN'},
+  {label: 'English', value: 'en'}
+]
+
+watch(() => props.open, open => {
+  if (open) {
+    localError.value = null
+    return
+  }
+  form.title = ''
+  form.author = ''
+  form.description = ''
+  form.language = 'zh-CN'
+})
+
 function submit() {
-  if (!title.value) return
+  localError.value = null
+  const title = form.title.trim()
+  if (!title) {
+    localError.value = '请输入项目标题。'
+    return
+  }
   emit('submit', {
-    title: title.value,
-    author: author.value || null,
-    description: description.value || null
+    title,
+    author: form.author.trim() || null,
+    description: form.description.trim() || null,
+    language: form.language
   })
 }
 </script>

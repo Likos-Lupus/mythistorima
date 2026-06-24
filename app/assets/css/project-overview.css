@@ -1,0 +1,405 @@
+/* UI Sprint 2 - Project Hub and overview */
+.project-hub {
+    display: grid;
+    width: min(100%, 68rem);
+    margin: 0 auto;
+    gap: 0.75rem;
+}
+
+.project-hub-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.project-hub-header h1 {
+    margin: 0;
+    color: var(--ui-text-highlighted);
+    font-size: 1.35rem;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+}
+
+.project-hub-header p {
+    margin: 0.25rem 0 0;
+    color: var(--ui-text-muted);
+    font-size: 0.82rem;
+}
+
+.project-hub-eyebrow {
+    margin: 0 0 0.25rem !important;
+    color: var(--ui-primary) !important;
+    font-size: 0.65rem !important;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.project-hub-actions,
+.project-hub-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.project-hub-toolbar {
+    justify-content: space-between;
+    border-bottom: 1px solid var(--ui-border);
+    padding: 0.5rem 0.65rem;
+}
+
+.project-hub-search {
+    width: min(22rem, 44vw);
+}
+
+.project-compact-list {
+    display: grid;
+}
+
+.project-compact-row,
+.project-compact-skeleton {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 4.25rem;
+    border: 0;
+    border-bottom: 1px solid var(--ui-border-muted);
+    background: transparent;
+    color: inherit;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+}
+
+.project-compact-main {
+    display: grid !important;
+    min-width: 0;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    justify-content: stretch !important;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0 !important;
+    text-align: left;
+}
+
+.project-compact-row:last-child,
+.project-compact-skeleton:last-child {
+    border-bottom: 0;
+}
+
+.project-compact-row:hover {
+    background: var(--ui-bg-muted);
+}
+
+.project-compact-icon {
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg-accented);
+    color: var(--ui-text-highlighted);
+    font-size: 1rem;
+}
+
+.project-compact-copy {
+    min-width: 0;
+}
+
+.project-compact-title-line {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.project-compact-title-line strong {
+    overflow: hidden;
+    color: var(--ui-text-highlighted);
+    font-size: 0.86rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-compact-copy p {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0.22rem 0 0;
+    color: var(--ui-text-muted);
+    font-size: 0.7rem;
+}
+
+.project-overview {
+    display: grid;
+    gap: 0.75rem;
+    width: min(100%, 78rem);
+    margin: 0 auto;
+    padding: 1rem 1.25rem 1.5rem;
+}
+
+.project-overview-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg);
+    overflow: hidden;
+}
+
+.project-overview-metric {
+    display: grid;
+    min-width: 0;
+    gap: 0.3rem;
+    border-right: 1px solid var(--ui-border);
+    padding: 0.85rem 1rem;
+}
+
+.project-overview-metric:last-child {
+    border-right: 0;
+}
+
+.project-overview-metric span {
+    color: var(--ui-text-muted);
+    font-size: 0.7rem;
+}
+
+.project-overview-metric strong {
+    color: var(--ui-text-highlighted);
+    font-size: 1.35rem;
+    font-weight: 750;
+    letter-spacing: -0.03em;
+}
+
+.project-overview-metric small {
+    color: var(--ui-text-muted);
+    font-size: 0.68rem;
+}
+
+.project-overview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.project-overview-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.project-overview-card-header h2 {
+    margin: 0;
+    color: var(--ui-text-highlighted);
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.project-overview-list {
+    display: grid;
+}
+
+.project-overview-list-row {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    min-height: 3.25rem;
+    border: 0;
+    border-bottom: 1px solid var(--ui-border-muted);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+}
+
+.project-overview-list-row:last-child {
+    border-bottom: 0;
+}
+
+.project-overview-list-row:hover,
+.project-overview-list-row:focus-visible {
+    background: var(--ui-bg-muted);
+    outline: none;
+}
+
+.project-overview-list-row > span:nth-child(2) {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.project-overview-list-row strong,
+.project-overview-list-row small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-overview-list-row strong {
+    color: var(--ui-text-highlighted);
+    font-size: 0.78rem;
+}
+
+.project-overview-list-row small {
+    color: var(--ui-text-muted);
+    font-size: 0.67rem;
+}
+
+.project-overview-count {
+    color: var(--ui-text-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.project-overview-empty {
+    display: grid;
+    min-height: 10rem;
+    place-items: center;
+    color: var(--ui-text-muted);
+    font-size: 0.75rem;
+    padding: 1rem;
+}
+
+.project-overview-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.project-overview-form-heading,
+.project-overview-form-actions {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.project-overview-form-heading h2 {
+    margin: 0;
+    color: var(--ui-text-highlighted);
+    font-size: 0.95rem;
+}
+
+.project-overview-form-heading p {
+    margin: 0.2rem 0 0;
+    color: var(--ui-text-muted);
+    font-size: 0.72rem;
+}
+
+.project-overview-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.project-overview-form-wide {
+    grid-column: 1 / -1;
+}
+
+.project-overview-form-actions {
+    justify-content: flex-end;
+    border-top: 1px solid var(--ui-border);
+    padding-top: 0.75rem;
+}
+
+.project-writing-trend {
+    display: grid;
+    min-height: 11rem;
+    grid-template-columns: repeat(14, minmax(1.2rem, 1fr));
+    align-items: end;
+    gap: 0.35rem;
+}
+
+.project-writing-trend-day {
+    display: grid;
+    min-width: 0;
+    grid-template-rows: 1rem 7.5rem 1rem;
+    align-items: end;
+    gap: 0.25rem;
+    text-align: center;
+}
+
+.project-writing-trend-value {
+    overflow: hidden;
+    color: var(--ui-text-muted);
+    font-size: 0.58rem;
+    text-overflow: ellipsis;
+}
+
+.project-writing-trend-track {
+    position: relative;
+    display: flex;
+    height: 100%;
+    align-items: flex-end;
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg-muted);
+    overflow: hidden;
+}
+
+.project-writing-trend-bar {
+    width: 100%;
+    min-height: 2px;
+    border-radius: var(--ui-radius);
+    background: var(--ui-primary);
+    opacity: 0.82;
+}
+
+.project-writing-trend-day small {
+    color: var(--ui-text-muted);
+    font-size: 0.58rem;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .project-overview-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .project-overview-metric:nth-child(2) {
+        border-right: 0;
+    }
+
+    .project-overview-metric:nth-child(-n + 2) {
+        border-bottom: 1px solid var(--ui-border);
+    }
+
+    .project-overview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .project-hub-header,
+    .project-hub-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .project-hub-search {
+        width: 100%;
+    }
+
+    .project-overview {
+        padding: 0.75rem;
+    }
+
+    .project-overview-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .project-overview-form-wide {
+        grid-column: auto;
+    }
+
+    .project-writing-trend {
+        overflow-x: auto;
+        grid-template-columns: repeat(14, 2rem);
+    }
+}

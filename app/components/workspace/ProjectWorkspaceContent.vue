@@ -3,12 +3,14 @@
     <ProjectDashboard
         v-if="controller.workspaceMode.value === 'dashboard' && controller.projectStore.currentProject"
         :backups="controller.exportStore.backups"
+        :overview="controller.projectOverview.value"
         :project="controller.projectStore.currentProject"
         :saving="controller.projectSaving.value"
         :stats="controller.projectStats.value"
         @backup="controller.createManualBackup"
         @delete-project="controller.deleteCurrentProject"
         @open-mode="controller.selectWorkspaceMode"
+        @open-target="controller.openTarget"
         @update-project="controller.updateProjectInfo"
     />
 
@@ -75,12 +77,6 @@
         @open-target="controller.openTarget"
     />
 
-    <StatsWorkspace
-        v-else-if="controller.workspaceMode.value === 'stats'"
-        :documents="controller.documentStore.documents"
-        :project-id="controller.projectId.value"
-        @open-target="controller.openTarget"
-    />
 
     <NoteWorkspace
         v-else-if="controller.workspaceMode.value === 'notes'"
@@ -141,7 +137,6 @@ import OutlineBoardWorkspace from '~/components/outline/OutlineBoardWorkspace.vu
 import TimelineWorkspace from '~/components/timeline/TimelineWorkspace.vue'
 import RelationWorkspace from '~/components/relations/RelationWorkspace.vue'
 import ForeshadowWorkspace from '~/components/foreshadow/ForeshadowWorkspace.vue'
-import StatsWorkspace from '~/components/stats/StatsWorkspace.vue'
 import ProofreadingWorkspace from '~/components/proofreading/ProofreadingWorkspace.vue'
 
 const controller = useProjectWorkspaceContext()
