@@ -2,9 +2,9 @@
   <section class="settings-workspace">
     <header class="workspace-panel-header">
       <div>
-        <p class="workspace-eyebrow">Phase 1 Week 8</p>
+        <p class="workspace-eyebrow">Phase 2 Week 10</p>
         <h2>主题与设置</h2>
-        <p>调整写作界面的视觉风格、编辑器体验、自动保存和语言。</p>
+        <p>调整视觉风格、编辑器体验、自动保存、语言和应用内快捷键。</p>
       </div>
       <button class="secondary-button" type="button" @click="reload">重新读取设置</button>
     </header>
@@ -18,6 +18,7 @@
       <EditorSettings/>
       <AutosaveSettings/>
       <LanguageSettings/>
+      <ShortcutSettings/>
     </div>
   </section>
 </template>
@@ -27,16 +28,21 @@ import ThemeSettings from '~/components/settings/ThemeSettings.vue'
 import EditorSettings from '~/components/settings/EditorSettings.vue'
 import AutosaveSettings from '~/components/settings/AutosaveSettings.vue'
 import LanguageSettings from '~/components/settings/LanguageSettings.vue'
+import ShortcutSettings from '~/components/settings/ShortcutSettings.vue'
 import ErrorBanner from '~/components/common/ErrorBanner.vue'
 import {toAppErrorMessage} from '~/utils/appError'
+import {useCommandStore} from '~/stores/command.store'
+import {useSettingsStore} from '~/stores/settings.store'
 
 const settingsStore = useSettingsStore()
+const commandStore = useCommandStore()
 const errorMessage = ref<string | null>(null)
 
 async function reload() {
   errorMessage.value = null
   try {
     await settingsStore.loadAppSettings()
+    commandStore.loadShortcuts()
   } catch (error) {
     errorMessage.value = toAppErrorMessage(error, '读取设置失败')
   }

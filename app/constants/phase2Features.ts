@@ -77,8 +77,8 @@ export const phase2FeatureFlags: Phase2FeatureFlag[] = [
         key: 'commandPalette',
         label: '命令面板',
         week: 10,
-        status: 'planned',
-        description: '快速跳转章节、设定、事项与执行命令。'
+        status: 'active',
+        description: '应用内快捷键、快速跳转与常用操作执行。'
     }
 ]
 

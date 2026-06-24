@@ -5,6 +5,12 @@
       :title="projectStore.currentProject?.title || 'Mythistorima'"
       @home="router.push('/')"
   >
+    <button class="command-palette-launcher" type="button" @click="openCommandPalette">
+      <span>命令</span>
+      <CommandShortcutHint :shortcut="commandStore.shortcutFor('commandPalette.open')" compact/>
+    </button>
+    <div v-if="commandFeedback" class="command-feedback-toast">{{ commandFeedback }}</div>
+
     <div :class="{ 'is-focus-mode': focusMode }" class="workspace-layout">
       <aside class="workspace-sidebar app-sidebar glass-panel" data-phase1-area="workspace-sidebar">
         <nav aria-label="项目工作区" class="workspace-mode-switch phase2-workspace-nav">
@@ -145,7 +151,7 @@
 
         <section v-else-if="workspaceMode === 'export'" class="card-sidebar-summary">
           <h2>导入导出</h2>
-          <p>使用可复用模板导出 TXT、Markdown、HTML、Pixiv 文本或项目包。</p>
+          <p>使用可复用模板导出 TXT、Markdown、HTML、DOCX、EPUB、Pixiv 文本或项目包。</p>
           <ul>
             <li>内置与项目级模板</li>
             <li>全项目 / 当前树 / 自选文档</li>
@@ -155,11 +161,11 @@
 
         <section v-else class="card-sidebar-summary">
           <h2>设置</h2>
-          <p>调整主题、字体、字号、行距、自动保存间隔和界面语言。</p>
+          <p>调整主题、编辑器体验、界面语言和应用内快捷键。</p>
           <ul>
             <li>纸张 / 明亮 / 夜间主题</li>
-            <li>编辑器体验设置</li>
-            <li>中文 / 英文文案结构</li>
+            <li>编辑器与自动保存设置</li>
+            <li>快捷键录制、冲突检测与恢复默认</li>
           </ul>
         </section>
       </aside>
@@ -443,6 +449,14 @@
         <p v-if="editorSnapshot.errorMessage" class="editor-error">{{ editorSnapshot.errorMessage }}</p>
       </aside>
     </div>
+
+    <CommandPalette
+        :items="commandPaletteItems"
+        :open="commandStore.isPaletteOpen"
+        :open-shortcut="commandStore.shortcutFor('commandPalette.open')"
+        @close="commandStore.closePalette"
+        @execute="executeCommandPaletteItem"
+    />
   </AppShell>
 </template>
 
@@ -464,10 +478,16 @@ import RelationWorkspace from '~/components/relations/RelationWorkspace.vue'
 import ForeshadowWorkspace from '~/components/foreshadow/ForeshadowWorkspace.vue'
 import StatsWorkspace from '~/components/stats/StatsWorkspace.vue'
 import ProofreadingWorkspace from '~/components/proofreading/ProofreadingWorkspace.vue'
+import CommandPalette from '~/components/command/CommandPalette.vue'
+import CommandShortcutHint from '~/components/command/CommandShortcutHint.vue'
 import {phase2WorkspaceGroups, type Phase2WorkspaceMode} from '~/constants/phase2Features'
 import {toAppErrorMessage} from '~/utils/appError'
+import {appCommandRegistry} from '~/constants/commandRegistry'
+import {cardTypeLabel, defaultCardName, defaultFieldsJson} from '~/types/card'
+import type {AppCommandId, CommandPaletteItem} from '~/types/command'
 import type {ProjectStats, TodayWritingStats} from '~/types/stats'
 import type {SaveState} from '~/composables/useAutoSave'
+import {useAppShortcuts} from '~/composables/useAppShortcuts'
 import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentInput} from '~/types/document'
 import type {UpdateProjectInput} from '~/types/project'
 import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
@@ -481,7 +501,10 @@ const documentStore = useDocumentStore()
 const settingsStore = useSettingsStore()
 const timerStore = useTimerStore()
 const noteStore = useNoteStore()
+const cardStore = useCardStore()
+const proofreadingStore = useProofreadingStore()
 const exportStore = useExportStore()
+const commandStore = useCommandStore()
 const {call} = useTauriInvoke()
 const {locale} = useI18n()
 
@@ -489,12 +512,14 @@ const projectId = computed(() => String(route.params.id))
 const projectStats = ref<ProjectStats | null>(null)
 const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
+const commandFeedback = ref<string | null>(null)
 const focusMode = ref(false)
 const workspaceMode = ref<Phase2WorkspaceMode>('writing')
 const targetDraft = ref<number | null>(null)
 const currentDocumentNotes = ref<CreativeNote[]>([])
 const projectSaving = ref(false)
 let backupInterval: ReturnType<typeof setInterval> | null = null
+let commandFeedbackTimer: ReturnType<typeof setTimeout> | null = null
 
 const editorSnapshot = reactive({
   saveState: 'idle' as SaveState,
@@ -541,13 +566,74 @@ const themeLabel = computed(() => {
   return settingsStore.themeOptions.find(option => option.value === settingsStore.theme)?.label ?? settingsStore.theme
 })
 
+
+const commandPaletteItems = computed<CommandPaletteItem[]>(() => {
+  const commandItems: CommandPaletteItem[] = appCommandRegistry
+      .filter(command => command.id !== 'commandPalette.open')
+      .map(command => ({
+        id: `command:${command.id}`,
+        kind: 'command',
+        title: command.title,
+        subtitle: command.description,
+        group: command.group,
+        keywords: command.keywords,
+        shortcut: commandStore.shortcutFor(command.id),
+        action: {type: 'command', commandId: command.id}
+      }))
+
+  const documentItems: CommandPaletteItem[] = documentStore.documents.map(document => ({
+    id: `document:${document.id}`,
+    kind: 'document',
+    title: document.title,
+    subtitle: `${documentTypeLabel(document.type)} · ${documentStatusLabel(document.status)} · ${document.characterCount} 字`,
+    group: '打开章节',
+    keywords: ['章节', '卷', '场景', document.type, document.status],
+    action: {type: 'openDocument', targetId: document.id}
+  }))
+
+  const cardItems: CommandPaletteItem[] = cardStore.cards.map(card => ({
+    id: `card:${card.id}`,
+    kind: 'card',
+    title: card.name,
+    subtitle: `${cardTypeLabel(card.type)} · ${card.description || '暂无简介'}`,
+    group: '打开设定',
+    keywords: [card.type, card.aliasesJson, card.description],
+    action: {type: 'openCard', targetId: card.id}
+  }))
+
+  const noteItems: CommandPaletteItem[] = noteStore.notes.map(note => ({
+    id: `note:${note.id}`,
+    kind: 'note',
+    title: note.title,
+    subtitle: `${noteTypeLabel(note.type)} · ${note.status === 'done' ? '已完成' : '未完成'}${note.documentTitle ? ` · ${note.documentTitle}` : ''}`,
+    group: '打开事项',
+    keywords: [note.type, note.status, note.priority, note.body],
+    action: {type: 'openNote', targetId: note.id}
+  }))
+
+  return [...commandItems, ...documentItems, ...cardItems, ...noteItems]
+})
+
+useAppShortcuts({
+  'commandPalette.open': toggleCommandPalette,
+  'document.createChapter': () => executeAppCommandSafely('document.createChapter'),
+  'card.createCharacter': () => executeAppCommandSafely('card.createCharacter'),
+  'editor.toggleFocus': () => executeAppCommandSafely('editor.toggleFocus'),
+  'proofreading.runCurrent': () => executeAppCommandSafely('proofreading.runCurrent'),
+  'export.currentDocument': () => executeAppCommandSafely('export.currentDocument'),
+  'theme.cycle': () => executeAppCommandSafely('theme.cycle'),
+  'navigation.settings': () => executeAppCommandSafely('navigation.settings')
+})
+
 onMounted(async () => {
   await loadProjectWorkspace()
+  commandStore.loadShortcuts()
   startBackupInterval()
 })
 
 onBeforeUnmount(() => {
   stopBackupInterval()
+  if (commandFeedbackTimer) clearTimeout(commandFeedbackTimer)
   timerStore.finishSession()
 })
 
@@ -595,6 +681,210 @@ async function refreshCurrentDocumentNotes() {
     currentDocumentNotes.value = []
   }
 }
+
+async function openCommandPalette() {
+  commandStore.openPalette()
+  await Promise.allSettled([
+    cardStore.loadCards(projectId.value),
+    noteStore.loadNotes({projectId: projectId.value, type: 'all', status: 'all'})
+  ])
+}
+
+function toggleCommandPalette() {
+  if (commandStore.isPaletteOpen) {
+    commandStore.closePalette()
+    return
+  }
+  void openCommandPalette()
+}
+
+async function executeCommandPaletteItem(item: CommandPaletteItem) {
+  commandStore.closePalette()
+  pageError.value = null
+  try {
+    if (item.action.type === 'command') {
+      await executeAppCommandSafely(item.action.commandId)
+      return
+    }
+    if (item.action.type === 'openDocument') {
+      documentStore.selectDocument(item.action.targetId)
+      workspaceMode.value = 'writing'
+      showCommandFeedback('已打开文档。')
+      return
+    }
+    if (item.action.type === 'openCard') {
+      const targetId = item.action.targetId
+      cardStore.setTypeFilter('all')
+      if (!cardStore.cards.some(card => card.id === targetId)) {
+        await cardStore.loadCards(projectId.value)
+      }
+      cardStore.selectCard(targetId)
+      workspaceMode.value = 'cards'
+      showCommandFeedback('已打开设定卡。')
+      return
+    }
+    if (item.action.type === 'openNote') {
+      const targetId = item.action.targetId
+      noteStore.setTypeFilter('all')
+      noteStore.setStatusFilter('all')
+      if (!noteStore.notes.some(note => note.id === targetId)) {
+        await noteStore.loadNotes({projectId: projectId.value, type: 'all', status: 'all'})
+      }
+      noteStore.selectNote(targetId)
+      workspaceMode.value = 'notes'
+      showCommandFeedback('已打开事项。')
+    }
+  } catch (error) {
+    pageError.value = toAppErrorMessage(error, '执行命令失败')
+  }
+}
+
+async function executeAppCommandSafely(commandId: AppCommandId) {
+  pageError.value = null
+  try {
+    await executeAppCommand(commandId)
+  } catch (error) {
+    const message = toAppErrorMessage(error, '执行命令失败')
+    pageError.value = message
+    showCommandFeedback(message, 8000)
+  }
+}
+
+async function executeAppCommand(commandId: AppCommandId) {
+  switch (commandId) {
+    case 'commandPalette.open':
+      await openCommandPalette()
+      break
+    case 'document.createChapter':
+      await commandCreateChapter()
+      break
+    case 'card.createCharacter':
+      await commandCreateCharacter()
+      break
+    case 'editor.toggleFocus':
+      commandToggleFocusMode()
+      break
+    case 'proofreading.runCurrent':
+      await commandRunProofreading()
+      break
+    case 'export.currentDocument':
+      await commandExportCurrentDocument()
+      break
+    case 'theme.cycle':
+      await commandCycleTheme()
+      break
+    case 'navigation.settings':
+      commandOpenSettings()
+      break
+  }
+}
+
+async function commandCreateChapter() {
+  const parentId = resolveChapterParentId()
+  const document = await documentStore.createDocument({
+    projectId: projectId.value,
+    parentId,
+    type: 'chapter',
+    title: '新章节',
+    sortOrder: null
+  })
+  workspaceMode.value = 'writing'
+  await refreshStats()
+  showCommandFeedback(`已创建“${document.title}”。`)
+}
+
+function resolveChapterParentId() {
+  let cursor = activeDocument.value
+  const visited = new Set<string>()
+  while (cursor && !visited.has(cursor.id)) {
+    visited.add(cursor.id)
+    if (cursor.type === 'volume') return cursor.id
+    const parentId = cursor.parentId
+    cursor = parentId
+        ? documentStore.documents.find(document => document.id === parentId) ?? null
+        : null
+  }
+  return null
+}
+
+async function commandCreateCharacter() {
+  if (!cardStore.cards.length) await cardStore.loadCards(projectId.value)
+  const card = await cardStore.createCard({
+    projectId: projectId.value,
+    type: 'character',
+    name: defaultCardName('character'),
+    aliasesJson: '[]',
+    description: '',
+    fieldsJson: defaultFieldsJson('character'),
+    avatarAssetId: null
+  })
+  cardStore.setTypeFilter('character')
+  cardStore.selectCard(card.id)
+  workspaceMode.value = 'cards'
+  showCommandFeedback('已创建人物设定卡。')
+}
+
+function commandToggleFocusMode() {
+  workspaceMode.value = 'writing'
+  focusMode.value = !focusMode.value
+  showCommandFeedback(focusMode.value ? '已进入专注模式。' : '已退出专注模式。')
+}
+
+async function commandRunProofreading() {
+  if (!documentStore.activeDocumentId) {
+    throw new Error('请先选择需要校对的章节或场景')
+  }
+  await proofreadingStore.loadRules({
+    projectId: projectId.value,
+    includeBuiltin: true
+  })
+  const issues = await proofreadingStore.runOnDocument({
+    documentId: documentStore.activeDocumentId,
+    enabledOnly: true,
+    ruleIds: null
+  })
+  workspaceMode.value = 'proofreading'
+  showCommandFeedback(`校对完成，共发现 ${issues.length} 个问题。`)
+}
+
+async function commandExportCurrentDocument() {
+  if (!documentStore.activeDocumentId) {
+    throw new Error('请先选择需要导出的章节或场景')
+  }
+  const result = await exportStore.exportDocuments({
+    projectId: projectId.value,
+    format: 'txt',
+    range: 'current',
+    documentId: documentStore.activeDocumentId,
+    documentIds: null,
+    outputPath: null
+  })
+  showCommandFeedback(`当前文档已导出到：${result.path}`, 8000)
+}
+
+async function commandCycleTheme() {
+  const themes = settingsStore.themeOptions.map(option => option.value)
+  const index = themes.indexOf(settingsStore.theme)
+  const next = themes[(index + 1) % themes.length] ?? 'paper'
+  await settingsStore.setTheme(next)
+  showCommandFeedback(`已切换为“${settingsStore.themeOptions.find(option => option.value === next)?.label ?? next}”主题。`)
+}
+
+function commandOpenSettings() {
+  focusMode.value = false
+  workspaceMode.value = 'settings'
+  showCommandFeedback('已打开设置。')
+}
+
+function showCommandFeedback(message: string, duration = 4000) {
+  commandFeedback.value = message
+  if (commandFeedbackTimer) clearTimeout(commandFeedbackTimer)
+  commandFeedbackTimer = setTimeout(() => {
+    commandFeedback.value = null
+    commandFeedbackTimer = null
+  }, duration)
+}
+
 
 async function createChapterNote(type: Exclude<NoteType, 'all'> = 'todo') {
   if (!documentStore.activeDocumentId) return
