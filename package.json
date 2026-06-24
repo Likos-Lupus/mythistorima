@@ -14,7 +14,9 @@
     "typecheck": "nuxt typecheck",
     "postinstall": "nuxt prepare",
     "perf:phase2-week11": "node scripts/phase2-week11-performance.mjs",
-    "ui:audit": "node scripts/ui-sprint0-audit.mjs"
+    "ui:audit": "node scripts/ui-sprint1-audit.mjs",
+    "ui:audit:sprint0": "node scripts/ui-sprint0-audit.mjs",
+    "ui:audit:sprint1": "node scripts/ui-sprint1-audit.mjs"
   },
   "dependencies": {
     "@nuxt/ui": "4.9.0",

@@ -60,6 +60,7 @@
     </div>
 
     <EditorStatusBar
+        v-if="showStatusBar"
         :character-count="characterCount"
         :error-message="errorMessage"
         :last-saved-at="lastSavedAt"
@@ -96,9 +97,11 @@ const props = withDefaults(defineProps<{
   focusMode?: boolean
   settings: EditorSettings
   targetCharacterCount?: number | null
+  showStatusBar?: boolean
 }>(), {
   focusMode: false,
-  targetCharacterCount: null
+  targetCharacterCount: null,
+  showStatusBar: true
 })
 
 const emit = defineEmits<{

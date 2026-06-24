@@ -67,7 +67,10 @@ const projectPage = read('app/pages/project/[id].vue')
 if (/workspaceMode\s*===\s*['"]settings['"]/.test(projectPage)) {
     failures.push('settings must not be a primary workspace')
 }
-if (!projectPage.includes('<AppSettingsModal')) {
+const projectLayout = fs.existsSync(path.join(root, 'app/layouts/project.vue'))
+    ? read('app/layouts/project.vue')
+    : ''
+if (!projectPage.includes('<AppSettingsModal') && !projectLayout.includes('<AppSettingsModal')) {
     failures.push('application settings modal is not connected')
 }
 

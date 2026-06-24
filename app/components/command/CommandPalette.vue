@@ -1,127 +1,107 @@
 <template>
-  <Teleport to="body">
-    <div v-if="open" class="command-palette-backdrop" @mousedown.self="$emit('close')">
-      <section
-          aria-label="命令面板"
-          aria-modal="true"
-          class="command-palette"
-          role="dialog"
-          @keydown="handleKeydown"
+  <UModal
+      v-model:open="modalOpen"
+      :ui="{ content: 'max-w-2xl overflow-hidden p-0' }"
+  >
+    <template #content>
+      <UCommandPalette
+          v-model:search-term="searchTerm"
+          :fuse="{ resultLimit: 100 }"
+          :groups="groups"
+          :virtualize="{ estimateSize: 44, overscan: 12 }"
+          autofocus
+          class="h-[min(70vh,38rem)]"
+          placeholder="搜索命令、章节、设定卡或事项…"
       >
-        <header class="command-palette-search">
-          <span aria-hidden="true" class="command-palette-search-icon">⌕</span>
-          <input
-              ref="inputElement"
-              v-model="query"
-              autocomplete="off"
-              placeholder="搜索命令、章节、设定卡或事项…"
-              spellcheck="false"
-              type="text"
-          >
-          <CommandShortcutHint :shortcut="openShortcut" compact/>
-        </header>
-
-        <div class="command-palette-meta">
-          <span>{{ filteredItems.length }} 项结果</span>
-          <span>↑↓ 选择 · Enter 执行 · Esc 关闭</span>
-        </div>
-
-        <CommandResultList
-            :items="filteredItems"
-            :selected-index="selectedIndex"
-            @execute="execute"
-            @select-index="selectedIndex = $event"
-        />
-      </section>
-    </div>
-  </Teleport>
+        <template #footer>
+          <div class="command-palette-footer">
+            <span>↑↓ 选择</span>
+            <span>Enter 执行</span>
+            <span>Esc 关闭</span>
+            <UKbd v-if="openShortcut" size="sm">{{ formattedShortcut }}</UKbd>
+          </div>
+        </template>
+      </UCommandPalette>
+    </template>
+  </UModal>
 </template>
 
 <script lang="ts" setup>
-import CommandResultList from '~/components/command/CommandResultList.vue'
-import CommandShortcutHint from '~/components/command/CommandShortcutHint.vue'
+import type {CommandPaletteItem as NuxtCommandPaletteItem} from '@nuxt/ui'
 import type {CommandPaletteItem} from '~/types/command'
+import {formatShortcut} from '~/utils/shortcut'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   open: boolean
   items: CommandPaletteItem[]
   openShortcut?: string | null
-}>()
+}>(), {
+  openShortcut: ''
+})
 
 const emit = defineEmits<{
   close: []
   execute: [item: CommandPaletteItem]
 }>()
 
-const inputElement = ref<HTMLInputElement | null>(null)
-const query = ref('')
-const selectedIndex = ref(0)
+const searchTerm = ref('')
 
-const filteredItems = computed(() => {
-  const normalized = normalizeSearch(query.value)
-  const source = normalized
-      ? props.items.filter(item => {
-          const haystack = normalizeSearch([
-            item.title,
-            item.subtitle,
-            item.group,
-            ...item.keywords
-          ].join(' '))
-          return normalized.split(/\s+/).every(token => haystack.includes(token))
-        })
-      : props.items
+const modalOpen = computed({
+  get: () => props.open,
+  set: value => {
+    if (!value) emit('close')
+  }
+})
 
-  return source.slice(0, 80)
+const formattedShortcut = computed(() => formatShortcut(props.openShortcut ?? '', true))
+
+const groups = computed(() => {
+  const grouped = new Map<string, CommandPaletteItem[]>()
+  for (const item of props.items) {
+    const current = grouped.get(item.group) ?? []
+    current.push(item)
+    grouped.set(item.group, current)
+  }
+
+  return [...grouped.entries()].map(([label, items], index) => ({
+    id: `group-${index}-${label}`,
+    label,
+    items: items.map(item => toNuxtItem(item))
+  }))
 })
 
 watch(() => props.open, open => {
-  if (!open) return
-  query.value = ''
-  selectedIndex.value = 0
-  nextTick(() => inputElement.value?.focus())
+  if (open) searchTerm.value = ''
 })
 
-watch(query, () => {
-  selectedIndex.value = 0
-})
-
-watch(filteredItems, items => {
-  if (!items.length) selectedIndex.value = 0
-  else if (selectedIndex.value >= items.length) selectedIndex.value = items.length - 1
-})
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    emit('close')
-    return
-  }
-  if (event.key === 'ArrowDown') {
-    event.preventDefault()
-    selectedIndex.value = filteredItems.value.length
-        ? (selectedIndex.value + 1) % filteredItems.value.length
-        : 0
-    return
-  }
-  if (event.key === 'ArrowUp') {
-    event.preventDefault()
-    selectedIndex.value = filteredItems.value.length
-        ? (selectedIndex.value - 1 + filteredItems.value.length) % filteredItems.value.length
-        : 0
-    return
-  }
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    const item = filteredItems.value[selectedIndex.value]
-    if (item && !item.disabled) execute(item)
+function toNuxtItem(item: CommandPaletteItem): NuxtCommandPaletteItem {
+  return {
+    id: item.id,
+    label: item.title,
+    suffix: item.subtitle,
+    icon: kindIcon(item.kind),
+    disabled: item.disabled,
+    kbds: item.shortcut ? shortcutTokens(item.shortcut) : undefined,
+    onSelect: () => {
+      emit('execute', item)
+      emit('close')
+    }
   }
 }
 
-function execute(item: CommandPaletteItem) {
-  emit('execute', item)
+function kindIcon(kind: CommandPaletteItem['kind']) {
+  if (kind === 'document') return 'i-lucide-file-text'
+  if (kind === 'card') return 'i-lucide-contact-round'
+  if (kind === 'note') return 'i-lucide-list-checks'
+  return 'i-lucide-command'
 }
 
-function normalizeSearch(value: string) {
-  return value.trim().toLocaleLowerCase('zh-CN').replace(/\s+/g, ' ')
+function shortcutTokens(shortcut: string) {
+  const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
+  return shortcut
+      .replace('Mod', isMac ? 'meta' : 'ctrl')
+      .split('+')
+      .map(token => token.trim().toLowerCase())
+      .filter(Boolean)
 }
 </script>
