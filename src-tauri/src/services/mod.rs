@@ -10,6 +10,7 @@ pub mod note_service;
 pub mod outline_service;
 pub mod project_service;
 pub mod proofreading_service;
+pub mod publication_export_service;
 pub mod relation_service;
 pub mod search_service;
 pub mod settings_service;

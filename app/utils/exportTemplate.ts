@@ -12,8 +12,15 @@ export function defaultExportTemplateConfig(format: ExportTemplateFormat = 'txt'
         firstLineIndent: format === 'txt' || format === 'html',
         fontFamily: 'serif',
         fontSize: 12,
-        lineHeight: format === 'html' ? 1.8 : 1.6,
-        pixivPageBreak: format === 'pixiv'
+        lineHeight: format === 'html' || format === 'epub' ? 1.8 : 1.6,
+        pixivPageBreak: format === 'pixiv',
+        documentPageBreak: format === 'docx' || format === 'epub',
+        epubIncludeToc: true,
+        epubIncludeAssets: true,
+        epubPublisher: 'Mythistorima',
+        pixivTags: [],
+        pixivConvertRuby: true,
+        pixivConvertEmphasis: true
     }
 }
 
@@ -43,7 +50,19 @@ export function normalizeExportTemplateConfig(config: ExportTemplateConfig): Exp
         fontFamily: allowedFonts.includes(config.fontFamily) ? config.fontFamily : 'serif',
         fontSize: clampNumber(config.fontSize, 8, 72, 12),
         lineHeight: clampNumber(config.lineHeight, 1, 3, 1.6),
-        pixivPageBreak: Boolean(config.pixivPageBreak)
+        pixivPageBreak: Boolean(config.pixivPageBreak),
+        documentPageBreak: Boolean(config.documentPageBreak),
+        epubIncludeToc: Boolean(config.epubIncludeToc),
+        epubIncludeAssets: Boolean(config.epubIncludeAssets),
+        epubPublisher: String(config.epubPublisher || 'Mythistorima').trim().slice(0, 120) || 'Mythistorima',
+        pixivTags: Array.isArray(config.pixivTags)
+            ? config.pixivTags
+                .map(tag => String(tag).trim().replace(/^#/, '').slice(0, 40))
+                .filter(Boolean)
+                .slice(0, 10)
+            : [],
+        pixivConvertRuby: Boolean(config.pixivConvertRuby),
+        pixivConvertEmphasis: Boolean(config.pixivConvertEmphasis)
     }
 }
 
@@ -57,6 +76,10 @@ export function exportTemplateFormatLabel(format: ExportTemplateFormat) {
             return 'Markdown'
         case 'html':
             return 'HTML'
+        case 'docx':
+            return 'DOCX'
+        case 'epub':
+            return 'EPUB'
         case 'pixiv':
             return 'Pixiv'
         default:

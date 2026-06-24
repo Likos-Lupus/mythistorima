@@ -14,7 +14,7 @@
     <div v-if="loading" class="export-preview-empty">正在生成预览…</div>
     <div v-else-if="!preview" class="export-preview-empty">尚未生成预览。</div>
     <iframe
-        v-else-if="preview.format === 'html'"
+        v-else-if="['html', 'docx', 'epub'].includes(preview.format)"
         :srcdoc="preview.content"
         class="export-preview-frame"
         sandbox=""

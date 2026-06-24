@@ -1,4 +1,4 @@
-export type ExportFormat = 'txt' | 'markdown' | 'html' | 'pixiv' | 'project_package'
+export type ExportFormat = 'txt' | 'markdown' | 'html' | 'docx' | 'epub' | 'pixiv' | 'project_package'
 export type ExportRange = 'all' | 'current' | 'selected'
 
 export interface ExportDocumentsInput {

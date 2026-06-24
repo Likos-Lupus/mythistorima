@@ -27,6 +27,13 @@ pub struct ExportTemplateConfig {
     pub font_size: f64,
     pub line_height: f64,
     pub pixiv_page_break: bool,
+    pub document_page_break: bool,
+    pub epub_include_toc: bool,
+    pub epub_include_assets: bool,
+    pub epub_publisher: String,
+    pub pixiv_tags: Vec<String>,
+    pub pixiv_convert_ruby: bool,
+    pub pixiv_convert_emphasis: bool,
 }
 
 impl Default for ExportTemplateConfig {
@@ -42,6 +49,13 @@ impl Default for ExportTemplateConfig {
             font_size: 12.0,
             line_height: 1.6,
             pixiv_page_break: true,
+            document_page_break: true,
+            epub_include_toc: true,
+            epub_include_assets: true,
+            epub_publisher: "Mythistorima".to_string(),
+            pixiv_tags: Vec::new(),
+            pixiv_convert_ruby: true,
+            pixiv_convert_emphasis: true,
         }
     }
 }

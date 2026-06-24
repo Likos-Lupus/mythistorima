@@ -707,25 +707,37 @@ async fn seed_phase2_defaults(pool: &SqlitePool) -> anyhow::Result<()> {
             "builtin_txt_submission",
             "投稿 TXT 模板",
             "txt",
-            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"第 {index} 章 {title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":false}"#,
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"第 {index} 章 {title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":false,"documentPageBreak":false,"epubIncludeToc":true,"epubIncludeAssets":true,"epubPublisher":"Mythistorima","pixivTags":[],"pixivConvertRuby":true,"pixivConvertEmphasis":true}"#,
         ),
         (
             "builtin_markdown_archive",
             "归档 Markdown 模板",
             "markdown",
-            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"{title}","paragraphSeparator":"\n\n","firstLineIndent":false,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":false}"#,
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"{title}","paragraphSeparator":"\n\n","firstLineIndent":false,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":false,"documentPageBreak":false,"epubIncludeToc":true,"epubIncludeAssets":true,"epubPublisher":"Mythistorima","pixivTags":[],"pixivConvertRuby":true,"pixivConvertEmphasis":true}"#,
         ),
         (
             "builtin_html_review",
             "审稿 HTML 模板",
             "html",
-            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"第 {index} 章 {title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.8,"pixivPageBreak":false}"#,
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"第 {index} 章 {title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.8,"pixivPageBreak":false,"documentPageBreak":false,"epubIncludeToc":true,"epubIncludeAssets":true,"epubPublisher":"Mythistorima","pixivTags":[],"pixivConvertRuby":true,"pixivConvertEmphasis":true}"#,
+        ),
+        (
+            "builtin_docx_editor",
+            "编辑审阅 DOCX 模板",
+            "docx",
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"第 {index} 章 {title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":false,"documentPageBreak":true,"epubIncludeToc":true,"epubIncludeAssets":true,"epubPublisher":"Mythistorima","pixivTags":[],"pixivConvertRuby":true,"pixivConvertEmphasis":true}"#,
+        ),
+        (
+            "builtin_epub_reader",
+            "电子书 EPUB 模板",
+            "epub",
+            r#"{"includeTitle":true,"includeAuthor":true,"includeChapterTitle":true,"chapterTitleFormat":"{title}","paragraphSeparator":"\n\n","firstLineIndent":true,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.7,"pixivPageBreak":false,"documentPageBreak":true,"epubIncludeToc":true,"epubIncludeAssets":true,"epubPublisher":"Mythistorima","pixivTags":[],"pixivConvertRuby":true,"pixivConvertEmphasis":true}"#,
         ),
         (
             "builtin_pixiv_basic",
-            "Pixiv 基础模板",
+            "Pixiv 发布模板",
             "pixiv",
-            r#"{"includeTitle":true,"includeAuthor":false,"includeChapterTitle":true,"chapterTitleFormat":"{title}","paragraphSeparator":"\n\n","firstLineIndent":false,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":true}"#,
+            r#"{"includeTitle":true,"includeAuthor":false,"includeChapterTitle":true,"chapterTitleFormat":"{title}","paragraphSeparator":"\n\n","firstLineIndent":false,"fontFamily":"serif","fontSize":12.0,"lineHeight":1.6,"pixivPageBreak":true,"documentPageBreak":false,"epubIncludeToc":true,"epubIncludeAssets":true,"epubPublisher":"Mythistorima","pixivTags":[],"pixivConvertRuby":true,"pixivConvertEmphasis":true}"#,
         ),
     ];
 

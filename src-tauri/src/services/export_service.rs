@@ -15,6 +15,9 @@ use crate::{
             ExportPreviewDto, ExportTemplateConfig, ExportTemplateDto, ExportWithTemplateInput,
         },
     },
+    services::publication_export_service::{
+        self, PublicationAsset, PublicationDocumentSource, PublicationProject,
+    },
 };
 
 #[derive(Debug, Clone)]
@@ -32,8 +35,11 @@ struct ExportDocumentRow {
 }
 
 struct ProjectRow {
+    id: String,
     title: String,
     author: Option<String>,
+    language: String,
+    cover_asset_id: Option<String>,
     raw: Value,
 }
 
@@ -72,6 +78,8 @@ fn default_extension(format: &str) -> &'static str {
         "txt" | "pixiv" => "txt",
         "markdown" | "md" => "md",
         "html" => "html",
+        "docx" => "docx",
+        "epub" => "epub",
         "project_package" | "package" => "mythistorima.json",
         _ => "txt",
     }
@@ -82,10 +90,12 @@ fn normalize_format(format: &str) -> AppResult<String> {
         "txt" => Ok("txt".to_string()),
         "markdown" | "md" => Ok("markdown".to_string()),
         "html" => Ok("html".to_string()),
+        "docx" => Ok("docx".to_string()),
+        "epub" => Ok("epub".to_string()),
         "pixiv" => Ok("pixiv".to_string()),
         "project_package" | "package" => Ok("project_package".to_string()),
         _ => Err(AppError::invalid_input(
-            "导出格式必须是 txt / markdown / html / pixiv / project_package",
+            "导出格式必须是 txt / markdown / html / docx / epub / pixiv / project_package",
         )),
     }
 }
@@ -170,11 +180,17 @@ async fn export_documents_as_format(
     }
 
     let config = legacy_config(&format);
-    let rendered = render_with_config(&project, &documents, &format, &config)?;
     let path = resolve_output_path(database_path, input.output_path, &project.title, &format)?;
-    fs::write(&path, rendered).map_err(|error| {
-        AppError::with_detail("EXPORT_WRITE_FAILED", "写入导出文件失败", error.to_string())
-    })?;
+    write_export_format(
+        pool,
+        database_path,
+        &path,
+        &project,
+        &documents,
+        &format,
+        &config,
+    )
+    .await?;
 
     Ok(export_result(&path, &format, &documents))
 }
@@ -212,15 +228,17 @@ pub async fn export_with_template_config(
         return Err(AppError::invalid_input("没有可导出的文档"));
     }
 
-    let rendered = render_with_config(&project, &documents, &format, config)?;
     let path = resolve_output_path(database_path, input.output_path, &project.title, &format)?;
-    fs::write(&path, rendered).map_err(|error| {
-        AppError::with_detail(
-            "EXPORT_WRITE_FAILED",
-            "写入模板导出文件失败",
-            error.to_string(),
-        )
-    })?;
+    write_export_format(
+        pool,
+        database_path,
+        &path,
+        &project,
+        &documents,
+        &format,
+        config,
+    )
+    .await?;
 
     Ok(export_result(&path, &format, &documents))
 }
@@ -253,7 +271,22 @@ pub async fn preview_with_template_config(
 
     let preview_document_count = documents.len().min(8);
     let preview_documents = &documents[..preview_document_count];
-    let rendered = render_with_config(&project, preview_documents, &format, config)?;
+    let publication_project = publication_project(&project);
+    let publication_documents = publication_documents(preview_documents);
+    let rendered = match format.as_str() {
+        "docx" | "epub" => publication_export_service::render_publication_preview_html(
+            &publication_project,
+            &publication_documents,
+            config,
+            &format,
+        ),
+        "pixiv" => publication_export_service::render_pixiv(
+            &publication_project,
+            &publication_documents,
+            config,
+        ),
+        _ => render_with_config(&project, preview_documents, &format, config)?,
+    };
     let (content, content_truncated) = truncate_chars(rendered, 30_000);
 
     Ok(ExportPreviewDto {
@@ -362,19 +395,25 @@ async fn get_project_row(pool: &SqlitePool, project_id: &str) -> AppResult<Proje
     .await?
     .ok_or_else(|| AppError::not_found("project"))?;
 
+    let id: String = row.try_get("id")?;
     let title: String = row.try_get("title")?;
     let author: Option<String> = row.try_get("author")?;
+    let language: String = row.try_get("language")?;
+    let cover_asset_id: Option<String> = row.try_get("cover_asset_id")?;
     Ok(ProjectRow {
+        id: id.clone(),
         title: title.clone(),
         author: author.clone(),
+        language: language.clone(),
+        cover_asset_id: cover_asset_id.clone(),
         raw: json!({
-            "id": row.try_get::<String, _>("id")?,
+            "id": id,
             "title": title,
             "author": author,
             "description": row.try_get::<Option<String>, _>("description")?,
             "status": row.try_get::<String, _>("status")?,
-            "language": row.try_get::<String, _>("language")?,
-            "coverAssetId": row.try_get::<Option<String>, _>("cover_asset_id")?,
+            "language": language,
+            "coverAssetId": cover_asset_id,
             "targetCharacterCount": row.try_get::<Option<i64>, _>("target_character_count")?,
             "dailyTargetCount": row.try_get::<Option<i64>, _>("daily_target_count")?,
             "metadataJson": row.try_get::<String, _>("metadata_json")?,
@@ -564,6 +603,111 @@ fn collect_subtree(items: &[ExportDocumentRow], document_id: &str) -> Vec<Export
     out
 }
 
+async fn write_export_format(
+    pool: &SqlitePool,
+    database_path: &Path,
+    path: &Path,
+    project: &ProjectRow,
+    documents: &[ExportDocumentRow],
+    format: &str,
+    config: &ExportTemplateConfig,
+) -> AppResult<()> {
+    let publication_project = publication_project(project);
+    let publication_documents = publication_documents(documents);
+
+    match format {
+        "docx" => publication_export_service::write_docx(
+            path,
+            &publication_project,
+            &publication_documents,
+            config,
+        ),
+        "epub" => {
+            let assets = query_publication_assets(pool, &project.id).await?;
+            publication_export_service::write_epub(
+                path,
+                database_path,
+                &publication_project,
+                &publication_documents,
+                &assets,
+                config,
+            )
+        }
+        "pixiv" => {
+            let rendered = publication_export_service::render_pixiv(
+                &publication_project,
+                &publication_documents,
+                config,
+            );
+            fs::write(path, rendered).map_err(|error| {
+                AppError::with_detail(
+                    "EXPORT_WRITE_FAILED",
+                    "写入 Pixiv 导出文件失败",
+                    error.to_string(),
+                )
+            })
+        }
+        _ => {
+            let rendered = render_with_config(project, documents, format, config)?;
+            fs::write(path, rendered).map_err(|error| {
+                AppError::with_detail("EXPORT_WRITE_FAILED", "写入导出文件失败", error.to_string())
+            })
+        }
+    }
+}
+
+fn publication_project(project: &ProjectRow) -> PublicationProject {
+    PublicationProject {
+        id: project.id.clone(),
+        title: project.title.clone(),
+        author: project.author.clone(),
+        language: project.language.clone(),
+        cover_asset_id: project.cover_asset_id.clone(),
+    }
+}
+
+fn publication_documents(documents: &[ExportDocumentRow]) -> Vec<PublicationDocumentSource> {
+    documents
+        .iter()
+        .map(|document| PublicationDocumentSource {
+            id: document.id.clone(),
+            document_type: document.document_type.clone(),
+            title: document.title.clone(),
+            depth: document.depth,
+            content_json: document.content_json.clone(),
+            content_text: document.content_text.clone(),
+        })
+        .collect()
+}
+
+async fn query_publication_assets(
+    pool: &SqlitePool,
+    project_id: &str,
+) -> AppResult<Vec<PublicationAsset>> {
+    let rows = sqlx::query(
+        r#"
+        SELECT id, filename, mime, path
+        FROM assets
+        WHERE project_id = ?1
+        ORDER BY created_at ASC
+        "#,
+    )
+    .bind(project_id)
+    .fetch_all(pool)
+    .await?;
+
+    let mut assets = Vec::with_capacity(rows.len());
+    for row in rows {
+        assets.push(PublicationAsset {
+            id: row.try_get("id")?,
+            filename: row.try_get("filename")?,
+            mime: row.try_get("mime")?,
+            path: row.try_get("path")?,
+        });
+    }
+    Ok(assets)
+}
+
 fn render_with_config(
     project: &ProjectRow,
     documents: &[ExportDocumentRow],
@@ -574,9 +718,8 @@ fn render_with_config(
         "txt" => Ok(render_plain_text(project, documents, config, false)),
         "markdown" => Ok(render_markdown(project, documents, config)),
         "html" => Ok(render_html(project, documents, config)),
-        "pixiv" => Ok(render_plain_text(project, documents, config, true)),
         _ => Err(AppError::invalid_input(
-            "模板导出格式必须是 txt / markdown / html / pixiv",
+            "文本渲染格式必须是 txt / markdown / html",
         )),
     }
 }

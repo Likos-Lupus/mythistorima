@@ -1,6 +1,6 @@
 import type {ExportRange, ExportResult} from '~/types/export'
 
-export type ExportTemplateFormat = 'txt' | 'markdown' | 'html' | 'pixiv'
+export type ExportTemplateFormat = 'txt' | 'markdown' | 'html' | 'docx' | 'epub' | 'pixiv'
 export type ExportFontFamily = 'serif' | 'sans-serif' | 'monospace' | 'system'
 
 export interface ExportTemplateConfig {
@@ -14,6 +14,13 @@ export interface ExportTemplateConfig {
     fontSize: number
     lineHeight: number
     pixivPageBreak: boolean
+    documentPageBreak: boolean
+    epubIncludeToc: boolean
+    epubIncludeAssets: boolean
+    epubPublisher: string
+    pixivTags: string[]
+    pixivConvertRuby: boolean
+    pixivConvertEmphasis: boolean
 }
 
 export interface ExportTemplate {

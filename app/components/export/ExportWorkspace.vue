@@ -4,7 +4,7 @@
       <div>
         <p class="eyebrow">Advanced export templates</p>
         <h2>高级导出模板</h2>
-        <p>保存可复用的 TXT、Markdown、HTML 与 Pixiv 版式，并按全项目、当前树或自选文档导出。</p>
+        <p>保存可复用的 TXT、Markdown、HTML、DOCX、EPUB 与 Pixiv 版式，并按全项目、当前树或自选文档导出。</p>
       </div>
     </header>
 

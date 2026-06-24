@@ -22,6 +22,8 @@
           <option value="txt">TXT</option>
           <option value="markdown">Markdown</option>
           <option value="html">HTML</option>
+          <option value="docx">DOCX</option>
+          <option value="epub">EPUB</option>
           <option value="pixiv">Pixiv</option>
         </select>
       </label>
@@ -115,7 +117,14 @@ function resetDraft() {
 
 function onFormatChange() {
   const format = draft.format as ExportTemplateFormat
-  if (format === 'pixiv') draft.config.pixivPageBreak = true
+  const defaults = defaultExportTemplateConfig(format)
+  draft.config = {
+    ...draft.config,
+    documentPageBreak: defaults.documentPageBreak,
+    epubIncludeToc: defaults.epubIncludeToc,
+    epubIncludeAssets: defaults.epubIncludeAssets,
+    pixivPageBreak: defaults.pixivPageBreak
+  }
 }
 
 function save() {
