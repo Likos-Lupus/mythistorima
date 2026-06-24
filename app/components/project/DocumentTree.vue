@@ -3,7 +3,7 @@
     <div class="document-tree-header">
       <div>
         <h2 class="document-tree-title">文档树</h2>
-        <p class="document-tree-subtitle">Phase 1 Week 2：卷 / 章 / 场景</p>
+        <p class="document-tree-subtitle">卷 / 章 / 场景</p>
       </div>
     </div>
 

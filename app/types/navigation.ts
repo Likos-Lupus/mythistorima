@@ -1,4 +1,4 @@
-import type {Phase2WorkspaceMode} from '~/constants/phase2Features'
+import type {ProjectWorkspaceMode} from '~/constants/projectViews'
 import type {ProofreadingIssue} from '~/types/proofreading'
 
 export type DocumentAnchorSource =
@@ -33,7 +33,7 @@ export type OpenTarget =
     | { type: 'proofreadingRule', targetId: string }
     | { type: 'proofreadingIssue', issue: ProofreadingIssue }
     | { type: 'exportTemplate', targetId: string }
-    | { type: 'workspace', workspace: Phase2WorkspaceMode }
+    | { type: 'workspace', workspace: ProjectWorkspaceMode }
 
 export interface PendingEditorNavigation {
     requestId: number

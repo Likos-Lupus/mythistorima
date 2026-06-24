@@ -567,7 +567,7 @@ button:disabled {
     overflow-wrap: anywhere;
 }
 
-/* Phase 0 render guard: keep the two critical writing panes visible even when
+/* Writing-pane render guard: keep the two critical panes visible even when
    component auto-import or responsive layout behavior changes across Nuxt builds. */
 .workspace-layout > .workspace-sidebar,
 .workspace-layout > .workspace-editor-host {
@@ -612,7 +612,7 @@ button:disabled {
     visibility: visible !important;
 }
 
-/* Phase 1 Week 2 document tree */
+/* Document tree */
 .document-tree {
     height: 100%;
     min-height: 0;
@@ -769,7 +769,7 @@ button:disabled {
     outline: none;
 }
 
-/* Phase 1 Week 3 editor experience */
+/* Editor experience */
 .workspace-layout.is-focus-mode .workspace-sidebar,
 .workspace-layout.is-focus-mode .workspace-status {
     display: none !important;
@@ -921,7 +921,7 @@ button:disabled {
     position: relative;
 }
 
-/* Phase 1 Week 4 setting cards workspace */
+/* Setting cards workspace */
 .workspace-mode-switch {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1247,7 +1247,7 @@ button:disabled {
     }
 }
 
-/* Phase 1 Week 5 setting references and @ mention UX */
+/* Setting references and @ mention UX */
 .setting-reference {
     display: inline;
     border-bottom: 1px dotted rgba(123, 84, 43, 0.7);
@@ -1392,7 +1392,7 @@ button:disabled {
     line-height: 1.45;
 }
 
-/* Phase 1 Week 6 creative notes workspace */
+/* Creative notes workspace */
 .workspace-mode-switch {
     grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1729,7 +1729,7 @@ button:disabled {
     }
 }
 
-/* Phase 1 Week 8 themes */
+/* Application themes */
 html[data-theme="light"],
 body[data-theme="light"] {
     color-scheme: light;
@@ -1821,7 +1821,7 @@ body[data-theme="dark"] .toolbar-button {
     color: var(--paper-text) !important;
 }
 
-/* Phase 1 Week 8 settings workspace */
+/* Settings workspace */
 .settings-workspace {
     height: 100%;
     min-height: 0;
@@ -2028,7 +2028,7 @@ body[data-theme="dark"] .error-banner {
     font-weight: 800;
 }
 
-/* Phase 1 final consolidation: project dashboard and project management */
+/* Project dashboard and project management */
 .project-list-card {
     cursor: pointer;
     border: 1px solid var(--line-soft);
@@ -2198,7 +2198,7 @@ body[data-theme="dark"] .error-banner {
     }
 }
 
-/* Phase 2 foundation workspace navigation and placeholders */
+/* Workspace navigation and placeholders */
 .phase2-workspace-nav {
     align-items: stretch;
     display: flex;
@@ -2221,7 +2221,7 @@ body[data-theme="dark"] .error-banner {
     letter-spacing: 0.08em;
 }
 
-.phase2-placeholder {
+.workspace-placeholder {
     min-height: 100%;
     display: flex;
     flex-direction: column;
@@ -2230,7 +2230,7 @@ body[data-theme="dark"] .error-banner {
     overflow: auto;
 }
 
-.phase2-placeholder-header {
+.workspace-placeholder-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -2239,20 +2239,20 @@ body[data-theme="dark"] .error-banner {
     padding-bottom: 1rem;
 }
 
-.phase2-placeholder-header h2 {
+.workspace-placeholder-header h2 {
     margin: 0.15rem 0 0.4rem;
     color: var(--paper-text);
     font-size: clamp(1.6rem, 2.5vw, 2.2rem);
 }
 
-.phase2-placeholder-header p {
+.workspace-placeholder-header p {
     max-width: 58rem;
     margin: 0;
     color: var(--paper-muted);
     line-height: 1.75;
 }
 
-.phase2-status-pill {
+.workspace-status-pill {
     flex: 0 0 auto;
     border: 1px solid rgba(109, 67, 37, 0.22);
     border-radius: 999px;
@@ -2264,31 +2264,31 @@ body[data-theme="dark"] .error-banner {
     white-space: nowrap;
 }
 
-.phase2-placeholder-body {
+.workspace-placeholder-body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1rem;
 }
 
-.phase2-placeholder-card {
+.workspace-placeholder-card {
     border: 1px solid var(--line-soft);
     border-radius: 22px;
     background: rgba(255, 250, 240, 0.68);
     padding: 1.1rem;
 }
 
-.phase2-placeholder-card h3 {
+.workspace-placeholder-card h3 {
     margin: 0 0 0.55rem;
     color: var(--paper-text);
 }
 
-.phase2-placeholder-card p,
-.phase2-placeholder-card li {
+.workspace-placeholder-card p,
+.workspace-placeholder-card li {
     color: var(--paper-muted);
     line-height: 1.7;
 }
 
-.phase2-placeholder-card ul {
+.workspace-placeholder-card ul {
     margin: 0;
     padding-left: 1.15rem;
 }
@@ -3012,7 +3012,7 @@ body[data-theme="dark"] .outline-board-toolbar {
     }
 }
 
-/* Phase 2 Week 4: card relation graph */
+/* Card relation graph */
 .relation-workspace {
     display: grid;
     gap: 1rem;
@@ -3326,7 +3326,7 @@ body[data-theme="dark"] .relation-edge rect {
     }
 }
 
-/* Phase 2 Week 5: timeline system */
+/* Timeline system */
 .timeline-workspace {
     display: grid;
     gap: 1rem;
@@ -3634,7 +3634,7 @@ body[data-theme="dark"] .timeline-lane-dot {
     }
 }
 
-/* Phase 2 Week 6: Foreshadow threads and appearance stats */
+/* Foreshadow threads and appearance stats */
 .foreshadow-workspace,
 .stats-workspace {
     display: flex;
@@ -3935,7 +3935,7 @@ body[data-theme="dark"] .timeline-lane-dot {
 }
 
 
-/* Phase 2 Week 7 - Proofreading workspace */
+/* Proofreading workspace */
 .proofreading-workspace {
     display: flex;
     flex-direction: column;
@@ -4549,7 +4549,7 @@ body[data-theme="dark"] .timeline-lane-dot {
 }
 
 
-/* Phase 2 Week 10 - Command palette and application shortcuts */
+/* Command palette and application shortcuts */
 .command-palette-launcher {
     position: fixed;
     z-index: 75;
@@ -4864,7 +4864,7 @@ body[data-theme="dark"] .timeline-lane-dot {
 }
 
 
-/* Phase 2 Week 11 - Integrated navigation and contextual workspaces */
+/* Integrated navigation and contextual workspaces */
 .navigation-target-highlight {
     border-radius: .35rem;
     background: color-mix(in srgb, var(--accent-soft) 78%, transparent);

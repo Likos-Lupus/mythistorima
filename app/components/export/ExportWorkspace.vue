@@ -72,7 +72,7 @@
     />
 
     <details class="export-legacy-tools glass-panel">
-      <summary>项目包、文本导入与数据库备份</summary>
+      <summary>项目包、文本导入与本地备份</summary>
       <div class="export-grid">
         <article class="export-card">
           <h3>项目包</h3>
@@ -110,7 +110,7 @@
 
         <article class="export-card">
           <h3>备份</h3>
-          <p>创建当前数据库的项目备份快照。应用启动时也会自动创建一次备份。</p>
+          <p>创建当前项目的本地备份。应用启动时也会自动创建一次备份。</p>
           <button :disabled="exportStore.busy" class="primary-button full-width-button" type="button"
                   @click="createBackup">
             创建备份
@@ -119,7 +119,7 @@
             <article v-for="backup in exportStore.backups" :key="backup.id" class="backup-item">
               <strong>{{ formatDate(backup.createdAt) }}</strong>
               <span>{{ formatSize(backup.sizeBytes) }}</span>
-              <small>{{ backup.path }}</small>
+              <small>本地备份</small>
             </article>
           </div>
         </article>

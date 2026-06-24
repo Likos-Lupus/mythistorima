@@ -1,8 +1,8 @@
 <template>
-  <section class="card-workspace" data-phase1-area="card-workspace">
+  <section class="card-workspace">
     <header class="card-workspace-header glass-panel">
       <div>
-        <p class="card-workspace-kicker">Phase 1 Week 5</p>
+        <p class="card-workspace-kicker">资料</p>
         <h1>设定卡</h1>
         <p>管理人物、地点、组织、道具、事件和概念，并查看它们在正文中的 @ 引用章节。</p>
       </div>

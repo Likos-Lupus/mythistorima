@@ -13,10 +13,11 @@
     "tauri:build": "tauri build",
     "typecheck": "nuxt typecheck",
     "postinstall": "nuxt prepare",
-    "perf:phase2-week11": "node scripts/phase2-week11-performance.mjs"
+    "perf:phase2-week11": "node scripts/phase2-week11-performance.mjs",
+    "ui:audit": "node scripts/ui-sprint0-audit.mjs"
   },
   "dependencies": {
-    "@nuxt/ui": "^4.0.0",
+    "@nuxt/ui": "4.9.0",
     "@nuxtjs/i18n": "^10.0.0",
     "@pinia/nuxt": "^0.11.2",
     "@tauri-apps/api": "^2",
@@ -24,7 +25,7 @@
     "@tiptap/pm": "^2.12.0",
     "@tiptap/starter-kit": "^2.12.0",
     "@tiptap/vue-3": "^2.12.0",
-    "nuxt": "^4.0.0",
+    "nuxt": "4.4.8",
     "pinia": "^3.0.3",
     "tailwindcss": "^4.0.0",
     "zod": "^3.25.0",

@@ -91,7 +91,7 @@
           <button class="secondary-button" type="button" @click="$emit('openMode', 'notes')">查看事项</button>
           <button class="secondary-button" type="button" @click="$emit('openMode', 'search')">全文搜索</button>
           <button class="secondary-button" type="button" @click="$emit('openMode', 'export')">导入导出</button>
-          <button class="secondary-button" type="button" @click="$emit('openMode', 'settings')">应用设置</button>
+          <button class="secondary-button" type="button" @click="$emit('openMode', 'stats')">查看统计</button>
         </div>
       </article>
 
@@ -100,12 +100,12 @@
           <h3>最近备份</h3>
           <span>{{ backups.length }} 个</span>
         </div>
-        <EmptyState v-if="backups.length === 0" description="点击“手动备份”创建一个本地 SQLite 快照。" title="暂无备份"/>
+        <EmptyState v-if="backups.length === 0" description="点击“手动备份”保存一份本地项目副本。" title="暂无备份"/>
         <div v-else class="dashboard-backup-list">
           <article v-for="backup in backups.slice(0, 5)" :key="backup.id" class="backup-item">
             <strong>{{ formatDate(backup.createdAt) }}</strong>
             <span>{{ formatSize(backup.sizeBytes) }}</span>
-            <small>{{ backup.path }}</small>
+            <small>本地备份</small>
           </article>
         </div>
       </article>
@@ -132,7 +132,7 @@ const emit = defineEmits<{
   updateProject: [payload: UpdateProjectInput]
   deleteProject: []
   backup: []
-  openMode: [mode: 'writing' | 'cards' | 'notes' | 'search' | 'export' | 'settings']
+  openMode: [mode: import('~/constants/projectViews').ProjectWorkspaceMode]
 }>()
 
 const errorMessage = ref<string | null>(null)
@@ -183,7 +183,7 @@ function save() {
 }
 
 function confirmDelete() {
-  const confirmed = window.confirm(`确定删除项目“${props.project.title}”吗？此操作会删除本地数据库中的项目、文档、设定和事项。`)
+  const confirmed = window.confirm(`确定删除项目“${props.project.title}”吗？此操作会删除项目内的文档、设定和事项。`)
   if (confirmed) emit('deleteProject')
 }
 

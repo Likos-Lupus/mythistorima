@@ -9,7 +9,7 @@ export default defineNuxtConfig({
         '@nuxtjs/i18n'
     ],
 
-    css: ['~/assets/css/main.css'],
+    css: ['~/assets/css/main.css', '~/assets/css/ui-foundation.css'],
 
     devServer: {
         port: 3000,

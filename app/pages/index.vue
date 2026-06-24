@@ -1,59 +1,55 @@
 <template>
   <AppShell
-      :status="databaseStatus"
-      subtitle="为小说作者设计的本地写作工具"
+      subtitle="项目"
       title="Mythistorima"
+      @home="refresh"
+      @settings="showSettings = true"
   >
-    <div class="mx-auto grid max-w-295 gap-6 lg:grid-cols-[1fr_420px]">
-      <section class="paper-card rounded-4xl p-8 md:p-10">
-        <p class="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-[#7b4f2c]">Phase 1 · Novel Workspace
-          MVP</p>
-        <h2 class="max-w-3xl text-4xl font-bold leading-tight md:text-5xl">
-          像纸一样安静，像数据库一样可靠。
-        </h2>
-        <p class="mt-5 max-w-2xl text-lg leading-8 text-[#5f5348]">
-          当前版本已经形成可用的小说工作台：卷章场景、设定卡、@ 引用、事项、搜索、导入导出、备份和主题设置。
-        </p>
-
-        <div class="mt-8 flex flex-wrap gap-3">
-          <button class="rounded-full bg-[#6d4325] px-6 py-3 font-semibold text-white shadow-xl shadow-[#6d4325]/20"
-                  type="button" @click="showCreate = true">
-            新建项目
-          </button>
-          <button
-              class="rounded-full border border-(--line-soft) bg-white/45 px-6 py-3 font-semibold text-[#5f5348] hover:bg-white/70"
-              type="button" @click="refresh">
-            刷新状态
-          </button>
+    <section class="project-hub">
+      <header class="project-hub-header">
+        <div>
+          <h2>最近项目</h2>
+          <p>继续创作，或创建一个新的小说项目。</p>
         </div>
 
-        <div class="mt-8 grid gap-3 md:grid-cols-3">
-          <div class="rounded-3xl bg-[#7b4f2c]/10 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wider text-[#7b4f2c]">Rust</p>
-            <p class="mt-2 text-sm text-[#5f5348]">{{ rustStatus }}</p>
-          </div>
-          <div class="rounded-3xl bg-[#7b4f2c]/10 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wider text-[#7b4f2c]">SQLite</p>
-            <p class="mt-2 text-sm text-[#5f5348]">{{ databaseStatus }}</p>
-          </div>
-          <div class="rounded-3xl bg-[#7b4f2c]/10 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wider text-[#7b4f2c]">项目数</p>
-            <p class="mt-2 text-sm text-[#5f5348]">{{ projectStore.projects.length }} 个</p>
-          </div>
+        <div class="project-hub-actions">
+          <UButton
+              :loading="projectStore.loading"
+              color="neutral"
+              icon="i-lucide-refresh-cw"
+              label="刷新"
+              size="sm"
+              variant="ghost"
+              @click="refresh"
+          />
+          <UButton
+              icon="i-lucide-plus"
+              label="新建项目"
+              size="sm"
+              @click="showCreate = true"
+          />
         </div>
-      </section>
+      </header>
 
-      <section class="glass-panel rounded-4xl p-5">
-        <div class="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <h2 class="text-xl font-bold">最近项目</h2>
-            <p class="text-sm text-muted-paper">保存在本地 SQLite 中</p>
-          </div>
-          <span v-if="projectStore.loading" class="text-sm text-muted-paper">加载中…</span>
-        </div>
-        <ProjectList :projects="projectStore.projects" @delete="deleteProject" @open="openProject"/>
-      </section>
-    </div>
+      <UAlert
+          v-if="loadError"
+          :description="loadError"
+          class="mb-3"
+          color="error"
+          icon="i-lucide-circle-alert"
+          title="无法读取项目"
+          variant="subtle"
+      />
+
+      <UCard :ui="{ body: 'p-3 sm:p-4' }">
+        <ProjectList
+            :loading="projectStore.loading"
+            :projects="projectStore.projects"
+            @delete="deleteProject"
+            @open="openProject"
+        />
+      </UCard>
+    </section>
 
     <ProjectCreateModal
         :error="createError"
@@ -62,38 +58,39 @@
         @close="showCreate = false"
         @submit="createProject"
     />
+
+    <AppSettingsModal v-model:open="showSettings"/>
   </AppShell>
 </template>
 
 <script lang="ts" setup>
 import AppShell from '~/components/layout/AppShell.vue'
+import AppSettingsModal from '~/components/settings/AppSettingsModal.vue'
 import ProjectCreateModal from '~/components/project/ProjectCreateModal.vue'
 import ProjectList from '~/components/project/ProjectList.vue'
 import type {CreateProjectInput} from '~/types/project'
+import {toAppErrorMessage} from '~/utils/appError'
 
 const router = useRouter()
 const projectStore = useProjectStore()
 
 const showCreate = ref(false)
+const showSettings = ref(false)
 const creating = ref(false)
 const createError = ref<string | null>(null)
-const rustStatus = ref('待连接')
+const loadError = ref<string | null>(null)
 
-const databaseStatus = computed(() => projectStore.databaseReady ? '数据库正常' : '数据库未就绪')
-
-onMounted(async () => {
-  await refresh()
-})
+onMounted(refresh)
 
 async function refresh() {
+  loadError.value = null
   try {
-    rustStatus.value = await projectStore.ping()
+    await projectStore.ping()
     await projectStore.checkDatabase()
     await projectStore.loadAppInfo()
     await projectStore.loadProjects()
   } catch (error) {
-    rustStatus.value = '连接失败：请在 Tauri 环境中启动'
-    console.error(error)
+    loadError.value = toAppErrorMessage(error, '请确认应用已正常启动后重试')
   }
 }
 
@@ -106,9 +103,7 @@ async function createProject(input: CreateProjectInput) {
     showCreate.value = false
     await router.push(`/project/${project.id}`)
   } catch (error) {
-    createError.value = typeof error === 'object' && error && 'message' in error
-        ? String((error as { message?: string }).message)
-        : '创建项目失败'
+    createError.value = toAppErrorMessage(error, '创建项目失败')
   } finally {
     creating.value = false
   }
@@ -120,14 +115,13 @@ async function openProject(projectId: string) {
 
 async function deleteProject(projectId: string) {
   const project = projectStore.projects.find(item => item.id === projectId)
-  const confirmed = window.confirm(`确定删除项目“${project?.title ?? projectId}”吗？此操作会删除项目、文档、设定和事项。`)
+  const confirmed = window.confirm(`确定删除项目“${project?.title ?? '未命名项目'}”吗？此操作会删除项目内的全部内容。`)
   if (!confirmed) return
 
   try {
     await projectStore.deleteProject(projectId)
   } catch (error) {
-    console.error(error)
-    alert('删除项目失败')
+    loadError.value = toAppErrorMessage(error, '删除项目失败')
   }
 }
 </script>

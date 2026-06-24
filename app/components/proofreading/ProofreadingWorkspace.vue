@@ -1,8 +1,8 @@
 <template>
-  <section class="proofreading-workspace" data-phase2-area="proofreading-workspace">
+  <section class="proofreading-workspace">
     <header class="proofreading-workspace-header glass-panel">
       <div>
-        <p class="proofreading-workspace-kicker">Phase 2 Week 7</p>
+        <p class="proofreading-workspace-kicker">写作工具</p>
         <h1>校对规则引擎</h1>
         <p>运行本地、可配置、非 AI 的基础校对规则，检查重复词、标点、超长句、敏感词和设定名疑似错误。</p>
       </div>

@@ -1,8 +1,8 @@
 <template>
-  <section class="relation-workspace" data-phase2-area="relation-workspace">
+  <section class="relation-workspace">
     <header class="relation-workspace-header glass-panel">
       <div>
-        <p class="relation-workspace-kicker">Phase 2 Week 4</p>
+        <p class="relation-workspace-kicker">资料</p>
         <h1>设定关系图</h1>
         <p>把人物、地点、组织、道具和事件连接成可查看、可编辑的世界观网络。</p>
       </div>

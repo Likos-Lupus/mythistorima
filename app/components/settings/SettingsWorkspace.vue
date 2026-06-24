@@ -2,7 +2,7 @@
   <section class="settings-workspace">
     <header class="workspace-panel-header">
       <div>
-        <p class="workspace-eyebrow">Phase 2 Week 10</p>
+        <p class="workspace-eyebrow">应用设置</p>
         <h2>主题与设置</h2>
         <p>调整视觉风格、编辑器体验、自动保存、语言和应用内快捷键。</p>
       </div>

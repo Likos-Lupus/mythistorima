@@ -2,7 +2,7 @@
   <section class="outline-workspace outline-board-workspace">
     <header class="card-workspace-header glass-panel">
       <div>
-        <p class="card-workspace-kicker">Phase 2 · Week 3</p>
+        <p class="card-workspace-kicker">大纲</p>
         <h1>大纲看板</h1>
         <p>用 planned / drafting / done 看板推进剧情节点，并一键生成 Mermaid 剧情流程图。</p>
       </div>

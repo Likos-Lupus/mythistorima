@@ -1,46 +1,58 @@
 <template>
   <AppShell
+      :command-shortcut="formattedCommandShortcut"
+      :show-command="true"
       :status="topbarStatus"
-      :subtitle="activeDocument?.title || '长篇创作工作台'"
+      :subtitle="activeDocument?.title || activeWorkspaceDefinition.label"
       :title="projectStore.currentProject?.title || 'Mythistorima'"
+      @command="openCommandPalette"
       @home="router.push('/')"
+      @settings="showSettings = true"
   >
-    <button class="command-palette-launcher" type="button" @click="openCommandPalette">
-      <span>命令</span>
-      <CommandShortcutHint :shortcut="commandStore.shortcutFor('commandPalette.open')" compact/>
-    </button>
     <div v-if="commandFeedback" class="command-feedback-toast">{{ commandFeedback }}</div>
 
     <div :class="{ 'is-focus-mode': focusMode }" class="workspace-layout">
-      <aside class="workspace-sidebar app-sidebar glass-panel" data-phase1-area="workspace-sidebar">
-        <nav aria-label="项目工作区" class="workspace-mode-switch phase2-workspace-nav">
-          <section v-for="group in phase2WorkspaceGroups" :key="group.label" class="workspace-mode-group">
-            <h3>{{ group.label }}</h3>
-            <button
-                v-for="item in group.items"
-                :key="item.mode"
-                :class="['workspace-mode-button', { 'is-active': workspaceMode === item.mode }]"
-                :title="item.description"
-                type="button"
-                @click="workspaceMode = item.mode"
-            >
-              {{ item.label }}
-            </button>
-          </section>
+      <aside class="workspace-sidebar app-sidebar glass-panel" data-area="workspace-sidebar">
+        <nav aria-label="一级视图" class="project-primary-navigation">
+          <UTooltip
+              v-for="view in projectPrimaryViews"
+              :key="view.id"
+              :delay-duration="250"
+              :text="view.description"
+          >
+            <UButton
+                :class="['project-view-button', { 'is-active': activePrimaryView === view.id }]"
+                :color="activePrimaryView === view.id ? 'primary' : 'neutral'"
+                :icon="view.icon"
+                :label="view.label"
+                :variant="activePrimaryView === view.id ? 'soft' : 'ghost'"
+                size="sm"
+                @click="selectPrimaryView(view.id)"
+            />
+          </UTooltip>
         </nav>
 
-        <section v-if="workspaceMode === 'dashboard'" class="card-sidebar-summary">
-          <h2>项目概览</h2>
-          <p>编辑作品信息、查看进度、创建备份，并快速进入各个工作区。</p>
-          <ul>
-            <li>作品标题、作者和简介</li>
-            <li>项目 / 每日目标字数</li>
-            <li>最近备份与快速入口</li>
-          </ul>
-        </section>
+        <USeparator/>
+
+        <nav
+            v-if="secondaryWorkspaces.length > 1"
+            :aria-label="`${activePrimaryDefinition.label}视图`"
+            class="project-secondary-navigation"
+        >
+          <UButton
+              v-for="item in secondaryWorkspaces"
+              :key="item.mode"
+              :color="workspaceMode === item.mode ? 'primary' : 'neutral'"
+              :icon="item.icon"
+              :label="item.label"
+              :variant="workspaceMode === item.mode ? 'soft' : 'ghost'"
+              size="xs"
+              @click="selectWorkspaceMode(item.mode)"
+          />
+        </nav>
 
         <DocumentTree
-            v-else-if="workspaceMode === 'writing'"
+            v-if="workspaceMode === 'writing'"
             :active-document-id="documentStore.activeDocumentId"
             :items="documentStore.documentTree"
             @select="selectDocument"
@@ -51,126 +63,13 @@
             @update-status="updateDocumentStatus"
         />
 
-        <section v-else-if="workspaceMode === 'outline'" class="card-sidebar-summary">
-          <h2>大纲</h2>
-          <p>规划剧情节点、冲突、转折、支线和主题，并绑定到章节或场景。</p>
-          <ul>
-            <li>outline_nodes 数据表已就绪</li>
-            <li>支持剧情、冲突、转折等节点类型</li>
-            <li>可绑定章节或场景并快速跳转</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'board'" class="card-sidebar-summary">
-          <h2>看板</h2>
-          <p>以 planned / drafting / done 管理大纲节点状态，并生成 Mermaid 剧情流程图。</p>
-          <ul>
-            <li>拖动卡片切换剧情状态</li>
-            <li>一键复制 Mermaid flowchart 文本</li>
-            <li>预览剧情节点和章节绑定关系</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'timeline'" class="card-sidebar-summary">
-          <h2>时间线</h2>
-          <p>管理故事事件顺序、参与角色和地点过滤。</p>
-          <ul>
-            <li>创建、编辑、删除时间线事件</li>
-            <li>绑定章节、地点与参与设定</li>
-            <li>按人物 / 地点筛选角色经历</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'cards'" class="card-sidebar-summary">
-          <h2>设定卡</h2>
-          <p>管理人物、地点、组织、道具、事件和概念；在正文输入 @ 即可插入设定引用。</p>
-          <ul>
-            <li>人物：角色身份、动机与备注</li>
-            <li>地点：氛围、场景提示</li>
-            <li>组织 / 道具 / 事件：用于关系图和世界观网络</li>
-            <li>概念：规则、限制与说明</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'relations'" class="card-sidebar-summary">
-          <h2>关系图</h2>
-          <p>建立设定卡之间的人物关系、组织归属、道具持有和事件参与。</p>
-          <ul>
-            <li>card_relations 数据表已就绪</li>
-            <li>支持节点点击打开设定卡</li>
-            <li>支持边点击编辑关系说明</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'stats'" class="card-sidebar-summary">
-          <h2>统计</h2>
-          <p>追踪角色出场、章节矩阵和长篇结构统计。</p>
-          <ul>
-            <li>appearance_stats 缓存表已就绪</li>
-            <li>Week 6 接入出场统计</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'notes'" class="card-sidebar-summary">
-          <h2>创作事项</h2>
-          <p>管理备忘、待办、伏笔、问题和灵感。</p>
-          <ul>
-            <li>项目级：全局待办和灵感</li>
-            <li>章节级：本章修订事项</li>
-            <li>段落级：伏笔与情节提示</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'foreshadow'" class="card-sidebar-summary">
-          <h2>伏笔线程</h2>
-          <p>把 Phase 1 的伏笔事项升级为提出 / 回收 / 状态追踪。</p>
-          <ul>
-            <li>foreshadow_threads 数据表已就绪</li>
-            <li>Week 6 接入伏笔线程工作流</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'proofreading'" class="card-sidebar-summary">
-          <h2>校对</h2>
-          <p>本地规则检查重复词、标点、超长句、敏感词和名称一致性。</p>
-          <ul>
-            <li>proofreading_rules 数据表已就绪</li>
-            <li>内置基础规则种子已准备</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'search'" class="card-sidebar-summary">
-          <h2>全文搜索</h2>
-          <p>在正文、设定卡和创作事项中查找关键词。</p>
-          <ul>
-            <li>保存时自动索引</li>
-            <li>可手动重建索引</li>
-            <li>搜索结果支持跳转</li>
-          </ul>
-        </section>
-
-        <section v-else-if="workspaceMode === 'export'" class="card-sidebar-summary">
-          <h2>导入导出</h2>
-          <p>使用可复用模板导出 TXT、Markdown、HTML、DOCX、EPUB、Pixiv 文本或项目包。</p>
-          <ul>
-            <li>内置与项目级模板</li>
-            <li>全项目 / 当前树 / 自选文档</li>
-            <li>样式配置与精确预览</li>
-          </ul>
-        </section>
-
-        <section v-else class="card-sidebar-summary">
-          <h2>设置</h2>
-          <p>调整主题、编辑器体验、界面语言和应用内快捷键。</p>
-          <ul>
-            <li>纸张 / 明亮 / 夜间主题</li>
-            <li>编辑器与自动保存设置</li>
-            <li>快捷键录制、冲突检测与恢复默认</li>
-          </ul>
+        <section v-else class="project-sidebar-context">
+          <h2>{{ activeWorkspaceDefinition.label }}</h2>
+          <p>{{ activeWorkspaceDefinition.description }}</p>
         </section>
       </aside>
 
-      <main class="workspace-editor workspace-editor-host" data-phase1-area="main-workspace-host">
+      <main class="workspace-editor workspace-editor-host">
         <ProjectDashboard
             v-if="workspaceMode === 'dashboard' && projectStore.currentProject"
             :backups="exportStore.backups"
@@ -179,7 +78,7 @@
             :stats="projectStats"
             @backup="createManualBackup"
             @delete-project="deleteCurrentProject"
-            @open-mode="workspaceMode = $event"
+            @open-mode="selectWorkspaceMode($event)"
             @update-project="updateProjectInfo"
         />
 
@@ -281,10 +180,15 @@
             @imported="handleImportedDocument"
         />
 
-        <SettingsWorkspace v-else/>
+        <UEmpty
+            v-else
+            description="请选择左侧的工作视图。"
+            icon="i-lucide-panel-left"
+            title="未选择工作区"
+        />
       </main>
 
-      <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
+      <aside class="workspace-status status-panel glass-panel">
         <WorkspaceContextPanel
             v-if="workspaceMode !== 'writing'"
             :active-document-title="activeDocument?.title"
@@ -300,10 +204,6 @@
           </div>
 
           <dl class="status-list">
-            <div class="status-card">
-              <dt>项目 ID</dt>
-              <dd>{{ projectId }}</dd>
-            </div>
             <div class="status-card">
               <dt>当前文档</dt>
               <dd>{{
@@ -469,6 +369,8 @@
         @close="commandStore.closePalette"
         @execute="executeCommandPaletteItem"
     />
+
+    <AppSettingsModal v-model:open="showSettings"/>
   </AppShell>
 </template>
 
@@ -482,7 +384,6 @@ import CardWorkspace from '~/components/cards/CardWorkspace.vue'
 import NoteWorkspace from '~/components/notes/NoteWorkspace.vue'
 import SearchWorkspace from '~/components/search/SearchWorkspace.vue'
 import ExportWorkspace from '~/components/export/ExportWorkspace.vue'
-import SettingsWorkspace from '~/components/settings/SettingsWorkspace.vue'
 import OutlineWorkspace from '~/components/outline/OutlineWorkspace.vue'
 import OutlineBoardWorkspace from '~/components/outline/OutlineBoardWorkspace.vue'
 import TimelineWorkspace from '~/components/timeline/TimelineWorkspace.vue'
@@ -491,10 +392,18 @@ import ForeshadowWorkspace from '~/components/foreshadow/ForeshadowWorkspace.vue
 import StatsWorkspace from '~/components/stats/StatsWorkspace.vue'
 import ProofreadingWorkspace from '~/components/proofreading/ProofreadingWorkspace.vue'
 import CommandPalette from '~/components/command/CommandPalette.vue'
-import CommandShortcutHint from '~/components/command/CommandShortcutHint.vue'
 import WorkspaceContextPanel from '~/components/layout/WorkspaceContextPanel.vue'
 import ErrorBanner from '~/components/common/ErrorBanner.vue'
-import {phase2WorkspaceGroups, type Phase2WorkspaceMode} from '~/constants/phase2Features'
+import AppSettingsModal from '~/components/settings/AppSettingsModal.vue'
+import {
+  getPrimaryViewDefinition,
+  getPrimaryViewForWorkspace,
+  getSecondaryWorkspaces,
+  getWorkspaceDefinition,
+  type ProjectPrimaryView,
+  projectPrimaryViews,
+  type ProjectWorkspaceMode
+} from '~/constants/projectViews'
 import {toAppErrorMessage} from '~/utils/appError'
 import {appCommandRegistry} from '~/constants/commandRegistry'
 import {cardTypeLabel, defaultCardName, defaultFieldsJson} from '~/types/card'
@@ -534,7 +443,8 @@ const todayStats = ref<TodayWritingStats | null>(null)
 const pageError = ref<string | null>(null)
 const commandFeedback = ref<string | null>(null)
 const focusMode = ref(false)
-const workspaceMode = ref<Phase2WorkspaceMode>('writing')
+const workspaceMode = ref<ProjectWorkspaceMode>('writing')
+const showSettings = ref(false)
 const targetDraft = ref<number | null>(null)
 const currentDocumentNotes = ref<CreativeNote[]>([])
 const projectSaving = ref(false)
@@ -584,6 +494,17 @@ const saveStateLabel = computed(() => {
 
 const themeLabel = computed(() => {
   return settingsStore.themeOptions.find(option => option.value === settingsStore.theme)?.label ?? settingsStore.theme
+})
+
+
+const activePrimaryView = computed(() => getPrimaryViewForWorkspace(workspaceMode.value))
+const activePrimaryDefinition = computed(() => getPrimaryViewDefinition(activePrimaryView.value))
+const secondaryWorkspaces = computed(() => getSecondaryWorkspaces(activePrimaryView.value))
+const activeWorkspaceDefinition = computed(() => getWorkspaceDefinition(workspaceMode.value))
+const formattedCommandShortcut = computed(() => {
+  const shortcut = commandStore.shortcutFor('commandPalette.open')
+  const isMac = typeof navigator !== 'undefined' && navigator.platform.includes('Mac')
+  return shortcut.replace('Mod', isMac ? '⌘' : 'Ctrl')
 })
 
 
@@ -700,6 +621,17 @@ async function refreshCurrentDocumentNotes() {
     console.warn('[notes] failed to refresh current document notes', error)
     currentDocumentNotes.value = []
   }
+}
+
+function selectPrimaryView(viewId: ProjectPrimaryView) {
+  const definition = getPrimaryViewDefinition(viewId)
+  workspaceMode.value = definition.defaultMode
+  focusMode.value = false
+}
+
+function selectWorkspaceMode(mode: ProjectWorkspaceMode) {
+  workspaceMode.value = mode
+  if (mode !== 'writing') focusMode.value = false
 }
 
 async function openCommandPalette() {
@@ -875,7 +807,7 @@ async function commandCycleTheme() {
 
 function commandOpenSettings() {
   focusMode.value = false
-  workspaceMode.value = 'settings'
+  showSettings.value = true
   showCommandFeedback('已打开设置。')
 }
 

@@ -1,8 +1,8 @@
 <template>
-  <section class="note-workspace" data-phase1-area="note-workspace">
+  <section class="note-workspace">
     <header class="note-workspace-header paper-card">
       <div>
-        <p class="note-workspace-kicker">Phase 1 Week 6</p>
+        <p class="note-workspace-kicker">写作工具</p>
         <h1>创作事项</h1>
         <p>统一管理备忘、待办、伏笔、问题和灵感，可绑定项目、章节或段落。</p>
       </div>

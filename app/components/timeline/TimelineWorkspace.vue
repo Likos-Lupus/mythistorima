@@ -1,8 +1,8 @@
 <template>
-  <section class="timeline-workspace" data-phase2-area="timeline-workspace">
+  <section class="timeline-workspace">
     <header class="timeline-workspace-header glass-panel">
       <div>
-        <p class="timeline-workspace-kicker">Phase 2 Week 5</p>
+        <p class="timeline-workspace-kicker">大纲</p>
         <h1>时间线系统</h1>
         <p>管理长篇故事事件顺序、显示时间、关联章节、地点和参与设定。</p>
       </div>

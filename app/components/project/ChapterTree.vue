@@ -3,7 +3,7 @@
     <div class="chapter-tree-header">
       <div>
         <h2 class="chapter-title">章节</h2>
-        <p class="chapter-subtitle">Phase 0：单层章节列表</p>
+        <p class="chapter-subtitle">章节</p>
       </div>
       <button class="primary-button" type="button" @click="$emit('create')">
         新建

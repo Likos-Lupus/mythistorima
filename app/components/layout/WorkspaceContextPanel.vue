@@ -178,7 +178,7 @@
 
 <script lang="ts" setup>
 import {defineComponent, h} from 'vue'
-import type {Phase2WorkspaceMode} from '~/constants/phase2Features'
+import type {ProjectWorkspaceMode} from '~/constants/projectViews'
 import type {OpenTarget} from '~/types/navigation'
 import {cardTypeLabel} from '~/types/card'
 import {exportTemplateFormatLabel} from '~/utils/exportTemplate'
@@ -188,7 +188,7 @@ import {relationDirectionLabel, relationTypeLabel} from '~/types/relation'
 import {timelineDateLabel} from '~/types/timeline'
 
 const props = defineProps<{
-  workspace: Phase2WorkspaceMode
+  workspace: ProjectWorkspaceMode
   projectId: string
   activeDocumentTitle?: string | null
   projectCharacterCount?: number
@@ -215,7 +215,7 @@ const activeIssue = computed(() =>
 )
 
 const workspaceLabel = computed(() => {
-  const labels: Partial<Record<Phase2WorkspaceMode, string>> = {
+  const labels: Partial<Record<ProjectWorkspaceMode, string>> = {
     dashboard: '概览',
     outline: '大纲',
     board: '看板',
@@ -228,7 +228,6 @@ const workspaceLabel = computed(() => {
     proofreading: '校对',
     search: '搜索',
     export: '导出',
-    settings: '设置'
   }
   return labels[props.workspace] ?? '工作台'
 })

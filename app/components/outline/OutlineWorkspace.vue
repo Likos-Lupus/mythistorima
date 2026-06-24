@@ -2,7 +2,7 @@
   <section class="outline-workspace">
     <header class="card-workspace-header glass-panel">
       <div>
-        <p class="card-workspace-kicker">Phase 2 · Week 2</p>
+        <p class="card-workspace-kicker">大纲</p>
         <h1>大纲</h1>
         <p>规划剧情节点、冲突、转折、支线和主题，并把大纲绑定到章节或场景。</p>
       </div>

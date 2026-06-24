@@ -2,7 +2,7 @@
   <section class="settings-section">
     <div class="settings-section-header">
       <h3>语言</h3>
-      <p>Week 8 先完成中文 / 英文文案结构和语言设置持久化。</p>
+      <p>选择应用界面语言。语言设置会在重启后保留。</p>
     </div>
 
     <div class="language-option-list">

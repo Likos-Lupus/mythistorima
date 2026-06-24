@@ -1,43 +1,66 @@
 <template>
-  <div class="space-y-3">
-    <article
+  <div class="grid gap-2">
+    <USkeleton v-for="index in 4" v-if="loading" :key="index" class="h-20 w-full"/>
+
+    <UCard
         v-for="project in projects"
+        v-else
         :key="project.id"
-        class="project-list-card group"
+        :ui="{ body: 'p-3' }"
+        class="project-list-card cursor-pointer"
         @click="$emit('open', project.id)"
     >
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <h3 class="truncate text-lg font-bold text-[#33251b]">{{ project.title }}</h3>
-          <p class="mt-1 text-sm text-muted-paper">
+          <h3 class="truncate text-sm font-semibold text-highlighted">{{ project.title }}</h3>
+          <p class="mt-1 text-xs text-muted">
             {{ project.author || '未填写作者' }} · {{ formatDate(project.updatedAt) }}
           </p>
+          <p v-if="project.description" class="mt-2 line-clamp-2 text-sm leading-5 text-muted">
+            {{ project.description }}
+          </p>
         </div>
-        <div class="project-list-actions" @click.stop>
-          <span class="rounded-full bg-(--accent-soft) px-3 py-1 text-xs font-semibold text-[#6d4325]">
+
+        <div class="flex shrink-0 items-center gap-2" @click.stop>
+          <UBadge
+              :color="project.status === 'archived' ? 'neutral' : 'success'"
+              size="sm"
+              variant="subtle"
+          >
             {{ project.status === 'archived' ? '已归档' : '进行中' }}
-          </span>
-          <button class="tree-action-button" type="button" @click="$emit('delete', project.id)">删除</button>
+          </UBadge>
+          <UTooltip text="删除项目">
+            <UButton
+                aria-label="删除项目"
+                color="error"
+                icon="i-lucide-trash-2"
+                size="xs"
+                variant="ghost"
+                @click="$emit('delete', project.id)"
+            />
+          </UTooltip>
         </div>
       </div>
-      <p v-if="project.description" class="mt-3 line-clamp-2 text-sm leading-6 text-[#5f5348]">{{
-          project.description
-        }}</p>
-    </article>
+    </UCard>
 
-    <div v-if="!projects.length"
-         class="rounded-3xl border border-dashed border-(--line-soft) bg-white/35 p-8 text-center text-muted-paper">
-      还没有项目。创建一个项目，开始小说工作台 MVP。
-    </div>
+    <UEmpty
+        v-if="!loading && !projects.length"
+        description="创建一个项目，开始规划和写作。"
+        icon="i-lucide-library-big"
+        title="还没有项目"
+    />
   </div>
 </template>
 
 <script lang="ts" setup>
 import type {Project} from '~/types/project'
 
-defineProps<{
+withDefaults(defineProps<{
   projects: Project[]
-}>()
+  loading?: boolean
+}>(), {
+  loading: false
+})
 
 defineEmits<{
   open: [projectId: string]

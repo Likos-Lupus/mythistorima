@@ -1,8 +1,8 @@
 <template>
-  <section class="stats-workspace" data-phase2-area="stats-workspace">
+  <section class="stats-workspace">
     <header class="stats-workspace-header glass-panel">
       <div>
-        <p class="stats-workspace-kicker">Phase 2 Week 6</p>
+        <p class="stats-workspace-kicker">概览</p>
         <h1>角色出场统计</h1>
         <p>保存正文时自动更新 appearance_stats，也可手动重建，查看每个角色出现在哪些章节。</p>
       </div>

@@ -1,8 +1,8 @@
 <template>
-  <section class="foreshadow-workspace" data-phase2-area="foreshadow-workspace">
+  <section class="foreshadow-workspace">
     <header class="foreshadow-workspace-header glass-panel">
       <div>
-        <p class="foreshadow-workspace-kicker">Phase 2 Week 6</p>
+        <p class="foreshadow-workspace-kicker">写作工具</p>
         <h1>伏笔线程</h1>
         <p>把零散伏笔事项升级为“提出 / 回收 / 状态 / 优先级”可追踪线程。</p>
       </div>

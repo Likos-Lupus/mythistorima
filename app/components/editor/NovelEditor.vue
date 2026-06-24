@@ -292,7 +292,7 @@ async function resetEditorForDocument() {
     })
 
     // The ParagraphId plugin can append IDs immediately after creation. Persist once
-    // when it normalizes a legacy Phase 0 document without paragraph ids.
+    // when it normalizes a legacy document without paragraph ids.
     nextTick(() => {
       if (!editor.value) return
       queueEditorSave(editor.value)
@@ -341,7 +341,7 @@ function matchesMentionQuery(card: SettingCard, query: string) {
     const aliases = JSON.parse(card.aliasesJson)
     if (Array.isArray(aliases)) values.push(...aliases.map(String))
   } catch {
-    // Ignore malformed aliases; the Rust service validates new writes.
+    // Ignore malformed aliases; new writes are validated before persistence.
   }
   return values.some(value => value.toLowerCase().includes(query))
 }

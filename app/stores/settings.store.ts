@@ -155,6 +155,8 @@ export const useSettingsStore = defineStore('settings', () => {
         if (typeof document === 'undefined') return
         document.documentElement.dataset.theme = nextTheme
         document.body.dataset.theme = nextTheme
+        document.documentElement.classList.toggle('dark', nextTheme === 'dark')
+        document.documentElement.style.colorScheme = nextTheme === 'dark' ? 'dark' : 'light'
     }
 
     function applyLanguage(nextLanguage = language.value) {
