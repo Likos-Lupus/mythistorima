@@ -34,6 +34,7 @@ pub async fn search_project(
     let include_notes = scope_enabled(&input.scopes, "notes");
     let include_outline = scope_enabled(&input.scopes, "outline");
     let include_timeline = scope_enabled(&input.scopes, "timeline");
+    let include_relations = scope_enabled(&input.scopes, "relations");
     let include_foreshadow = scope_enabled(&input.scopes, "foreshadow");
     let include_proofreading = scope_enabled(&input.scopes, "proofreading");
     let include_export_templates = scope_enabled(&input.scopes, "exportTemplates");
@@ -60,6 +61,7 @@ pub async fn search_project(
             OR (?4 = 1 AND target_type = 'note')
             OR (?7 = 1 AND target_type = 'outline')
             OR (?8 = 1 AND target_type = 'timeline')
+            OR (?12 = 1 AND target_type = 'relation')
             OR (?9 = 1 AND target_type = 'foreshadow')
             OR (?10 = 1 AND target_type = 'proofreadingRule')
             OR (?11 = 1 AND target_type = 'exportTemplate')
@@ -79,6 +81,7 @@ pub async fn search_project(
     .bind(include_foreshadow)
     .bind(include_proofreading)
     .bind(include_export_templates)
+    .bind(include_relations)
     .fetch_all(pool)
     .await?;
 
@@ -270,6 +273,53 @@ pub async fn rebuild_search_index(pool: &SqlitePool, project_id: String) -> AppR
             INSERT INTO search_index (target_type, target_id, project_id, title, body)
             VALUES ('timeline', ?1, ?2, ?3, ?4)
             "#,
+        )
+        .bind(id)
+        .bind(&project_id)
+        .bind(title)
+        .bind(body)
+        .execute(&mut *tx)
+        .await?;
+    }
+
+    let relation_rows = sqlx::query(
+        r#"
+    SELECT
+      r.id,
+      r.relation_type,
+      r.description,
+      r.direction,
+      r.metadata_json,
+      source.name AS source_name,
+      target.name AS target_name
+    FROM card_relations r
+    JOIN cards source ON source.id = r.source_card_id
+    JOIN cards target ON target.id = r.target_card_id
+    WHERE r.project_id = ?1
+    "#,
+    )
+    .bind(&project_id)
+    .fetch_all(&mut *tx)
+    .await?;
+
+    for row in relation_rows {
+        let id: String = row.try_get("id")?;
+        let relation_type: String = row.try_get("relation_type")?;
+        let description: String = row.try_get("description")?;
+        let direction: String = row.try_get("direction")?;
+        let metadata_json: String = row.try_get("metadata_json")?;
+        let source_name: String = row.try_get("source_name")?;
+        let target_name: String = row.try_get("target_name")?;
+        let title = format!("{} · {} · {}", source_name, relation_type, target_name);
+        let body = format!(
+            "{}\n{}\n{}\n{}\n{}",
+            source_name, target_name, direction, description, metadata_json
+        );
+        sqlx::query(
+            r#"
+        INSERT INTO search_index (target_type, target_id, project_id, title, body)
+        VALUES ('relation', ?1, ?2, ?3, ?4)
+        "#,
         )
         .bind(id)
         .bind(&project_id)

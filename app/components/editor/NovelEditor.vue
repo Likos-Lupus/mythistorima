@@ -87,6 +87,8 @@ import type {SaveState} from '~/composables/useAutoSave'
 import type {UpdateDocumentContentInput} from '~/types/document'
 import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
 import type {EditorParagraphNoteRequest} from '~/types/note'
+import type {PendingEditorNavigation} from '~/types/navigation'
+import {useNavigationStore} from '~/stores/navigation.store'
 
 const props = withDefaults(defineProps<{
   documentId: string
@@ -118,6 +120,7 @@ const documentStore = useDocumentStore()
 const editorStore = useEditorStore()
 const timerStore = useTimerStore()
 const cardStore = useCardStore()
+const navigationStore = useNavigationStore()
 const {countCharacters} = useCharacterCount()
 const {call} = useTauriInvoke()
 
@@ -152,6 +155,7 @@ const mentionCards = computed(() => {
 })
 
 let sessionTimer: ReturnType<typeof setInterval> | null = null
+let navigationHighlightTimer: ReturnType<typeof setTimeout> | null = null
 
 const isEmpty = computed(() => characterCount.value === 0 && !loading.value && Boolean(editor.value))
 const editorStyle = computed(() => ({
@@ -215,6 +219,17 @@ watch(() => props.projectId, async projectId => {
   await ensureCardsLoaded(projectId)
 }, {immediate: true})
 
+
+watch(
+    () => navigationStore.pendingEditorNavigation,
+    target => {
+      if (target?.documentId === props.documentId && editor.value && !loading.value) {
+        void nextTick(() => applyEditorNavigation(target))
+      }
+    },
+    {deep: true}
+)
+
 watch(mentionCards, cards => {
   if (mentionState.activeIndex >= cards.length) mentionState.activeIndex = Math.max(0, cards.length - 1)
 })
@@ -226,6 +241,7 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   void flushSave().then(() => recordWritingSession(characterCount.value))
   stopSessionTimer()
+  if (navigationHighlightTimer) clearTimeout(navigationHighlightTimer)
   timerStore.finishSession()
   editor.value?.destroy()
 })
@@ -280,6 +296,10 @@ async function resetEditorForDocument() {
     nextTick(() => {
       if (!editor.value) return
       queueEditorSave(editor.value)
+      const target = navigationStore.pendingEditorNavigation
+      if (target?.documentId === props.documentId) {
+        applyEditorNavigation(target)
+      }
     })
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '无法加载章节内容'
@@ -500,6 +520,123 @@ function getSelectedText(instance: Editor) {
   if (empty) return ''
   return instance.state.doc.textBetween(from, to, '\n').trim()
 }
+
+function applyEditorNavigation(target: PendingEditorNavigation) {
+  const instance = editor.value
+  if (!instance || target.documentId !== props.documentId) return
+
+  const located = locateEditorTarget(instance, target)
+  if (located) {
+    instance
+        .chain()
+        .focus()
+        .setTextSelection({from: located.from, to: located.to})
+        .scrollIntoView()
+        .run()
+    highlightParagraph(target.paragraphId)
+  } else {
+    instance.commands.focus('start')
+  }
+
+  navigationStore.setNavigationMessage(
+      target.label
+          ? `已定位：${target.label}`
+          : target.paragraphId
+              ? '已定位到目标段落。'
+              : '已打开目标文档。'
+  )
+  navigationStore.consumeEditorNavigation(target.requestId)
+}
+
+function locateEditorTarget(instance: Editor, target: PendingEditorNavigation) {
+  let paragraphIndex = 0
+  let characterOffset = 0
+  let matched: { position: number, size: number, textLength: number, characterStart: number } | null = null
+  const fallbackIndex = parseFallbackParagraphIndex(target.paragraphId)
+
+  instance.state.doc.descendants((node, position) => {
+    if (matched || (node.type.name !== 'paragraph' && node.type.name !== 'heading')) return true
+
+    paragraphIndex += 1
+    const attrs = node.attrs as { pid?: unknown }
+    const pid = typeof attrs.pid === 'string' ? attrs.pid : null
+    const isMatch = Boolean(target.paragraphId && pid === target.paragraphId)
+        || (fallbackIndex != null && paragraphIndex === fallbackIndex)
+
+    if (isMatch) {
+      matched = {
+        position,
+        size: node.content.size,
+        textLength: node.textContent.length,
+        characterStart: characterOffset
+      }
+      return false
+    }
+
+    characterOffset += node.textContent.length + 1
+    return true
+  })
+
+  if (!matched && target.startOffset != null) {
+    paragraphIndex = 0
+    characterOffset = 0
+    instance.state.doc.descendants((node, position) => {
+      if (matched || (node.type.name !== 'paragraph' && node.type.name !== 'heading')) return true
+      paragraphIndex += 1
+      const textLength = node.textContent.length
+      if (target.startOffset! >= characterOffset && target.startOffset! <= characterOffset + textLength) {
+        matched = {position, size: node.content.size, textLength, characterStart: characterOffset}
+        return false
+      }
+      characterOffset += textLength + 1
+      return true
+    })
+  }
+
+  if (!matched) return null
+  const block = matched as { position: number, size: number, textLength: number, characterStart: number }
+  const contentStart = block.position + 1
+  const localStart = target.startOffset == null
+      ? 0
+      : Math.max(0, Math.min(block.textLength, target.startOffset - block.characterStart))
+  const localEnd = target.endOffset == null
+      ? Math.min(block.size, Math.max(localStart + 1, block.textLength))
+      : Math.max(localStart + 1, Math.min(block.textLength, target.endOffset - block.characterStart))
+
+  return {
+    from: Math.min(contentStart + localStart, contentStart + block.size),
+    to: Math.min(contentStart + localEnd, contentStart + block.size)
+  }
+}
+
+function parseFallbackParagraphIndex(paragraphId?: string | null) {
+  if (!paragraphId) return null
+  const match = /^paragraph-(\d+)$/.exec(paragraphId)
+  if (!match) return null
+  const index = Number(match[1])
+  return Number.isFinite(index) && index > 0 ? index : null
+}
+
+function highlightParagraph(paragraphId?: string | null) {
+  if (!paragraphId) return
+  const root = editor.value?.view.dom
+  const escaped = typeof CSS !== 'undefined' && CSS.escape
+      ? CSS.escape(paragraphId)
+      : paragraphId.replace(/["\\]/g, '\\$&')
+  const element = root?.querySelector<HTMLElement>(`[data-pid="${escaped}"]`)
+  if (!element) return
+
+  root?.querySelectorAll('.navigation-target-highlight')
+      .forEach(node => node.classList.remove('navigation-target-highlight'))
+  element.classList.add('navigation-target-highlight')
+  element.scrollIntoView({behavior: 'smooth', block: 'center'})
+  if (navigationHighlightTimer) clearTimeout(navigationHighlightTimer)
+  navigationHighlightTimer = setTimeout(() => {
+    element.classList.remove('navigation-target-highlight')
+    navigationHighlightTimer = null
+  }, 3200)
+}
+
 
 function focusEditor() {
   editor.value?.commands.focus('end')

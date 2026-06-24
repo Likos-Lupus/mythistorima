@@ -4862,3 +4862,105 @@ body[data-theme="dark"] .timeline-lane-dot {
         flex-wrap: wrap;
     }
 }
+
+
+/* Phase 2 Week 11 - Integrated navigation and contextual workspaces */
+.navigation-target-highlight {
+    border-radius: .35rem;
+    background: color-mix(in srgb, var(--accent-soft) 78%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+    transition: background-color .25s ease, box-shadow .25s ease;
+}
+
+.workspace-context-panel {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: .7rem;
+}
+
+.workspace-context-header {
+    padding-bottom: .65rem;
+    border-bottom: 1px solid var(--line-soft);
+}
+
+.workspace-context-header h2,
+.workspace-context-header p {
+    margin: .2rem 0 0;
+}
+
+.workspace-context-header p {
+    color: var(--paper-muted);
+    font-size: .82rem;
+    line-height: 1.45;
+}
+
+.workspace-context-field {
+    display: flex;
+    flex-direction: column;
+    gap: .22rem;
+    border: 1px solid var(--line-soft);
+    border-radius: .72rem;
+    background: color-mix(in srgb, var(--surface) 88%, var(--paper-bg));
+    padding: .65rem;
+}
+
+.workspace-context-field span {
+    color: var(--paper-muted);
+    font-size: .72rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.workspace-context-field strong {
+    max-height: 7.2rem;
+    overflow: auto;
+    font-size: .86rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.workspace-context-empty {
+    border: 1px dashed var(--line-soft);
+    border-radius: .72rem;
+    color: var(--paper-muted);
+    padding: 1.1rem .75rem;
+    text-align: center;
+}
+
+.workspace-context-message {
+    margin: .2rem 0 0;
+    border-radius: .65rem;
+    background: var(--accent-soft);
+    color: var(--paper-text);
+    font-size: .78rem;
+    line-height: 1.45;
+    padding: .55rem .65rem;
+}
+
+.relation-graph-performance-note {
+    margin: 0 0 .65rem;
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line-soft));
+    border-radius: .65rem;
+    background: var(--accent-soft);
+    color: var(--paper-muted);
+    font-size: .78rem;
+    line-height: 1.45;
+    padding: .55rem .65rem;
+}
+
+.search-load-more {
+    align-self: center;
+    margin: .65rem auto;
+}
+
+.search-result-list {
+    contain: content;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .navigation-target-highlight {
+        transition: none;
+    }
+}

@@ -45,11 +45,11 @@
           @update="updateThread"
           @create-from-note="createThreadFromNote"
           @mark-paid-off="markPaidOff"
-          @open-document="$emit('open-document', $event)"
+          @open-target="$emit('open-target', $event)"
       />
     </div>
 
-    <p v-if="error" class="editor-error">{{ error }}</p>
+    <ErrorBanner :message="error" title="伏笔线程加载失败" @dismiss="error = null"/>
   </section>
 </template>
 
@@ -57,6 +57,7 @@
 import ForeshadowStatusBoard from '~/components/foreshadow/ForeshadowStatusBoard.vue'
 import ForeshadowThreadEditor from '~/components/foreshadow/ForeshadowThreadEditor.vue'
 import ForeshadowThreadList from '~/components/foreshadow/ForeshadowThreadList.vue'
+import ErrorBanner from '~/components/common/ErrorBanner.vue'
 import type {NovelDocument} from '~/types/document'
 import type {CreativeNote} from '~/types/note'
 import type {
@@ -73,7 +74,7 @@ const props = defineProps<{
 }>()
 
 defineEmits<{
-  'open-document': [documentId: string]
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
 
 const foreshadowStore = useForeshadowStore()

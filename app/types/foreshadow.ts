@@ -11,8 +11,10 @@ export interface ForeshadowThread {
     status: ConcreteForeshadowStatus | string
     setupNoteId?: string | null
     setupNoteTitle?: string | null
+    setupParagraphId?: string | null
     payoffNoteId?: string | null
     payoffNoteTitle?: string | null
+    payoffParagraphId?: string | null
     setupDocumentId?: string | null
     setupDocumentTitle?: string | null
     payoffDocumentId?: string | null

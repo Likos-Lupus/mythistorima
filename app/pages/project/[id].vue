@@ -210,22 +210,21 @@
             v-else-if="workspaceMode === 'outline'"
             :documents="documentStore.documents"
             :project-id="projectId"
-            @open-document="openOutlineDocument"
+            @open-document="targetId => openTarget({type: 'document', targetId, source: 'outline'})"
         />
 
         <OutlineBoardWorkspace
             v-else-if="workspaceMode === 'board'"
             :documents="documentStore.documents"
             :project-id="projectId"
-            @open-document="openOutlineDocument"
+            @open-document="targetId => openTarget({type: 'document', targetId, source: 'outline'})"
         />
 
         <TimelineWorkspace
             v-else-if="workspaceMode === 'timeline'"
             :documents="documentStore.documents"
             :project-id="projectId"
-            @open-card="openTimelineCard"
-            @open-document="openOutlineDocument"
+            @open-target="openTarget"
         />
 
         <CardWorkspace
@@ -236,15 +235,14 @@
         <RelationWorkspace
             v-else-if="workspaceMode === 'relations'"
             :project-id="projectId"
-            @open-card="openRelationCard"
+            @open-target="openTarget"
         />
 
         <StatsWorkspace
             v-else-if="workspaceMode === 'stats'"
             :documents="documentStore.documents"
             :project-id="projectId"
-            @open-card="openStatsCard"
-            @open-document="openOutlineDocument"
+            @open-target="openTarget"
         />
 
         <NoteWorkspace
@@ -258,7 +256,7 @@
             v-else-if="workspaceMode === 'foreshadow'"
             :documents="documentStore.documents"
             :project-id="projectId"
-            @open-document="openOutlineDocument"
+            @open-target="openTarget"
         />
 
         <ProofreadingWorkspace
@@ -266,13 +264,13 @@
             :active-document-id="documentStore.activeDocumentId"
             :documents="documentStore.documents"
             :project-id="projectId"
-            @open-document="openOutlineDocument"
+            @open-target="openTarget"
         />
 
         <SearchWorkspace
             v-else-if="workspaceMode === 'search'"
             :project-id="projectId"
-            @open-result="handleOpenSearchResult"
+            @open-target="openTarget"
         />
 
         <ExportWorkspace
@@ -287,166 +285,180 @@
       </main>
 
       <aside class="workspace-status status-panel glass-panel" data-phase1-area="status-panel">
-        <div>
-          <h2 class="status-panel-title">Phase 2 Foundation</h2>
-          <p class="status-panel-subtitle">长篇增强版数据基线、导航分组和高级工作区入口已接入。</p>
-        </div>
+        <WorkspaceContextPanel
+            v-if="workspaceMode !== 'writing'"
+            :active-document-title="activeDocument?.title"
+            :project-character-count="projectStats?.characterCount ?? 0"
+            :project-id="projectId"
+            :workspace="workspaceMode"
+            @open-target="openTarget"
+        />
+        <template v-else>
+          <div>
+            <h2 class="status-panel-title">写作上下文</h2>
+            <p class="status-panel-subtitle">当前章节、写作进度、未完成事项和编辑器设置。</p>
+          </div>
 
-        <dl class="status-list">
-          <div class="status-card">
-            <dt>项目 ID</dt>
-            <dd>{{ projectId }}</dd>
-          </div>
-          <div class="status-card">
-            <dt>当前文档</dt>
-            <dd>{{
-                activeDocument ? `${documentTypeLabel(activeDocument.type)} · ${activeDocument.title}` : '未选择'
-              }}
-            </dd>
-          </div>
-          <div class="status-card">
-            <dt>文档状态</dt>
-            <dd>{{ activeDocument ? documentStatusLabel(activeDocument.status) : '未选择' }}</dd>
-          </div>
-          <div class="status-card">
-            <dt>当前文档字数</dt>
-            <dd>{{ editorSnapshot.characterCount }} 字</dd>
-          </div>
-          <div class="status-card">
-            <dt>当前文档目标</dt>
-            <dd>
-              <div class="compact-setting-row">
-                <input
-                    v-model.number="targetDraft"
-                    class="compact-number-field"
-                    min="0"
-                    placeholder="未设置"
-                    type="number"
-                    @change="saveDocumentTarget"
-                >
-                <span>字</span>
-              </div>
-            </dd>
-          </div>
-          <div class="status-card">
-            <dt>项目总字数</dt>
-            <dd>{{ projectStats?.characterCount ?? 0 }} 字</dd>
-          </div>
-          <div class="status-card">
-            <dt>今日写作</dt>
-            <dd>{{ timerStore.todayCharacterCount }} 字 · {{ formatDuration(timerStore.todayElapsedMs) }}</dd>
-          </div>
-          <div class="status-card">
-            <dt>本次写作</dt>
-            <dd>+{{ editorSnapshot.sessionDelta }} 字 · {{ formatDuration(editorSnapshot.sessionElapsedMs) }}</dd>
-          </div>
-          <div class="status-card">
-            <dt>保存状态</dt>
-            <dd>{{ saveStateLabel }}</dd>
-          </div>
-          <div class="status-card">
-            <dt>最近保存</dt>
-            <dd>{{ editorSnapshot.lastSavedAt ? formatDate(editorSnapshot.lastSavedAt) : '尚未保存' }}</dd>
-          </div>
-          <div class="status-card">
-            <dt>当前主题</dt>
-            <dd>{{ themeLabel }}</dd>
-          </div>
-          <div class="status-card">
-            <dt>自动保存</dt>
-            <dd>{{ (settingsStore.editorSettings.autosaveIntervalMs / 1000).toFixed(1) }} 秒</dd>
-          </div>
-        </dl>
+          <dl class="status-list">
+            <div class="status-card">
+              <dt>项目 ID</dt>
+              <dd>{{ projectId }}</dd>
+            </div>
+            <div class="status-card">
+              <dt>当前文档</dt>
+              <dd>{{
+                  activeDocument ? `${documentTypeLabel(activeDocument.type)} · ${activeDocument.title}` : '未选择'
+                }}
+              </dd>
+            </div>
+            <div class="status-card">
+              <dt>文档状态</dt>
+              <dd>{{ activeDocument ? documentStatusLabel(activeDocument.status) : '未选择' }}</dd>
+            </div>
+            <div class="status-card">
+              <dt>当前文档字数</dt>
+              <dd>{{ editorSnapshot.characterCount }} 字</dd>
+            </div>
+            <div class="status-card">
+              <dt>当前文档目标</dt>
+              <dd>
+                <div class="compact-setting-row">
+                  <input
+                      v-model.number="targetDraft"
+                      class="compact-number-field"
+                      min="0"
+                      placeholder="未设置"
+                      type="number"
+                      @change="saveDocumentTarget"
+                  >
+                  <span>字</span>
+                </div>
+              </dd>
+            </div>
+            <div class="status-card">
+              <dt>项目总字数</dt>
+              <dd>{{ projectStats?.characterCount ?? 0 }} 字</dd>
+            </div>
+            <div class="status-card">
+              <dt>今日写作</dt>
+              <dd>{{ timerStore.todayCharacterCount }} 字 · {{ formatDuration(timerStore.todayElapsedMs) }}</dd>
+            </div>
+            <div class="status-card">
+              <dt>本次写作</dt>
+              <dd>+{{ editorSnapshot.sessionDelta }} 字 · {{ formatDuration(editorSnapshot.sessionElapsedMs) }}</dd>
+            </div>
+            <div class="status-card">
+              <dt>保存状态</dt>
+              <dd>{{ saveStateLabel }}</dd>
+            </div>
+            <div class="status-card">
+              <dt>最近保存</dt>
+              <dd>{{ editorSnapshot.lastSavedAt ? formatDate(editorSnapshot.lastSavedAt) : '尚未保存' }}</dd>
+            </div>
+            <div class="status-card">
+              <dt>当前主题</dt>
+              <dd>{{ themeLabel }}</dd>
+            </div>
+            <div class="status-card">
+              <dt>自动保存</dt>
+              <dd>{{ (settingsStore.editorSettings.autosaveIntervalMs / 1000).toFixed(1) }} 秒</dd>
+            </div>
+          </dl>
 
-        <section class="current-notes-card">
-          <div class="current-notes-header">
-            <h3>本章事项</h3>
-            <button class="ghost-button" type="button" @click="createChapterNote('todo')">+ 待办</button>
-          </div>
-          <div v-if="currentDocumentNotes.length === 0" class="current-notes-empty">
-            暂无未完成事项。
-          </div>
-          <div v-else class="current-notes-list">
-            <article v-for="note in currentDocumentNotes" :key="note.id" class="current-note-item">
-              <div>
-                <strong>{{ note.title }}</strong>
-                <small>{{ noteTypeLabel(note.type) }} · {{ notePriorityLabel(note.priority) }}
-                  <template v-if="note.paragraphId"> · 段落</template>
-                </small>
-              </div>
-              <button class="tree-action-button" type="button" @click="markNoteDone(note.id)">完成</button>
-            </article>
-          </div>
-        </section>
+          <section class="current-notes-card">
+            <div class="current-notes-header">
+              <h3>本章事项</h3>
+              <button class="ghost-button" type="button" @click="createChapterNote('todo')">+ 待办</button>
+            </div>
+            <div v-if="currentDocumentNotes.length === 0" class="current-notes-empty">
+              暂无未完成事项。
+            </div>
+            <div v-else class="current-notes-list">
+              <article v-for="note in currentDocumentNotes" :key="note.id" class="current-note-item">
+                <div>
+                  <strong>{{ note.title }}</strong>
+                  <small>{{ noteTypeLabel(note.type) }} · {{ notePriorityLabel(note.priority) }}
+                    <template v-if="note.paragraphId"> · 段落</template>
+                  </small>
+                </div>
+                <button class="tree-action-button" type="button" @click="markNoteDone(note.id)">完成</button>
+              </article>
+            </div>
+          </section>
 
-        <section class="settings-card">
-          <h3>编辑器设置</h3>
-          <label>
-            字号
-            <input
-                :value="settingsStore.editorSettings.fontSize"
-                class="compact-number-field"
-                max="28"
-                min="12"
-                type="number"
-                @change="updateEditorSetting('fontSize', $event)"
-            >
-          </label>
-          <label>
-            行距
-            <input
-                :value="settingsStore.editorSettings.lineHeight"
-                class="compact-number-field"
-                max="2.8"
-                min="1.3"
-                step="0.05"
-                type="number"
-                @change="updateEditorSetting('lineHeight', $event)"
-            >
-          </label>
-          <label>
-            页面宽度
-            <input
-                :value="settingsStore.editorSettings.pageWidth"
-                class="compact-number-field"
-                max="1100"
-                min="560"
-                step="10"
-                type="number"
-                @change="updateEditorSetting('pageWidth', $event)"
-            >
-          </label>
-          <label>
-            字体
-            <select
-                :value="settingsStore.editorSettings.fontFamily"
-                class="compact-select-field"
-                @change="updateEditorSetting('fontFamily', $event)"
-            >
-              <option v-for="option in settingsStore.fontFamilyOptions" :key="option.value" :value="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </label>
-          <label>
-            自动保存（毫秒）
-            <input
-                :value="settingsStore.editorSettings.autosaveIntervalMs"
-                class="compact-number-field"
-                max="10000"
-                min="500"
-                step="250"
-                type="number"
-                @change="updateEditorSetting('autosaveIntervalMs', $event)"
-            >
-          </label>
-          <button class="secondary-button full-width-button" type="button" @click="toggleFocusMode">
-            {{ focusMode ? '退出专注模式' : '进入专注模式' }}
-          </button>
-        </section>
+          <section class="settings-card">
+            <h3>编辑器设置</h3>
+            <label>
+              字号
+              <input
+                  :value="settingsStore.editorSettings.fontSize"
+                  class="compact-number-field"
+                  max="28"
+                  min="12"
+                  type="number"
+                  @change="updateEditorSetting('fontSize', $event)"
+              >
+            </label>
+            <label>
+              行距
+              <input
+                  :value="settingsStore.editorSettings.lineHeight"
+                  class="compact-number-field"
+                  max="2.8"
+                  min="1.3"
+                  step="0.05"
+                  type="number"
+                  @change="updateEditorSetting('lineHeight', $event)"
+              >
+            </label>
+            <label>
+              页面宽度
+              <input
+                  :value="settingsStore.editorSettings.pageWidth"
+                  class="compact-number-field"
+                  max="1100"
+                  min="560"
+                  step="10"
+                  type="number"
+                  @change="updateEditorSetting('pageWidth', $event)"
+              >
+            </label>
+            <label>
+              字体
+              <select
+                  :value="settingsStore.editorSettings.fontFamily"
+                  class="compact-select-field"
+                  @change="updateEditorSetting('fontFamily', $event)"
+              >
+                <option v-for="option in settingsStore.fontFamilyOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+            <label>
+              自动保存（毫秒）
+              <input
+                  :value="settingsStore.editorSettings.autosaveIntervalMs"
+                  class="compact-number-field"
+                  max="10000"
+                  min="500"
+                  step="250"
+                  type="number"
+                  @change="updateEditorSetting('autosaveIntervalMs', $event)"
+              >
+            </label>
+            <button class="secondary-button full-width-button" type="button" @click="toggleFocusMode">
+              {{ focusMode ? '退出专注模式' : '进入专注模式' }}
+            </button>
+          </section>
 
-        <p v-if="pageError" class="editor-error">{{ pageError }}</p>
-        <p v-if="editorSnapshot.errorMessage" class="editor-error">{{ editorSnapshot.errorMessage }}</p>
+        </template>
+        <ErrorBanner :message="pageError" title="工作区操作失败" @dismiss="pageError = null"/>
+        <ErrorBanner
+            :message="editorSnapshot.errorMessage"
+            title="编辑器错误"
+            @dismiss="editorSnapshot.errorMessage = null"
+        />
       </aside>
     </div>
 
@@ -480,6 +492,8 @@ import StatsWorkspace from '~/components/stats/StatsWorkspace.vue'
 import ProofreadingWorkspace from '~/components/proofreading/ProofreadingWorkspace.vue'
 import CommandPalette from '~/components/command/CommandPalette.vue'
 import CommandShortcutHint from '~/components/command/CommandShortcutHint.vue'
+import WorkspaceContextPanel from '~/components/layout/WorkspaceContextPanel.vue'
+import ErrorBanner from '~/components/common/ErrorBanner.vue'
 import {phase2WorkspaceGroups, type Phase2WorkspaceMode} from '~/constants/phase2Features'
 import {toAppErrorMessage} from '~/utils/appError'
 import {appCommandRegistry} from '~/constants/commandRegistry'
@@ -492,7 +506,7 @@ import type {DocumentCreatePayload, DocumentStatus, DocumentType, MoveDocumentIn
 import type {UpdateProjectInput} from '~/types/project'
 import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
 import type {CreativeNote, EditorParagraphNoteRequest, NoteType} from '~/types/note'
-import type {SearchResult} from '~/types/search'
+import type {OpenTarget} from '~/types/navigation'
 
 const route = useRoute()
 const router = useRouter()
@@ -505,6 +519,12 @@ const cardStore = useCardStore()
 const proofreadingStore = useProofreadingStore()
 const exportStore = useExportStore()
 const commandStore = useCommandStore()
+const navigationStore = useNavigationStore()
+const outlineStore = useOutlineStore()
+const timelineStore = useTimelineStore()
+const relationStore = useRelationStore()
+const foreshadowStore = useForeshadowStore()
+const exportTemplateStore = useExportTemplateStore()
 const {call} = useTauriInvoke()
 const {locale} = useI18n()
 
@@ -707,32 +727,15 @@ async function executeCommandPaletteItem(item: CommandPaletteItem) {
       return
     }
     if (item.action.type === 'openDocument') {
-      documentStore.selectDocument(item.action.targetId)
-      workspaceMode.value = 'writing'
-      showCommandFeedback('已打开文档。')
+      await openTarget({type: 'document', targetId: item.action.targetId, source: 'direct'})
       return
     }
     if (item.action.type === 'openCard') {
-      const targetId = item.action.targetId
-      cardStore.setTypeFilter('all')
-      if (!cardStore.cards.some(card => card.id === targetId)) {
-        await cardStore.loadCards(projectId.value)
-      }
-      cardStore.selectCard(targetId)
-      workspaceMode.value = 'cards'
-      showCommandFeedback('已打开设定卡。')
+      await openTarget({type: 'card', targetId: item.action.targetId})
       return
     }
     if (item.action.type === 'openNote') {
-      const targetId = item.action.targetId
-      noteStore.setTypeFilter('all')
-      noteStore.setStatusFilter('all')
-      if (!noteStore.notes.some(note => note.id === targetId)) {
-        await noteStore.loadNotes({projectId: projectId.value, type: 'all', status: 'all'})
-      }
-      noteStore.selectNote(targetId)
-      workspaceMode.value = 'notes'
-      showCommandFeedback('已打开事项。')
+      await openTarget({type: 'note', targetId: item.action.targetId})
     }
   } catch (error) {
     pageError.value = toAppErrorMessage(error, '执行命令失败')
@@ -997,64 +1000,139 @@ async function handleImportedDocument() {
   await refreshStats()
 }
 
-function openOutlineDocument(documentId: string) {
-  documentStore.selectDocument(documentId)
-  workspaceMode.value = 'writing'
+async function openTarget(target: OpenTarget) {
+  pageError.value = null
+  navigationStore.rememberTarget(target)
+
+  try {
+    switch (target.type) {
+      case 'workspace':
+        focusMode.value = false
+        workspaceMode.value = target.workspace
+        break
+
+      case 'document':
+        if (!documentStore.documents.some(document => document.id === target.targetId)) {
+          await documentStore.loadDocuments(projectId.value)
+        }
+        if (!documentStore.documents.some(document => document.id === target.targetId)) {
+          throw new Error('目标文档不存在或已被删除')
+        }
+        navigationStore.requestDocumentNavigation(target)
+        documentStore.selectDocument(target.targetId)
+        workspaceMode.value = 'writing'
+        break
+
+      case 'card':
+        cardStore.setTypeFilter('all')
+        await cardStore.loadCards(projectId.value)
+        if (!cardStore.cards.some(card => card.id === target.targetId)) {
+          throw new Error('目标设定卡不存在或已被删除')
+        }
+        cardStore.selectCard(target.targetId)
+        workspaceMode.value = 'cards'
+        break
+
+      case 'note':
+        noteStore.setTypeFilter('all')
+        noteStore.setStatusFilter('all')
+        await noteStore.loadNotes({projectId: projectId.value, type: 'all', status: 'all'})
+        if (!noteStore.notes.some(note => note.id === target.targetId)) {
+          throw new Error('目标事项不存在或已被删除')
+        }
+        noteStore.selectNote(target.targetId)
+        workspaceMode.value = 'notes'
+        break
+
+      case 'outline':
+        await outlineStore.loadOutlineNodes(projectId.value)
+        outlineStore.selectOutlineNode(target.targetId)
+        workspaceMode.value = 'outline'
+        break
+
+      case 'timeline':
+        timelineStore.setFilters(null, null)
+        await timelineStore.loadTimeline(projectId.value)
+        timelineStore.selectEvent(target.targetId)
+        workspaceMode.value = 'timeline'
+        break
+
+      case 'relation':
+        await relationStore.loadGraph(projectId.value)
+        relationStore.selectRelation(target.targetId)
+        workspaceMode.value = 'relations'
+        break
+
+      case 'foreshadow':
+        foreshadowStore.setFilters('all', 'all', false)
+        await foreshadowStore.loadThreads(projectId.value)
+        foreshadowStore.selectThread(target.targetId)
+        workspaceMode.value = 'foreshadow'
+        break
+
+      case 'proofreadingRule':
+        await proofreadingStore.loadRules({projectId: projectId.value, includeBuiltin: true})
+        proofreadingStore.selectRule(target.targetId)
+        workspaceMode.value = 'proofreading'
+        break
+
+      case 'proofreadingIssue':
+        proofreadingStore.selectIssue(target.issue.id)
+        await openTarget({
+          type: 'document',
+          targetId: target.issue.documentId,
+          paragraphId: target.issue.paragraphId,
+          startOffset: target.issue.startOffset,
+          endOffset: target.issue.endOffset,
+          source: 'proofreading',
+          label: target.issue.message
+        })
+        return
+
+      case 'exportTemplate':
+        await exportTemplateStore.loadTemplates({projectId: projectId.value, includeBuiltin: true})
+        exportTemplateStore.selectTemplate(target.targetId)
+        workspaceMode.value = 'export'
+        break
+    }
+
+    navigationStore.setNavigationMessage(targetMessage(target))
+    showCommandFeedback(targetMessage(target))
+  } catch (error) {
+    const message = toAppErrorMessage(error, '无法打开目标')
+    pageError.value = message
+    navigationStore.setNavigationMessage(message)
+    showCommandFeedback(message, 8000)
+  }
 }
 
-
-function openTimelineCard(cardId: string) {
-  const cardStore = useCardStore()
-  cardStore.selectCard(cardId)
-  workspaceMode.value = 'cards'
+function targetMessage(target: OpenTarget) {
+  switch (target.type) {
+    case 'document':
+      return target.paragraphId || target.startOffset != null ? '已定位到正文位置。' : '已打开文档。'
+    case 'card':
+      return '已打开设定卡。'
+    case 'note':
+      return '已打开事项。'
+    case 'outline':
+      return '已打开大纲节点。'
+    case 'timeline':
+      return '已打开时间线事件。'
+    case 'relation':
+      return '已打开设定关系。'
+    case 'foreshadow':
+      return '已打开伏笔线程。'
+    case 'proofreadingRule':
+      return '已打开校对规则。'
+    case 'proofreadingIssue':
+      return '已定位校对问题。'
+    case 'exportTemplate':
+      return '已打开导出模板。'
+    case 'workspace':
+      return '已切换工作区。'
+  }
 }
 
-function openRelationCard(cardId: string) {
-  const cardStore = useCardStore()
-  cardStore.selectCard(cardId)
-  workspaceMode.value = 'cards'
-}
-
-function openStatsCard(cardId: string) {
-  const cardStore = useCardStore()
-  cardStore.selectCard(cardId)
-  workspaceMode.value = 'cards'
-}
-
-function handleOpenSearchResult(result: SearchResult) {
-  if (result.targetType === 'card') {
-    workspaceMode.value = 'cards'
-    const cardStore = useCardStore()
-    void cardStore.loadCards(projectId.value).then(() => cardStore.selectCard(result.targetId))
-    return
-  }
-  if (result.targetType === 'note') {
-    workspaceMode.value = 'notes'
-    noteStore.selectNote(result.targetId)
-    return
-  }
-  if (result.targetType === 'outline') {
-    workspaceMode.value = 'outline'
-    const outlineStore = useOutlineStore()
-    void outlineStore.loadOutlineNodes(projectId.value).then(() => outlineStore.selectOutlineNode(result.targetId))
-    return
-  }
-  if (result.targetType === 'timeline') {
-    workspaceMode.value = 'timeline'
-    const timelineStore = useTimelineStore()
-    void timelineStore.loadTimeline(projectId.value).then(() => timelineStore.selectEvent(result.targetId))
-    return
-  }
-  if (result.targetType === 'foreshadow') {
-    workspaceMode.value = 'foreshadow'
-    const foreshadowStore = useForeshadowStore()
-    foreshadowStore.setFilters('all', 'all', false)
-    void foreshadowStore.loadThreads(projectId.value).then(() => foreshadowStore.selectThread(result.targetId))
-    return
-  }
-  workspaceMode.value = 'writing'
-  documentStore.selectDocument(result.targetId)
-}
 
 async function createDocument(payload: DocumentCreatePayload) {
   pageError.value = null

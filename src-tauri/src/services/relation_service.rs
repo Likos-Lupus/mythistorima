@@ -110,6 +110,41 @@ async fn ensure_card_in_project(
     Ok(())
 }
 
+async fn refresh_relation_search_index(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    relation_id: &str,
+) -> AppResult<()> {
+    sqlx::query("DELETE FROM search_index WHERE target_type = 'relation' AND target_id = ?1")
+        .bind(relation_id)
+        .execute(&mut **tx)
+        .await?;
+
+    sqlx::query(
+        r#"
+        INSERT INTO search_index (target_type, target_id, project_id, title, body)
+        SELECT
+          'relation',
+          r.id,
+          r.project_id,
+          source.name || ' · ' || r.relation_type || ' · ' || target.name,
+          source.name || char(10) ||
+          target.name || char(10) ||
+          r.direction || char(10) ||
+          r.description || char(10) ||
+          r.metadata_json
+        FROM card_relations r
+        JOIN cards source ON source.id = r.source_card_id
+        JOIN cards target ON target.id = r.target_card_id
+        WHERE r.id = ?1
+        "#,
+    )
+    .bind(relation_id)
+    .execute(&mut **tx)
+    .await?;
+
+    Ok(())
+}
+
 pub async fn create_card_relation(
     pool: &SqlitePool,
     input: CardRelationInput,
@@ -153,6 +188,8 @@ pub async fn create_card_relation(
     .bind(now)
     .execute(&mut *tx)
     .await?;
+
+    refresh_relation_search_index(&mut tx, &relation_id).await?;
 
     sqlx::query("UPDATE projects SET updated_at = ?1 WHERE id = ?2")
         .bind(now)
@@ -228,6 +265,8 @@ pub async fn update_card_relation(
     .execute(&mut *tx)
     .await?;
 
+    refresh_relation_search_index(&mut tx, &input.relation_id).await?;
+
     sqlx::query("UPDATE projects SET updated_at = ?1 WHERE id = ?2")
         .bind(now)
         .bind(&existing.project_id)
@@ -243,6 +282,11 @@ pub async fn delete_card_relation(pool: &SqlitePool, relation_id: String) -> App
     let existing = get_card_relation(pool, relation_id.clone()).await?;
     let now = now_ms();
     let mut tx = pool.begin().await?;
+
+    sqlx::query("DELETE FROM search_index WHERE target_type = 'relation' AND target_id = ?1")
+        .bind(&relation_id)
+        .execute(&mut *tx)
+        .await?;
 
     let result = sqlx::query("DELETE FROM card_relations WHERE id = ?1")
         .bind(&relation_id)

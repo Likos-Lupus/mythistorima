@@ -79,6 +79,13 @@ export const phase2FeatureFlags: Phase2FeatureFlag[] = [
         week: 10,
         status: 'active',
         description: '应用内快捷键、快速跳转与常用操作执行。'
+    },
+    {
+        key: 'integratedNavigation',
+        label: '统一跳转',
+        week: 11,
+        status: 'active',
+        description: '跨工作区 openTarget、段落定位与上下文面板。'
     }
 ]
 

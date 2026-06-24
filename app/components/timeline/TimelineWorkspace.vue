@@ -31,7 +31,7 @@
             :events="timelineStore.events"
             @reorder="reorderEvent"
             @select="timelineStore.selectEvent"
-            @open-document="$emit('open-document', $event)"
+            @open-document="$emit('open-target', {type: 'document', targetId: $event, source: 'timeline'})"
         />
 
         <TimelineList
@@ -42,7 +42,7 @@
             :loading="timelineStore.loading"
             @create="startCreate"
             @select="timelineStore.selectEvent"
-            @open-document="$emit('open-document', $event)"
+            @open-document="$emit('open-target', {type: 'document', targetId: $event, source: 'timeline'})"
         />
       </div>
 
@@ -65,12 +65,12 @@
             :saving="timelineStore.saving"
             @attach="attachCard"
             @detach="detachCard"
-            @open-card="$emit('open-card', $event)"
+            @open-card="$emit('open-target', {type: 'card', targetId: $event})"
         />
       </aside>
     </div>
 
-    <p v-if="error" class="editor-error">{{ error }}</p>
+    <ErrorBanner :message="error" title="时间线加载失败" @dismiss="error = null"/>
   </section>
 </template>
 
@@ -80,6 +80,7 @@ import TimelineEventEditor from '~/components/timeline/TimelineEventEditor.vue'
 import TimelineFilters from '~/components/timeline/TimelineFilters.vue'
 import TimelineLaneView from '~/components/timeline/TimelineLaneView.vue'
 import TimelineList from '~/components/timeline/TimelineList.vue'
+import ErrorBanner from '~/components/common/ErrorBanner.vue'
 import type {NovelDocument} from '~/types/document'
 import type {CreateTimelineEventInput, TimelineParticipantRole, UpdateTimelineEventInput} from '~/types/timeline'
 import {toAppErrorMessage} from '~/utils/appError'
@@ -90,8 +91,7 @@ const props = defineProps<{
 }>()
 
 defineEmits<{
-  'open-document': [documentId: string]
-  'open-card': [cardId: string]
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
 
 const timelineStore = useTimelineStore()

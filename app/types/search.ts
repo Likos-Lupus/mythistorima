@@ -5,6 +5,7 @@ export type SearchScope =
     | 'notes'
     | 'outline'
     | 'timeline'
+    | 'relations'
     | 'foreshadow'
     | 'proofreading'
     | 'exportTemplates'

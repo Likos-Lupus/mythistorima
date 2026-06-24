@@ -57,7 +57,7 @@
             :running="proofreadingStore.running"
             :scope="proofreadingStore.lastRunScope"
             @select="proofreadingStore.selectIssue"
-            @open-document="$emit('open-document', $event)"
+            @open-target="$emit('open-target', $event)"
         >
           <template #actions>
             <button :disabled="!proofreadingStore.issues.length" class="text-button" type="button"
@@ -73,6 +73,7 @@
             :issues="proofreadingStore.issues"
             :running="proofreadingStore.running"
             @select="proofreadingStore.selectIssue"
+            @open-target="$emit('open-target', $event)"
             @run-current="runCurrentDocument"
         />
       </main>
@@ -87,7 +88,7 @@
       />
     </div>
 
-    <p v-if="error" class="editor-error">{{ error }}</p>
+    <ErrorBanner :message="error" title="校对操作失败" @dismiss="error = null"/>
   </section>
 </template>
 
@@ -96,6 +97,7 @@ import ProofreadingInlinePanel from '~/components/proofreading/ProofreadingInlin
 import ProofreadingResultList from '~/components/proofreading/ProofreadingResultList.vue'
 import ProofreadingRuleEditor from '~/components/proofreading/ProofreadingRuleEditor.vue'
 import ProofreadingRuleList from '~/components/proofreading/ProofreadingRuleList.vue'
+import ErrorBanner from '~/components/common/ErrorBanner.vue'
 import type {NovelDocument} from '~/types/document'
 import type {CreateProofreadingRuleInput, UpdateProofreadingRuleInput} from '~/types/proofreading'
 import {toAppErrorMessage} from '~/utils/appError'
@@ -107,7 +109,7 @@ const props = defineProps<{
 }>()
 
 defineEmits<{
-  'open-document': [documentId: string]
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
 
 const proofreadingStore = useProofreadingStore()

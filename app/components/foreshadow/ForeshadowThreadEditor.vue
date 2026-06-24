@@ -83,7 +83,7 @@
             v-if="draft.setupDocumentId"
             class="secondary-button"
             type="button"
-            @click="$emit('open-document', draft.setupDocumentId)"
+            @click="openSetupLocation"
         >
           打开提出章节
         </button>
@@ -91,7 +91,7 @@
             v-if="draft.payoffDocumentId"
             class="secondary-button"
             type="button"
-            @click="$emit('open-document', draft.payoffDocumentId)"
+            @click="openPayoffLocation"
         >
           打开回收章节
         </button>
@@ -143,7 +143,7 @@ const emit = defineEmits<{
   delete: [threadId: string]
   'create-from-note': [noteId: string]
   'mark-paid-off': [threadId: string, payoffDocumentId?: string | null]
-  'open-document': [documentId: string]
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
 
 const selectedNoteId = ref('')
@@ -214,6 +214,28 @@ function submit() {
     payoffNoteId: normalizeId(draft.payoffNoteId),
     setupDocumentId: normalizeId(draft.setupDocumentId),
     payoffDocumentId: normalizeId(draft.payoffDocumentId)
+  })
+}
+
+function openSetupLocation() {
+  if (!draft.setupDocumentId) return
+  emit('open-target', {
+    type: 'document',
+    targetId: draft.setupDocumentId,
+    paragraphId: props.thread?.setupParagraphId ?? null,
+    source: 'foreshadow-setup',
+    label: '伏笔提出位置'
+  })
+}
+
+function openPayoffLocation() {
+  if (!draft.payoffDocumentId) return
+  emit('open-target', {
+    type: 'document',
+    targetId: draft.payoffDocumentId,
+    paragraphId: props.thread?.payoffParagraphId ?? null,
+    source: 'foreshadow-payoff',
+    label: '伏笔回收位置'
   })
 }
 

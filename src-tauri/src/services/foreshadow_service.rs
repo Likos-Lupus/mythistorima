@@ -418,12 +418,14 @@ pub async fn get_foreshadow_thread(
           f.status,
           f.setup_note_id,
           setup_note.title AS setup_note_title,
+          setup_note.paragraph_id AS setup_paragraph_id,
           f.payoff_note_id,
           payoff_note.title AS payoff_note_title,
-          f.setup_document_id,
-          setup_doc.title AS setup_document_title,
-          f.payoff_document_id,
-          payoff_doc.title AS payoff_document_title,
+          payoff_note.paragraph_id AS payoff_paragraph_id,
+          COALESCE(f.setup_document_id, setup_note.document_id) AS setup_document_id,
+          COALESCE(setup_doc.title, setup_note_doc.title) AS setup_document_title,
+          COALESCE(f.payoff_document_id, payoff_note.document_id) AS payoff_document_id,
+          COALESCE(payoff_doc.title, payoff_note_doc.title) AS payoff_document_title,
           f.priority,
           f.created_at,
           f.updated_at
@@ -432,6 +434,8 @@ pub async fn get_foreshadow_thread(
         LEFT JOIN notes payoff_note ON payoff_note.id = f.payoff_note_id
         LEFT JOIN documents setup_doc ON setup_doc.id = f.setup_document_id
         LEFT JOIN documents payoff_doc ON payoff_doc.id = f.payoff_document_id
+        LEFT JOIN documents setup_note_doc ON setup_note_doc.id = setup_note.document_id
+        LEFT JOIN documents payoff_note_doc ON payoff_note_doc.id = payoff_note.document_id
         WHERE f.id = ?1
         LIMIT 1
         "#,
@@ -477,12 +481,14 @@ pub async fn list_foreshadow_threads(
           f.status,
           f.setup_note_id,
           setup_note.title AS setup_note_title,
+          setup_note.paragraph_id AS setup_paragraph_id,
           f.payoff_note_id,
           payoff_note.title AS payoff_note_title,
-          f.setup_document_id,
-          setup_doc.title AS setup_document_title,
-          f.payoff_document_id,
-          payoff_doc.title AS payoff_document_title,
+          payoff_note.paragraph_id AS payoff_paragraph_id,
+          COALESCE(f.setup_document_id, setup_note.document_id) AS setup_document_id,
+          COALESCE(setup_doc.title, setup_note_doc.title) AS setup_document_title,
+          COALESCE(f.payoff_document_id, payoff_note.document_id) AS payoff_document_id,
+          COALESCE(payoff_doc.title, payoff_note_doc.title) AS payoff_document_title,
           f.priority,
           f.created_at,
           f.updated_at
@@ -491,6 +497,8 @@ pub async fn list_foreshadow_threads(
         LEFT JOIN notes payoff_note ON payoff_note.id = f.payoff_note_id
         LEFT JOIN documents setup_doc ON setup_doc.id = f.setup_document_id
         LEFT JOIN documents payoff_doc ON payoff_doc.id = f.payoff_document_id
+        LEFT JOIN documents setup_note_doc ON setup_note_doc.id = setup_note.document_id
+        LEFT JOIN documents payoff_note_doc ON payoff_note_doc.id = payoff_note.document_id
         WHERE f.project_id = ?1
           AND (?2 IS NULL OR f.status = ?2)
           AND (?3 IS NULL OR f.priority = ?3)

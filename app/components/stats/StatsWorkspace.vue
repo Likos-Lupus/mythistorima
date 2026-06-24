@@ -38,24 +38,23 @@
           :active-card-id="appearanceStore.activeCardId"
           :cards="summary?.cards ?? []"
           :loading="appearanceStore.loading"
-          @open-card="$emit('open-card', $event)"
+          @open-card="$emit('open-target', {type: 'card', targetId: $event})"
           @select-card="selectCard"
       />
 
       <CardAppearanceDetail
           :appearances="appearanceStore.cardAppearances"
           :card="appearanceStore.activeCardSummary"
-          @open-card="$emit('open-card', $event)"
-          @open-document="$emit('open-document', $event)"
+          @open-target="$emit('open-target', $event)"
       />
     </div>
 
     <DocumentAppearanceMatrix
         :summary="summary"
-        @open-document="$emit('open-document', $event)"
+        @open-document="$emit('open-target', {type: 'document', targetId: $event, source: 'appearance'})"
     />
 
-    <p v-if="error" class="editor-error">{{ error }}</p>
+    <ErrorBanner :message="error" title="出场统计加载失败" @dismiss="error = null"/>
   </section>
 </template>
 
@@ -63,6 +62,7 @@
 import CardAppearanceDetail from '~/components/stats/CardAppearanceDetail.vue'
 import CharacterAppearanceTable from '~/components/stats/CharacterAppearanceTable.vue'
 import DocumentAppearanceMatrix from '~/components/stats/DocumentAppearanceMatrix.vue'
+import ErrorBanner from '~/components/common/ErrorBanner.vue'
 import type {NovelDocument} from '~/types/document'
 import {toAppErrorMessage} from '~/utils/appError'
 
@@ -72,8 +72,7 @@ const props = defineProps<{
 }>()
 
 defineEmits<{
-  'open-document': [documentId: string]
-  'open-card': [cardId: string]
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
 
 const appearanceStore = useAppearanceStore()

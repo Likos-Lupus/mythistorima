@@ -60,7 +60,7 @@
       </aside>
     </div>
 
-    <p v-if="error" class="editor-error">{{ error }}</p>
+    <ErrorBanner :message="error" title="关系图加载失败" @dismiss="error = null"/>
   </section>
 </template>
 
@@ -69,17 +69,18 @@ import RelationEditor from '~/components/relations/RelationEditor.vue'
 import RelationGraph from '~/components/relations/RelationGraph.vue'
 import RelationList from '~/components/relations/RelationList.vue'
 import RelationTypePicker from '~/components/relations/RelationTypePicker.vue'
+import ErrorBanner from '~/components/common/ErrorBanner.vue'
 import {cardTypeOptions} from '~/types/card'
 import type {CardGraphCardTypeFilter, CreateCardRelationInput, UpdateCardRelationInput} from '~/types/relation'
 import {toAppErrorMessage} from '~/utils/appError'
-import {useRelationStore} from "~/stores/relation.store";
+import {useRelationStore} from '~/stores/relation.store'
 
 const props = defineProps<{
   projectId: string
 }>()
 
 const emit = defineEmits<{
-  'open-card': [cardId: string]
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
 
 const relationStore = useRelationStore()
@@ -137,6 +138,6 @@ async function deleteRelation(relationId: string) {
 function openCard(cardId: string) {
   relationStore.selectCard(cardId)
   cardStore.selectCard(cardId)
-  emit('open-card', cardId)
+  emit('open-target', {type: 'card', targetId: cardId})
 }
 </script>

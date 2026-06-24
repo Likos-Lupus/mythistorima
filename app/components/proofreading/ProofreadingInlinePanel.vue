@@ -20,7 +20,7 @@
           :key="issue.id"
           :class="['proofreading-inline-issue', `is-${issue.severity}`, { 'is-active': issue.id === activeIssueId }]"
           type="button"
-          @click="$emit('select', issue.id)"
+          @click="openIssue(issue)"
       >
         <strong>{{ issue.message }}</strong>
         <small>{{ proofreadingSeverityLabel(issue.severity) }} · {{ issue.paragraphId ?? '段落' }}</small>
@@ -41,10 +41,16 @@ const props = defineProps<{
   running?: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   select: [issueId: string]
   'run-current': []
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
+
+function openIssue(issue: ProofreadingIssue) {
+  emit('select', issue.id)
+  emit('open-target', {type: 'proofreadingIssue', issue})
+}
 
 const currentIssues = computed(() => props.activeDocumentId
     ? props.issues.filter(issue => issue.documentId === props.activeDocumentId)

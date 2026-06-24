@@ -19,6 +19,7 @@ struct DocumentText {
     project_id: String,
     title: String,
     content_text: String,
+    content_json: String,
 }
 
 #[derive(Debug, Clone)]
@@ -222,7 +223,8 @@ async fn get_document_text(pool: &SqlitePool, document_id: &str) -> AppResult<Do
           d.id AS document_id,
           d.project_id,
           d.title,
-          COALESCE(c.content_text, '') AS content_text
+          COALESCE(c.content_text, '') AS content_text,
+          COALESCE(c.content_json, '') AS content_json
         FROM documents d
         LEFT JOIN document_contents c ON c.document_id = d.id
         WHERE d.id = ?1
@@ -239,6 +241,7 @@ async fn get_document_text(pool: &SqlitePool, document_id: &str) -> AppResult<Do
         project_id: row.try_get("project_id")?,
         title: row.try_get("title")?,
         content_text: row.try_get("content_text")?,
+        content_json: row.try_get("content_json")?,
     })
 }
 
@@ -254,7 +257,8 @@ async fn list_project_documents(
           d.id AS document_id,
           d.project_id,
           d.title,
-          COALESCE(c.content_text, '') AS content_text
+          COALESCE(c.content_text, '') AS content_text,
+          COALESCE(c.content_json, '') AS content_json
         FROM documents d
         LEFT JOIN document_contents c ON c.document_id = d.id
         WHERE d.project_id = ?1
@@ -278,6 +282,7 @@ async fn list_project_documents(
                 project_id: row.try_get("project_id")?,
                 title: row.try_get("title")?,
                 content_text: row.try_get("content_text")?,
+                content_json: row.try_get("content_json")?,
             })
         })
         .collect::<Result<Vec<_>, sqlx::Error>>()?;
@@ -693,9 +698,17 @@ fn push_unique_character_name(names: &mut Vec<CharacterName>, raw_name: &str, ca
     });
 }
 
-fn split_paragraphs(text: &str) -> Vec<ParagraphSlice> {
+fn split_paragraphs(text: &str, content_json: &str) -> Vec<ParagraphSlice> {
     let mut paragraphs = Vec::new();
     let mut offset = 0_usize;
+
+    if let Ok(document) = serde_json::from_str::<Value>(content_json) {
+        collect_tiptap_paragraphs(&document, &mut paragraphs, &mut offset);
+    }
+
+    if !paragraphs.is_empty() {
+        return paragraphs;
+    }
 
     for (index, line) in text.split('\n').enumerate() {
         let line_len = line.chars().count();
@@ -720,13 +733,65 @@ fn split_paragraphs(text: &str) -> Vec<ParagraphSlice> {
     paragraphs
 }
 
+fn collect_tiptap_paragraphs(
+    node: &Value,
+    paragraphs: &mut Vec<ParagraphSlice>,
+    offset: &mut usize,
+) {
+    let node_type = node.get("type").and_then(Value::as_str).unwrap_or("");
+    if node_type == "paragraph" || node_type == "heading" {
+        let text = tiptap_node_text(node);
+        let paragraph_id = node
+            .get("attrs")
+            .and_then(|attrs| attrs.get("pid"))
+            .and_then(Value::as_str)
+            .filter(|value| !value.is_empty())
+            .map(ToString::to_string)
+            .unwrap_or_else(|| format!("paragraph-{}", paragraphs.len() + 1));
+
+        if !text.trim().is_empty() {
+            paragraphs.push(ParagraphSlice {
+                paragraph_id,
+                text: text.clone(),
+                start_offset: *offset,
+            });
+        }
+        *offset += text.chars().count() + 1;
+        return;
+    }
+
+    if let Some(children) = node.get("content").and_then(Value::as_array) {
+        for child in children {
+            collect_tiptap_paragraphs(child, paragraphs, offset);
+        }
+    }
+}
+
+fn tiptap_node_text(node: &Value) -> String {
+    if let Some(text) = node.get("text").and_then(Value::as_str) {
+        return text.to_string();
+    }
+
+    let mut output = String::new();
+    if let Some(children) = node.get("content").and_then(Value::as_array) {
+        for child in children {
+            if child.get("type").and_then(Value::as_str) == Some("hardBreak") {
+                output.push('\n');
+            } else {
+                output.push_str(&tiptap_node_text(child));
+            }
+        }
+    }
+    output
+}
+
 fn run_rules_on_document(
     document: &DocumentText,
     rules: &[ProofreadingRuleDto],
     character_names: &[CharacterName],
 ) -> Vec<ProofreadingIssueDto> {
     let mut issues = Vec::new();
-    let paragraphs = split_paragraphs(&document.content_text);
+    let paragraphs = split_paragraphs(&document.content_text, &document.content_json);
 
     for rule in rules {
         match rule.rule_type.as_str() {

@@ -12,7 +12,8 @@
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
     "typecheck": "nuxt typecheck",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "perf:phase2-week11": "node scripts/phase2-week11-performance.mjs"
   },
   "dependencies": {
     "@nuxt/ui": "^4.0.0",

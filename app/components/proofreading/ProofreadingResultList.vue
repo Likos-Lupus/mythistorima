@@ -16,7 +16,13 @@
         <header>
           <strong>{{ group.documentTitle }}</strong>
           <span>{{ group.issues.length }} 项</span>
-          <button class="text-button" type="button" @click="$emit('open-document', group.documentId)">打开章节</button>
+          <button
+              class="text-button"
+              type="button"
+              @click="$emit('open-target', {type: 'document', targetId: group.documentId, source: 'proofreading'})"
+          >
+            打开章节
+          </button>
         </header>
 
         <button
@@ -24,7 +30,7 @@
             :key="issue.id"
             :class="['proofreading-issue-item', `is-${issue.severity}`, { 'is-active': issue.id === activeIssueId }]"
             type="button"
-            @click="$emit('select', issue.id)"
+            @click="openIssue(issue)"
         >
           <span class="proofreading-issue-meta">
             {{ proofreadingSeverityLabel(issue.severity) }}
@@ -53,9 +59,9 @@ const props = defineProps<{
   scope?: 'document' | 'project' | null
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   select: [issueId: string]
-  'open-document': [documentId: string]
+  'open-target': [target: import('~/types/navigation').OpenTarget]
 }>()
 
 const documentById = computed(() => new Map(props.documents.map(document => [document.id, document])))
@@ -81,6 +87,11 @@ const groupedIssues = computed(() => {
     issues
   }))
 })
+
+function openIssue(issue: ProofreadingIssue) {
+  emit('select', issue.id)
+  emit('open-target', {type: 'proofreadingIssue', issue})
+}
 
 function ruleLabel(ruleId?: string | null) {
   if (!ruleId) return '未知规则'
