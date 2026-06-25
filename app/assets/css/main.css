@@ -4964,3 +4964,230 @@ body[data-theme="dark"] .timeline-lane-dot {
         transition: none;
     }
 }
+
+.novel-editor-shell {
+    position: relative;
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    background: transparent !important;
+    color: var(--ui-text);
+}
+
+.editor-toolbar {
+    display: flex;
+    min-height: 2.25rem;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.2rem;
+    border-bottom: 1px solid var(--ui-border);
+    background: var(--ui-bg) !important;
+    padding: 0.25rem 0.5rem;
+}
+
+.editor-toolbar .toolbar-divider {
+    width: 1px;
+    height: 1.25rem;
+    margin: 0 0.25rem;
+    background: var(--ui-border);
+}
+
+.paragraph-note-toolbar {
+    position: absolute;
+    z-index: 5;
+    top: 3rem;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg-elevated) !important;
+    padding: 0.25rem;
+    color: var(--ui-text-muted);
+    font-size: 0.72rem;
+    box-shadow: var(--ui-shadow-md);
+    transform: translateX(-50%);
+}
+
+.editor-scroll-area {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: var(--ui-bg-muted) !important;
+    padding: 3.75rem 1.25rem 2rem;
+}
+
+.editor-paper {
+    position: relative;
+    width: min(100%, var(--editor-page-width, 820px));
+    min-height: calc(100% - 1rem);
+    margin: 0 auto;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg) !important;
+    color: var(--ui-text-highlighted) !important;
+    box-shadow: var(--ui-shadow-sm);
+    cursor: text;
+}
+
+.novel-editor-shell .novel-prose,
+.novel-editor-shell .ProseMirror {
+    min-height: calc(100vh - 12rem);
+    font-family: var(--editor-font-family, ui-serif, "Songti SC", serif);
+    font-size: var(--editor-font-size, 17px);
+    line-height: var(--editor-line-height, 2);
+    color: var(--ui-text-highlighted) !important;
+}
+
+.novel-editor-shell .novel-prose {
+    padding: 2.25rem clamp(1.5rem, 5vw, 4rem);
+}
+
+.editor-find-replace {
+    position: absolute;
+    z-index: 30;
+    top: 2.8rem;
+    right: 1rem;
+    width: min(34rem, calc(100% - 2rem));
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg-elevated) !important;
+    box-shadow: var(--ui-shadow-lg);
+}
+
+.find-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.find-row .find-input:only-child {
+    grid-column: 1 / -1;
+}
+
+.find-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.35rem;
+}
+
+.find-count {
+    margin-right: auto;
+    color: var(--ui-text-muted) !important;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.editor-find-float-enter-active,
+.editor-find-float-leave-active {
+    transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.editor-find-float-enter-from,
+.editor-find-float-leave-to {
+    opacity: 0;
+    transform: translateY(-0.35rem);
+}
+
+.document-tree {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--ui-text);
+}
+
+.document-tree-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.25rem;
+}
+
+.document-tree-title {
+    margin: 0;
+    color: var(--ui-text-highlighted) !important;
+    font-size: 0.88rem;
+    font-weight: 750;
+}
+
+.document-tree-subtitle {
+    margin: 0.1rem 0 0;
+    color: var(--ui-text-muted) !important;
+    font-size: 0.72rem;
+}
+
+.document-tree-utree {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+}
+
+.document-tree-node {
+    display: grid;
+    min-height: 1.8rem;
+    grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: var(--ui-radius);
+    color: var(--ui-text-muted);
+    padding: 0.2rem 0.25rem;
+}
+
+.document-tree-node:hover,
+.document-tree-node.is-active {
+    background: var(--ui-bg-elevated);
+    color: var(--ui-text-highlighted);
+}
+
+.document-tree-status-dot {
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: var(--ui-text-dimmed);
+}
+
+.document-tree-status-dot.is-writing {
+    background: var(--ui-primary);
+}
+
+.document-tree-status-dot.is-done,
+.document-tree-status-dot.is-revised {
+    background: var(--ui-success);
+}
+
+.document-tree-status-dot.is-archived {
+    background: var(--ui-text-muted);
+}
+
+.document-tree-node-icon {
+    color: var(--ui-text-dimmed);
+    font-size: 0.9rem;
+}
+
+.document-tree-node-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    font-weight: 650;
+}
+
+.document-tree-node-count {
+    color: var(--ui-text-dimmed);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.document-tree-empty {
+    min-height: 8rem;
+}

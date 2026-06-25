@@ -32,10 +32,10 @@ import ProjectWorkspaceInspector from '~/components/workspace/ProjectWorkspaceIn
 
 const controller = provideProjectWorkspace(useProjectWorkspaceController())
 
-const showSidebar = computed(() =>
-    controller.workspaceMode.value === 'writing' && !controller.focusMode.value
-)
+const showSidebar = computed(() => false)
 const showInspector = computed(() =>
-    !controller.focusMode.value && controller.workspaceMode.value !== 'dashboard'
+    !controller.focusMode.value
+    && controller.workspaceMode.value !== 'dashboard'
+    && controller.workspaceMode.value !== 'writing'
 )
 </script>

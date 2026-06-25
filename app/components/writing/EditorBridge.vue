@@ -1,34 +1,13 @@
 <template>
-  <section :style="editorStyle" class="novel-editor-shell">
-    <EditorToolbar
-        :editor="editor"
-        :focus-mode="focusMode"
-        @find="openFind(false)"
-        @replace="openFind(true)"
-        @toggle-focus="$emit('toggleFocusMode')"
-    />
-
+  <section :style="editorStyle" class="editor-bridge-shell" data-editor-engine="nuxt-ui-ueditor">
     <EditorFindReplace
-        :editor="editor"
+        :editor="activeEditor"
         :open="findOpen"
         :replace-mode="findReplaceMode"
         @replaced="handleManualContentChange"
         @update:open="findOpen = $event"
         @update:replace-mode="findReplaceMode = $event"
     />
-
-    <div v-if="editor" class="paragraph-note-toolbar">
-      <span>段落事项</span>
-      <UTooltip text="为当前段落添加备忘">
-        <UButton color="neutral" label="备忘" size="xs" variant="ghost" @click="requestParagraphNote('memo')"/>
-      </UTooltip>
-      <UTooltip text="为当前段落添加待办">
-        <UButton color="neutral" label="待办" size="xs" variant="ghost" @click="requestParagraphNote('todo')"/>
-      </UTooltip>
-      <UTooltip text="为当前段落添加伏笔">
-        <UButton color="neutral" label="伏笔" size="xs" variant="ghost" @click="requestParagraphNote('foreshadow')"/>
-      </UTooltip>
-    </div>
 
     <SettingMentionList
         v-if="mentionState.open"
@@ -48,31 +27,90 @@
         :top="hoverPreview.top"
     />
 
-    <div class="editor-scroll-area">
-      <div v-if="loading" class="editor-loading">
-        正在加载章节…
+    <div v-if="loading" class="editor-bridge-loading">
+      <USkeleton class="h-8 w-48"/>
+      <USkeleton class="h-[68vh] w-full rounded-lg"/>
+    </div>
+
+    <template v-else>
+      <div v-if="activeEditor" aria-label="写作编辑工具栏" class="editor-bridge-toolbar-row">
+        <div class="editor-bridge-toolbar">
+          <UEditorToolbar
+              :editor="activeEditor"
+              :items="toolbarItems"
+              class="editor-bridge-format-toolbar"
+              layout="fixed"
+          />
+
+          <div class="editor-bridge-toolbar-actions">
+            <UTooltip text="查找 Ctrl+F">
+              <UButton
+                  aria-label="查找"
+                  color="neutral"
+                  icon="i-lucide-search"
+                  size="xs"
+                  variant="ghost"
+                  @click="openFind(false)"
+              />
+            </UTooltip>
+            <UTooltip text="替换 Ctrl+H">
+              <UButton
+                  aria-label="替换"
+                  color="neutral"
+                  icon="i-lucide-repeat-2"
+                  size="xs"
+                  variant="ghost"
+                  @click="openFind(true)"
+              />
+            </UTooltip>
+            <UDropdownMenu :items="paragraphNoteItems">
+              <UButton
+                  aria-label="段落事项"
+                  color="neutral"
+                  icon="i-lucide-list-plus"
+                  size="xs"
+                  variant="ghost"
+              />
+            </UDropdownMenu>
+            <UTooltip :text="focusMode ? '退出专注模式' : '专注模式'">
+              <UButton
+                  :icon="focusMode ? 'i-lucide-minimize-2' : 'i-lucide-focus'"
+                  aria-label="切换专注模式"
+                  color="neutral"
+                  size="xs"
+                  variant="ghost"
+                  @click="$emit('toggle-focus-mode')"
+              />
+            </UTooltip>
+          </div>
+        </div>
       </div>
 
-      <div
-          v-else-if="editor"
-          aria-label="小说正文编辑器"
-          class="editor-paper"
-          role="textbox"
-          @click="focusEditor"
+      <UEditor
+          :key="documentId"
+          v-slot="{ editor }"
+          v-model="contentJson"
+          :autofocus="'end'"
+          :editor-props="editorProps"
+          :extensions="editorExtensions"
+          :image="false"
+          :mention="false"
+          :on-destroy="handleEditorDestroy"
+          :on-selection-update="handleSelectionUpdate"
+          :placeholder="editorPlaceholder"
+          :starter-kit="starterKitOptions"
+          :ui="editorUi"
+          class="editor-bridge-runtime"
+          content-type="json"
           @mouseleave="closeReferencePreview"
           @mousemove="handleReferenceMouseMove"
+          @update:model-value="handleContentModelUpdate"
       >
-        <div v-if="isEmpty" aria-hidden="true" class="editor-empty-hint">
-          <p><strong>从这里开始写作…</strong></p>
-          <p>点击纸张区域即可输入正文，内容会在停止输入后自动保存。</p>
-        </div>
-        <EditorContent :editor="editor"/>
-      </div>
-
-      <div v-else class="editor-fallback">
-        编辑器尚未准备好。
-      </div>
-    </div>
+        <EditorBridgeRuntimeBinder :editor="editor" @dispose="handleEditorDispose" @ready="handleEditorReady"/>
+        <UEditorDragHandle :editor="editor" class="editor-bridge-drag-handle"/>
+        <UEditorSuggestionMenu :append-to="appendMenusTo" :editor="editor" :items="suggestionItems"/>
+      </UEditor>
+    </template>
 
     <EditorStatusBar
         v-if="showStatusBar"
@@ -88,9 +126,9 @@
 </template>
 
 <script lang="ts" setup>
-import {Editor, EditorContent} from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import EditorToolbar from '~/components/editor/EditorToolbar.vue'
+import {defineComponent} from 'vue'
+import type {Editor, JSONContent} from '@tiptap/core'
+import type {EditorSuggestionMenuItem, EditorToolbarItem} from '@nuxt/ui'
 import EditorStatusBar from '~/components/editor/EditorStatusBar.vue'
 import EditorFindReplace from '~/components/editor/EditorFindReplace.vue'
 import SettingMentionList from '~/components/editor/SettingMentionList.vue'
@@ -101,10 +139,35 @@ import type {SettingCard} from '~/types/card'
 import {parseTiptapDocument} from '~/utils/tiptapDocument'
 import type {SaveState} from '~/composables/useAutoSave'
 import type {UpdateDocumentContentInput} from '~/types/document'
-import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
 import type {EditorParagraphNoteRequest} from '~/types/note'
+import type {EditorSessionSnapshot, EditorSettings} from '~/types/editor'
 import type {PendingEditorNavigation} from '~/types/navigation'
 import {useNavigationStore} from '~/stores/navigation.store'
+
+const EditorBridgeRuntimeBinder = defineComponent({
+  name: 'EditorBridgeRuntimeBinder',
+  props: {
+    editor: {type: Object, required: true}
+  },
+  emits: {
+    ready: (_editor: Editor) => true,
+    dispose: (_editor: Editor) => true
+  },
+  setup(componentProps, {emit}) {
+    const currentEditor = computed(() => componentProps.editor as Editor)
+
+    watch(currentEditor, (editor, previousEditor) => {
+      if (previousEditor && previousEditor !== editor) emit('dispose', previousEditor)
+      if (editor) emit('ready', editor)
+    }, {immediate: true})
+
+    onBeforeUnmount(() => {
+      if (currentEditor.value) emit('dispose', currentEditor.value)
+    })
+
+    return () => null
+  }
+})
 
 const props = withDefaults(defineProps<{
   documentId: string
@@ -116,7 +179,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   focusMode: false,
   targetCharacterCount: null,
-  showStatusBar: true
+  showStatusBar: false
 })
 
 const emit = defineEmits<{
@@ -130,8 +193,8 @@ const emit = defineEmits<{
     sessionDelta: number
   }]
   session: [payload: EditorSessionSnapshot]
-  paragraphNote: [payload: EditorParagraphNoteRequest]
-  toggleFocusMode: []
+  'paragraph-note': [payload: EditorParagraphNoteRequest]
+  'toggle-focus-mode': []
 }>()
 
 const documentStore = useDocumentStore()
@@ -142,14 +205,16 @@ const navigationStore = useNavigationStore()
 const {countCharacters} = useCharacterCount()
 const {call} = useTauriInvoke()
 
-const editor = shallowRef<Editor | null>(null)
+const activeEditor = shallowRef<Editor | null>(null)
+const contentJson = ref<JSONContent>(parseTiptapDocument(null) as JSONContent)
 const loading = ref(true)
 const characterCount = ref(0)
 const sessionStartedAt = ref(Date.now())
 const sessionId = ref(createSessionId())
 const charactersBefore = ref(0)
 const sessionElapsedMs = ref(0)
-const sessionDelta = computed(() => Math.max(0, characterCount.value - charactersBefore.value))
+const findOpen = ref(false)
+const findReplaceMode = ref(false)
 const mentionState = reactive({
   open: false,
   query: '',
@@ -164,9 +229,74 @@ const hoverPreview = reactive<{ card: SettingCard | null, top: number, left: num
   top: 0,
   left: 0
 })
-const findOpen = ref(false)
-const findReplaceMode = ref(false)
 
+const sessionDelta = computed(() => Math.max(0, characterCount.value - charactersBefore.value))
+const editorExtensions = [ParagraphId, SettingReference]
+const starterKitOptions = {
+  paragraph: false,
+  horizontalRule: false,
+  link: {
+    openOnClick: false
+  },
+  dropcursor: {
+    color: 'var(--ui-primary)',
+    width: 2
+  }
+}
+const editorPlaceholder = {
+  placeholder: '从这里开始写作…',
+  mode: 'firstLine' as const
+}
+const editorUi = {
+  root: 'editor-bridge-root',
+  content: 'editor-bridge-content',
+  base: 'novel-prose editor-bridge-prose'
+}
+const editorProps = computed(() => ({
+  attributes: {
+    'aria-label': '小说正文编辑器',
+    class: 'novel-prose editor-bridge-prose'
+  },
+  handleKeyDown: (_view: unknown, event: KeyboardEvent) => handleEditorKeyDown(event)
+}))
+const editorStyle = computed(() => ({
+  '--editor-font-size': `${props.settings.fontSize}px`,
+  '--editor-line-height': String(props.settings.lineHeight),
+  '--editor-page-width': `${props.settings.pageWidth}px`,
+  '--editor-font-family': editorFontFamily(props.settings.fontFamily)
+}))
+const appendMenusTo = import.meta.client ? () => document.body : undefined
+const toolbarItems: EditorToolbarItem[][] = [
+  [
+    {kind: 'paragraph', icon: 'i-lucide-pilcrow', tooltip: {text: '段落'}},
+    {kind: 'heading', level: 2, icon: 'i-lucide-heading-2', tooltip: {text: '标题'}},
+    {kind: 'mark', mark: 'bold', icon: 'i-lucide-bold', tooltip: {text: '加粗'}},
+    {kind: 'mark', mark: 'italic', icon: 'i-lucide-italic', tooltip: {text: '斜体'}}
+  ],
+  [
+    {kind: 'blockquote', icon: 'i-lucide-text-quote', tooltip: {text: '引用'}},
+    {kind: 'bulletList', icon: 'i-lucide-list', tooltip: {text: '无序列表'}},
+    {kind: 'orderedList', icon: 'i-lucide-list-ordered', tooltip: {text: '有序列表'}},
+    {kind: 'link', icon: 'i-lucide-link', tooltip: {text: '链接'}}
+  ],
+  [
+    {kind: 'undo', icon: 'i-lucide-undo-2', tooltip: {text: '撤销'}},
+    {kind: 'redo', icon: 'i-lucide-redo-2', tooltip: {text: '重做'}}
+  ]
+]
+const suggestionItems: EditorSuggestionMenuItem[][] = [[
+  {type: 'label', label: '格式'},
+  {kind: 'paragraph', label: '段落', icon: 'i-lucide-pilcrow'},
+  {kind: 'heading', level: 2, label: '章节标题', icon: 'i-lucide-heading-2'},
+  {kind: 'blockquote', label: '引用', icon: 'i-lucide-text-quote'},
+  {kind: 'bulletList', label: '无序列表', icon: 'i-lucide-list'},
+  {kind: 'orderedList', label: '有序列表', icon: 'i-lucide-list-ordered'}
+]]
+const paragraphNoteItems = computed(() => [[
+  {label: '备忘', icon: 'i-lucide-sticky-note', onSelect: () => requestParagraphNote('memo')},
+  {label: '待办', icon: 'i-lucide-square-check-big', onSelect: () => requestParagraphNote('todo')},
+  {label: '伏笔', icon: 'i-lucide-sparkles', onSelect: () => requestParagraphNote('foreshadow')}
+]])
 const mentionCards = computed(() => {
   const query = mentionState.query.trim().toLowerCase()
   return cardStore.cards
@@ -176,14 +306,6 @@ const mentionCards = computed(() => {
 
 let sessionTimer: ReturnType<typeof setInterval> | null = null
 let navigationHighlightTimer: ReturnType<typeof setTimeout> | null = null
-
-const isEmpty = computed(() => characterCount.value === 0 && !loading.value && Boolean(editor.value))
-const editorStyle = computed(() => ({
-  '--editor-font-size': `${props.settings.fontSize}px`,
-  '--editor-line-height': String(props.settings.lineHeight),
-  '--editor-page-width': `${props.settings.pageWidth}px`,
-  '--editor-font-family': editorFontFamily(props.settings.fontFamily)
-}))
 
 async function persist(payload: UpdateDocumentContentInput) {
   const normalizedPayload = {
@@ -239,11 +361,10 @@ watch(() => props.projectId, async projectId => {
   await ensureCardsLoaded(projectId)
 }, {immediate: true})
 
-
 watch(
     () => navigationStore.pendingEditorNavigation,
     target => {
-      if (target?.documentId === props.documentId && editor.value && !loading.value) {
+      if (target?.documentId === props.documentId && activeEditor.value && !loading.value) {
         void nextTick(() => applyEditorNavigation(target))
       }
     },
@@ -263,21 +384,21 @@ onBeforeUnmount(() => {
   stopSessionTimer()
   if (navigationHighlightTimer) clearTimeout(navigationHighlightTimer)
   timerStore.finishSession()
-  editor.value?.destroy()
+  activeEditor.value = null
 })
 
 async function resetEditorForDocument() {
   loading.value = true
   stopSessionTimer()
-  editor.value?.destroy()
-  editor.value = null
+  activeEditor.value = null
 
   try {
     const content = await documentStore.getDocumentContent(props.documentId)
-    const normalized = parseTiptapDocument(content.contentJson)
+    const normalized = parseTiptapDocument(content.contentJson) as JSONContent
     const normalizedText = extractTextFromDocument(normalized)
     const initialCharacterCount = countCharacters(normalizedText || content.contentText)
 
+    contentJson.value = normalized
     characterCount.value = initialCharacterCount
     charactersBefore.value = initialCharacterCount
     lastSavedAt.value = content.updatedAt
@@ -286,47 +407,45 @@ async function resetEditorForDocument() {
     sessionElapsedMs.value = 0
     timerStore.startSession(props.documentId, sessionStartedAt.value, sessionId.value)
     startSessionTimer()
-
-    editor.value = new Editor({
-      extensions: [
-        StarterKit.configure({
-          paragraph: false
-        }),
-        ParagraphId,
-        SettingReference
-      ],
-      content: normalized,
-      editorProps: {
-        attributes: {
-          class: 'novel-prose'
-        },
-        handleKeyDown: (_view, event) => handleEditorKeyDown(event)
-      },
-      onUpdate: ({editor: instance}) => {
-        queueEditorSave(instance)
-        updateMentionState(instance)
-      },
-      onSelectionUpdate: ({editor: instance}) => {
-        updateMentionState(instance)
-      }
-    })
-
-    // The ParagraphId plugin can append IDs immediately after creation. Persist once
-    // when it normalizes a legacy document without paragraph ids.
-    nextTick(() => {
-      if (!editor.value) return
-      queueEditorSave(editor.value)
-      const target = navigationStore.pendingEditorNavigation
-      if (target?.documentId === props.documentId) {
-        applyEditorNavigation(target)
-      }
-    })
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '无法加载章节内容'
     saveState.value = 'failed'
   } finally {
     loading.value = false
   }
+}
+
+function handleEditorReady(editor: Editor) {
+  if (activeEditor.value === editor) return
+
+  activeEditor.value = editor
+  const target = navigationStore.pendingEditorNavigation
+  if (target?.documentId === props.documentId) {
+    void nextTick(() => applyEditorNavigation(target))
+  }
+}
+
+function handleEditorDispose(editor: Editor) {
+  if (activeEditor.value === editor) {
+    activeEditor.value = null
+  }
+}
+
+function handleEditorDestroy() {
+  activeEditor.value = null
+}
+
+function handleContentModelUpdate(value: JSONContent) {
+  contentJson.value = parseTiptapDocument(value) as JSONContent
+  const editor = activeEditor.value
+  if (!editor) return
+  queueEditorSave(editor)
+  updateMentionState(editor)
+}
+
+function handleSelectionUpdate({editor}: { editor: Editor }) {
+  activeEditor.value = editor
+  updateMentionState(editor)
 }
 
 function queueEditorSave(instance: Editor) {
@@ -474,13 +593,14 @@ function handleMentionKeyDown(event: KeyboardEvent) {
 }
 
 function insertSettingReference(card: SettingCard) {
-  if (!editor.value) return
+  const editor = activeEditor.value
+  if (!editor) return
 
   const from = mentionState.from
   const to = mentionState.to
   mentionState.open = false
 
-  editor.value
+  editor
       .chain()
       .focus()
       .deleteRange({from, to})
@@ -506,9 +626,7 @@ function insertSettingReference(card: SettingCard) {
       ])
       .run()
 
-  nextTick(() => {
-    if (editor.value) queueEditorSave(editor.value)
-  })
+  nextTick(() => queueEditorSave(editor))
 }
 
 function handleReferenceMouseMove(event: MouseEvent) {
@@ -538,15 +656,16 @@ function closeReferencePreview() {
 }
 
 function handleManualContentChange() {
-  if (!editor.value) return
-  queueEditorSave(editor.value)
+  if (!activeEditor.value) return
+  queueEditorSave(activeEditor.value)
 }
 
 function requestParagraphNote(type: EditorParagraphNoteRequest['type']) {
-  if (!editor.value) return
-  const paragraphId = getSelectedParagraphId(editor.value)
-  const selectedText = getSelectedText(editor.value)
-  emit('paragraphNote', {
+  const editor = activeEditor.value
+  if (!editor) return
+  const paragraphId = getSelectedParagraphId(editor)
+  const selectedText = getSelectedText(editor)
+  emit('paragraph-note', {
     type,
     paragraphId,
     selectedText
@@ -573,7 +692,7 @@ function getSelectedText(instance: Editor) {
 }
 
 function applyEditorNavigation(target: PendingEditorNavigation) {
-  const instance = editor.value
+  const instance = activeEditor.value
   if (!instance || target.documentId !== props.documentId) return
 
   const located = locateEditorTarget(instance, target)
@@ -670,7 +789,7 @@ function parseFallbackParagraphIndex(paragraphId?: string | null) {
 
 function highlightParagraph(paragraphId?: string | null) {
   if (!paragraphId) return
-  const root = editor.value?.view.dom
+  const root = activeEditor.value?.view.dom
   const escaped = typeof CSS !== 'undefined' && CSS.escape
       ? CSS.escape(paragraphId)
       : paragraphId.replace(/["\\]/g, '\\$&')
@@ -686,11 +805,6 @@ function highlightParagraph(paragraphId?: string | null) {
     element.classList.remove('navigation-target-highlight')
     navigationHighlightTimer = null
   }, 3200)
-}
-
-
-function focusEditor() {
-  editor.value?.commands.focus('end')
 }
 
 function editorFontFamily(family: EditorSettings['fontFamily']) {
@@ -759,18 +873,13 @@ function createSessionId() {
   return `session_${random.replace(/-/g, '')}`
 }
 
-function extractTextFromDocument(document: { content?: unknown[] }): string {
-  const chunks: string[] = []
-  const walk = (node: unknown) => {
-    if (!node || typeof node !== 'object') return
-    const current = node as { text?: unknown, content?: unknown[], type?: unknown }
-    if (typeof current.text === 'string') chunks.push(current.text)
-    if (Array.isArray(current.content)) {
-      for (const child of current.content) walk(child)
-      if (current.type === 'paragraph' || current.type === 'heading') chunks.push('\n')
-    }
-  }
-  walk(document)
-  return chunks.join('')
+function extractTextFromDocument(doc: unknown): string {
+  if (!doc || typeof doc !== 'object') return ''
+  const node = doc as { text?: unknown, content?: unknown }
+  const ownText = typeof node.text === 'string' ? node.text : ''
+  const children = Array.isArray(node.content)
+      ? node.content.map(extractTextFromDocument).join('\n')
+      : ''
+  return [ownText, children].filter(Boolean).join('\n')
 }
 </script>

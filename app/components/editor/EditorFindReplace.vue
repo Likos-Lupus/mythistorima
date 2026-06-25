@@ -1,48 +1,90 @@
 <template>
-  <section aria-label="当前章节查找替换" class="editor-find-replace">
-    <div class="find-row">
-      <input
-          v-model="query"
-          class="find-input"
-          placeholder="查找当前章节…"
-          type="search"
-          @keydown.enter.prevent="goNext"
-      >
-      <input
-          v-model="replacement"
-          class="find-input"
-          placeholder="替换为…"
-          type="text"
-          @keydown.enter.prevent="replaceCurrent"
-      >
-    </div>
-    <div class="find-actions">
-      <span class="find-count">{{ matchSummary }}</span>
-      <button :disabled="!canSearch" class="tree-action-button" type="button" @click="goPrevious">上一个</button>
-      <button :disabled="!canSearch" class="tree-action-button" type="button" @click="goNext">下一个</button>
-      <button :disabled="!activeMatch" class="tree-action-button" type="button" @click="replaceCurrent">替换</button>
-      <button :disabled="!canSearch" class="tree-action-button" type="button" @click="replaceAll">全部替换</button>
-    </div>
-  </section>
+  <Transition name="editor-find-float">
+    <UCard
+        v-if="open"
+        ref="panelRef"
+        :ui="{ body: 'p-2' }"
+        aria-label="当前章节查找替换"
+        class="editor-find-replace"
+        role="search"
+        @keydown.esc.stop.prevent="close"
+    >
+      <div class="find-row">
+        <UInput
+            ref="queryInputRef"
+            v-model="query"
+            class="find-input"
+            icon="i-lucide-search"
+            placeholder="查找当前章节…"
+            size="sm"
+            type="search"
+            @keydown.enter.prevent="goNext"
+        />
+        <UInput
+            v-if="replaceMode"
+            v-model="replacement"
+            class="find-input"
+            icon="i-lucide-repeat-2"
+            placeholder="替换为…"
+            size="sm"
+            type="text"
+            @keydown.enter.prevent="replaceCurrent"
+        />
+      </div>
+      <div class="find-actions">
+        <span class="find-count">{{ matchSummary }}</span>
+        <UTooltip text="上一个">
+          <UButton :disabled="!canSearch" color="neutral" icon="i-lucide-chevron-up" size="xs" variant="ghost"
+                   @click="goPrevious"/>
+        </UTooltip>
+        <UTooltip text="下一个">
+          <UButton :disabled="!canSearch" color="neutral" icon="i-lucide-chevron-down" size="xs" variant="ghost"
+                   @click="goNext"/>
+        </UTooltip>
+        <UButton
+            v-if="!replaceMode"
+            color="neutral"
+            icon="i-lucide-repeat-2"
+            label="替换"
+            size="xs"
+            variant="ghost"
+            @click="$emit('update:replaceMode', true)"
+        />
+        <template v-else>
+          <UButton :disabled="!activeMatch" color="neutral" label="替换" size="xs" variant="ghost"
+                   @click="replaceCurrent"/>
+          <UButton :disabled="!canSearch" color="neutral" label="全部" size="xs" variant="ghost" @click="replaceAll"/>
+        </template>
+        <UButton aria-label="关闭查找" color="neutral" icon="i-lucide-x" size="xs" variant="ghost" @click="close"/>
+      </div>
+    </UCard>
+  </Transition>
 </template>
 
 <script lang="ts" setup>
-import type {Editor} from '@tiptap/vue-3'
+import type {Editor} from '@tiptap/core'
 import {TextSelection} from '@tiptap/pm/state'
 import type {EditorFindMatch} from '~/types/editor'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   editor: Editor | null
-}>()
+  open: boolean
+  replaceMode?: boolean
+}>(), {
+  replaceMode: false
+})
 
 const emit = defineEmits<{
   replaced: []
+  'update:open': [value: boolean]
+  'update:replaceMode': [value: boolean]
 }>()
 
 const query = ref('')
 const replacement = ref('')
 const matches = ref<EditorFindMatch[]>([])
 const activeIndex = ref(-1)
+const queryInputRef = ref<{ inputRef?: HTMLInputElement } | null>(null)
 
 const canSearch = computed(() => Boolean(props.editor && query.value.trim().length > 0 && matches.value.length > 0))
 const activeMatch = computed(() => activeIndex.value >= 0 ? matches.value[activeIndex.value] : null)
@@ -55,6 +97,20 @@ const matchSummary = computed(() => {
 watch([query, () => props.editor], () => {
   refreshMatches()
 }, {immediate: true})
+
+watch(() => props.open, async value => {
+  if (!value) return
+  await nextTick()
+  const input = queryInputRef.value?.inputRef
+  input?.focus()
+  input?.select()
+})
+
+function close() {
+  emit('update:open', false)
+  emit('update:replaceMode', false)
+  props.editor?.commands.focus()
+}
 
 function refreshMatches() {
   const editor = props.editor
@@ -105,7 +161,7 @@ function replaceAll() {
 function revealActiveMatch() {
   const editor = props.editor
   const match = activeMatch.value
-  if (!editor || !match) return
+  if (!editor || !match || !props.open) return
 
   const selection = TextSelection.create(editor.state.doc, match.from, match.to)
   editor.view.dispatch(editor.state.tr.setSelection(selection).scrollIntoView())

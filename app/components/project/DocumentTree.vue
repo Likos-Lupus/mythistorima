@@ -1,92 +1,114 @@
 <template>
-  <div class="document-tree">
-    <div class="document-tree-header">
+  <section class="document-tree">
+    <header class="document-tree-header">
       <div>
-        <h2 class="document-tree-title">文档树</h2>
-        <p class="document-tree-subtitle">卷 / 章 / 场景</p>
+        <h2 class="document-tree-title">项目树</h2>
+        <p class="document-tree-subtitle">单击预览，双击固定标签</p>
       </div>
-    </div>
+      <UDropdownMenu :items="createMenuItems">
+        <UButton color="neutral" icon="i-lucide-plus" label="新建" size="sm" variant="soft"/>
+      </UDropdownMenu>
+    </header>
 
-    <div class="document-tree-create-row">
-      <button class="primary-button document-create-button" type="button" @click="createRoot('volume')">
-        新建卷
-      </button>
-      <button class="secondary-button document-create-button" type="button" @click="createRoot('chapter')">
-        新建章
-      </button>
-    </div>
-
-    <div class="document-tree-list">
-      <article
-          v-for="item in flatItems"
-          :key="item.id"
-          :class="{ 'is-active': item.id === activeDocumentId }"
-          :style="{ '--tree-depth': item.depth }"
-          class="document-tree-row"
+    <UContextMenu :items="contextMenuItems">
+      <UTree
+          :get-key="getTreeItemKey"
+          :items="treeItems"
+          :model-value="selectedTreeItem"
+          class="document-tree-utree"
+          @update:model-value="onTreeSelect"
       >
-        <button class="document-tree-main" type="button" @click="$emit('select', item.id)">
-          <span class="document-tree-type">{{ typeLabel(item.type) }}</span>
-          <span class="document-tree-name">{{ item.title }}</span>
-          <span class="document-tree-meta">
-            {{ statusLabel(item.status) }} · {{ item.characterCount }} 字
-          </span>
-        </button>
+        <template #item="{ item }">
+          <div
+              :class="{'is-active': item.value === activeDocumentId}"
+              class="document-tree-node"
+              @click="onNodeSelect(item.value)"
+              @contextmenu="contextNodeId = item.value"
+              @dblclick="onNodePinned(item.value)"
+          >
+            <span :class="`is-${item.raw.status}`" class="document-tree-status-dot"/>
+            <UIcon :name="item.icon" class="document-tree-node-icon"/>
+            <span class="document-tree-node-title">{{ item.label }}</span>
+            <span class="document-tree-node-count">{{ item.raw.characterCount }}</span>
+            <UDropdownMenu :items="nodeMenuItems(item.raw)">
+              <UButton
+                  aria-label="文档操作"
+                  color="neutral"
+                  icon="i-lucide-more-horizontal"
+                  size="xs"
+                  variant="ghost"
+                  @click.stop="contextNodeId = item.value"
+              />
+            </UDropdownMenu>
+          </div>
+        </template>
+      </UTree>
+    </UContextMenu>
 
-        <div class="document-tree-actions">
-          <button
-              v-if="canCreateChild(item)"
-              :title="`给《${item.title}》添加子级`"
-              class="tree-action-button"
-              type="button"
-              @click="createChild(item)"
-          >
-            +子级
-          </button>
-          <button class="tree-action-button" title="新建同级" type="button" @click="createSibling(item)">
-            +同级
-          </button>
-          <button class="tree-action-button" title="重命名" type="button" @click="renameItem(item)">
-            改名
-          </button>
-          <button
-              :disabled="!canMoveUp(item)"
-              class="tree-action-button"
-              title="上移"
-              type="button"
-              @click="moveItem(item, -1)"
-          >
-            ↑
-          </button>
-          <button
-              :disabled="!canMoveDown(item)"
-              class="tree-action-button"
-              title="下移"
-              type="button"
-              @click="moveItem(item, 1)"
-          >
-            ↓
-          </button>
-          <select
-              :title="`设置《${item.title}》状态`"
-              :value="item.status"
-              class="tree-status-select"
-              @change="onStatusChange(item, $event)"
-          >
-            <option value="draft">草稿</option>
-            <option value="writing">写作中</option>
-            <option value="done">完成</option>
-          </select>
-          <button class="tree-danger-button" title="删除" type="button" @click="deleteItem(item)">
-            删除
-          </button>
+    <UEmpty
+        v-if="!flatItems.length"
+        class="document-tree-empty"
+        description="新建卷或章节后即可开始写作。"
+        icon="i-lucide-file-plus-2"
+        title="暂无文档"
+    />
+
+    <UModal
+        v-model:open="renameOpen"
+        description="修改后会同步更新文档标签和项目树。"
+        title="重命名文档"
+    >
+      <template #body>
+        <UForm :state="renameState" class="document-tree-dialog-form" @submit="confirmRename">
+          <UFormField label="文档标题" name="title" required>
+            <UInput
+                v-model="renameState.title"
+                autofocus
+                class="w-full"
+                placeholder="输入新的文档标题"
+                size="sm"
+                @keydown.enter.prevent="confirmRename"
+            />
+          </UFormField>
+        </UForm>
+      </template>
+
+      <template #footer>
+        <div class="document-tree-dialog-actions">
+          <UButton color="neutral" label="取消" size="sm" variant="ghost" @click="renameOpen = false"/>
+          <UButton
+              :disabled="renameState.title.trim().length === 0"
+              color="primary"
+              label="保存"
+              size="sm"
+              @click="confirmRename"
+          />
         </div>
-      </article>
+      </template>
+    </UModal>
 
-      <div v-if="!flatItems.length" class="empty-panel">
-        暂无文档。请新建卷或章节开始写作。
-      </div>
-    </div>
-  </div>
+    <UModal
+        v-model:open="deleteOpen"
+        :description="deleteDescription"
+        title="删除文档"
+    >
+      <template #body>
+        <UAlert
+            color="warning"
+            icon="i-lucide-triangle-alert"
+            title="此操作会删除当前文档"
+            variant="subtle"
+        />
+      </template>
+
+      <template #footer>
+        <div class="document-tree-dialog-actions">
+          <UButton color="neutral" label="取消" size="sm" variant="ghost" @click="deleteOpen = false"/>
+          <UButton color="error" icon="i-lucide-trash-2" label="删除" size="sm" @click="confirmDelete"/>
+        </div>
+      </template>
+    </UModal>
+  </section>
 </template>
 
 <script lang="ts" setup>
@@ -98,6 +120,14 @@ import type {
   MoveDocumentInput
 } from '~/types/document'
 
+interface TreeItem {
+  label: string
+  value: string
+  icon: string
+  raw: DocumentTreeNode
+  children?: TreeItem[]
+}
+
 const props = defineProps<{
   items: DocumentTreeNode[]
   activeDocumentId?: string | null
@@ -105,12 +135,20 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   select: [documentId: string]
+  openPinned: [documentId: string]
   createDocument: [payload: DocumentCreatePayload]
   renameDocument: [documentId: string, title: string]
   deleteDocument: [documentId: string]
   moveDocument: [payload: MoveDocumentInput]
   updateStatus: [documentId: string, status: DocumentStatus]
 }>()
+
+const contextNodeId = ref<string | null>(null)
+const renameOpen = ref(false)
+const renameTarget = ref<DocumentTreeNode | null>(null)
+const renameState = reactive({title: ''})
+const deleteOpen = ref(false)
+const deleteTarget = ref<DocumentTreeNode | null>(null)
 
 const flatItems = computed(() => {
   const result: DocumentTreeNode[] = []
@@ -124,16 +162,61 @@ const flatItems = computed(() => {
   return result
 })
 
-function typeLabel(type: DocumentType) {
+const treeItems = computed<TreeItem[]>(() => props.items.map(toTreeItem))
+const selectedTreeItem = computed(() => findTreeItemById(treeItems.value, props.activeDocumentId ?? null))
+const contextNode = computed(() => flatItems.value.find(item => item.id === contextNodeId.value) ?? null)
+const deleteDescription = computed(() => {
+  const item = deleteTarget.value
+  if (!item) return '请选择要删除的文档。'
+  const childHint = item.children.length ? `它包含 ${item.children.length} 个直接子节点，删除后子节点也会一起删除。` : '删除后可从备份中恢复。'
+  return `确定删除《${item.title}》吗？${childHint}`
+})
+
+const createMenuItems = computed(() => [[
+  {label: '新建卷', icon: 'i-lucide-book-open', onSelect: () => createRoot('volume')},
+  {label: '新建章', icon: 'i-lucide-file-text', onSelect: () => createRoot('chapter')}
+]])
+
+const contextMenuItems = computed(() => {
+  const node = contextNode.value
+  if (!node) return createMenuItems.value
+  return nodeMenuItems(node)
+})
+
+function toTreeItem(node: DocumentTreeNode): TreeItem {
+  return {
+    label: node.title,
+    value: node.id,
+    icon: iconFor(node.type),
+    raw: node,
+    children: node.children.map(toTreeItem)
+  }
+}
+
+function getTreeItemKey(item: TreeItem) {
+  return item.value
+}
+
+function findTreeItemById(items: TreeItem[], id: string | null): TreeItem | undefined {
+  if (!id) return undefined
+  for (const item of items) {
+    if (item.value === id) return item
+    const child = findTreeItemById(item.children ?? [], id)
+    if (child) return child
+  }
+  return undefined
+}
+
+function iconFor(type: DocumentType) {
   switch (type) {
     case 'volume':
-      return '卷'
+      return 'i-lucide-book-open'
     case 'scene':
-      return '场景'
+      return 'i-lucide-clapperboard'
     case 'chapter':
-      return '章'
+      return 'i-lucide-file-text'
     default:
-      return '文档'
+      return 'i-lucide-file'
   }
 }
 
@@ -152,6 +235,57 @@ function statusLabel(status: DocumentStatus) {
     default:
       return String(status)
   }
+}
+
+function nodeMenuItems(item: DocumentTreeNode) {
+  return [
+    [
+      {label: '打开预览', icon: 'i-lucide-file-search', onSelect: () => emit('select', item.id)},
+      {label: '在新标签固定', icon: 'i-lucide-pin', onSelect: () => emit('openPinned', item.id)}
+    ],
+    [
+      ...(canCreateChild(item) ? [{
+        label: '新建子级',
+        icon: 'i-lucide-file-plus-2',
+        onSelect: () => createChild(item)
+      }] : []),
+      {label: '新建同级', icon: 'i-lucide-copy-plus', onSelect: () => createSibling(item)},
+      {label: '重命名', icon: 'i-lucide-pencil', onSelect: () => renameItem(item)}
+    ],
+    [
+      {label: `状态：${statusLabel(item.status)}`, icon: 'i-lucide-circle-dot'},
+      {label: '草稿', icon: 'i-lucide-circle', onSelect: () => emit('updateStatus', item.id, 'draft')},
+      {label: '写作中', icon: 'i-lucide-circle-dot', onSelect: () => emit('updateStatus', item.id, 'writing')},
+      {label: '完成', icon: 'i-lucide-check-circle-2', onSelect: () => emit('updateStatus', item.id, 'done')}
+    ],
+    [
+      {label: '上移', icon: 'i-lucide-arrow-up', disabled: !canMoveUp(item), onSelect: () => moveItem(item, -1)},
+      {label: '下移', icon: 'i-lucide-arrow-down', disabled: !canMoveDown(item), onSelect: () => moveItem(item, 1)}
+    ],
+    [
+      {label: '删除', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => deleteItem(item)}
+    ]
+  ]
+}
+
+function onTreeSelect(value: unknown) {
+  const selected = Array.isArray(value) ? value[0] : value
+  if (selected && typeof selected === 'object' && 'value' in selected) {
+    const documentId = (selected as { value?: unknown }).value
+    if (typeof documentId === 'string') onNodeSelect(documentId)
+    return
+  }
+  if (typeof selected === 'string') onNodeSelect(selected)
+}
+
+function onNodeSelect(documentId: string) {
+  contextNodeId.value = documentId
+  emit('select', documentId)
+}
+
+function onNodePinned(documentId: string) {
+  contextNodeId.value = documentId
+  emit('openPinned', documentId)
 }
 
 function defaultTitle(type: DocumentType, parentId?: string | null) {
@@ -211,21 +345,34 @@ function createSibling(item: DocumentTreeNode) {
 }
 
 function renameItem(item: DocumentTreeNode) {
-  const title = window.prompt('请输入新的文档标题', item.title)
-  if (!title || title.trim() === item.title) return
-  emit('renameDocument', item.id, title.trim())
+  renameTarget.value = item
+  renameState.title = item.title
+  renameOpen.value = true
+}
+
+function confirmRename() {
+  const item = renameTarget.value
+  const title = renameState.title.trim()
+  if (!item || !title || title === item.title) {
+    renameOpen.value = false
+    return
+  }
+  emit('renameDocument', item.id, title)
+  renameOpen.value = false
+  renameTarget.value = null
 }
 
 function deleteItem(item: DocumentTreeNode) {
-  const childHint = item.children.length ? `\n\n它包含 ${item.children.length} 个直接子节点，删除后子节点也会一起删除。` : ''
-  if (!window.confirm(`确定删除《${item.title}》吗？${childHint}`)) return
-  emit('deleteDocument', item.id)
+  deleteTarget.value = item
+  deleteOpen.value = true
 }
 
-function onStatusChange(item: DocumentTreeNode, event: Event) {
-  const target = event.target as HTMLSelectElement | null
-  if (!target) return
-  emit('updateStatus', item.id, target.value as DocumentStatus)
+function confirmDelete() {
+  const item = deleteTarget.value
+  if (!item) return
+  emit('deleteDocument', item.id)
+  deleteOpen.value = false
+  deleteTarget.value = null
 }
 
 function siblingsFor(item: DocumentTreeNode) {

@@ -31,6 +31,7 @@ export function useProjectWorkspaceController() {
     const relationStore = useRelationStore()
     const foreshadowStore = useForeshadowStore()
     const exportTemplateStore = useExportTemplateStore()
+    const workspaceLayoutStore = useWorkspaceLayoutStore()
     const {call} = useTauriInvoke()
     const {locale} = useI18n()
 
@@ -382,7 +383,8 @@ export function useProjectWorkspaceController() {
             enabledOnly: true,
             ruleIds: null
         })
-        workspaceMode.value = 'proofreading'
+        workspaceMode.value = 'writing'
+        workspaceLayoutStore.open('proofreading')
         showCommandFeedback(`校对完成，共发现 ${issues.length} 个问题。`)
     }
 
@@ -574,7 +576,8 @@ export function useProjectWorkspaceController() {
                         throw new Error('目标事项不存在或已被删除')
                     }
                     noteStore.selectNote(target.targetId)
-                    workspaceMode.value = 'notes'
+                    workspaceMode.value = 'writing'
+                    workspaceLayoutStore.open('notes')
                     break
 
                 case 'outline':
@@ -600,13 +603,15 @@ export function useProjectWorkspaceController() {
                     foreshadowStore.setFilters('all', 'all', false)
                     await foreshadowStore.loadThreads(projectId.value)
                     foreshadowStore.selectThread(target.targetId)
-                    workspaceMode.value = 'foreshadow'
+                    workspaceMode.value = 'writing'
+                    workspaceLayoutStore.open('foreshadow')
                     break
 
                 case 'proofreadingRule':
                     await proofreadingStore.loadRules({projectId: projectId.value, includeBuiltin: true})
                     proofreadingStore.selectRule(target.targetId)
-                    workspaceMode.value = 'proofreading'
+                    workspaceMode.value = 'writing'
+                    workspaceLayoutStore.open('proofreading')
                     break
 
                 case 'proofreadingIssue':

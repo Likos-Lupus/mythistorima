@@ -14,36 +14,7 @@
         @update-project="controller.updateProjectInfo"
     />
 
-    <template v-else-if="controller.workspaceMode.value === 'writing'">
-      <EditorFocusOverlay
-          v-if="controller.focusMode.value"
-          @exit="controller.toggleFocusMode"
-      />
-
-      <NovelEditor
-          v-if="controller.documentStore.activeDocumentId"
-          :key="controller.documentStore.activeDocumentId"
-          :document-id="controller.documentStore.activeDocumentId"
-          :focus-mode="controller.focusMode.value"
-          :project-id="controller.projectId.value"
-          :settings="controller.settingsStore.editorSettings"
-          :show-status-bar="false"
-          :target-character-count="controller.activeDocumentTarget.value"
-          @saved="controller.handleSaved"
-          @session="controller.handleEditorSession"
-          @status="controller.handleEditorStatus"
-          @paragraph-note="controller.handleParagraphNote"
-          @toggle-focus-mode="controller.toggleFocusMode"
-      />
-
-      <UEmpty
-          v-else
-          class="project-workspace-empty"
-          description="从项目管理器选择文档，或创建新的卷和章节。"
-          icon="i-lucide-file-plus-2"
-          title="请选择写作文档"
-      />
-    </template>
+    <WritingWorkspace v-else-if="controller.workspaceMode.value === 'writing'"/>
 
     <OutlineWorkspace
         v-else-if="controller.workspaceMode.value === 'outline'"
@@ -126,8 +97,6 @@
 
 <script lang="ts" setup>
 import ProjectDashboard from '~/components/project/ProjectDashboard.vue'
-import NovelEditor from '~/components/editor/NovelEditor.vue'
-import EditorFocusOverlay from '~/components/editor/EditorFocusOverlay.vue'
 import CardWorkspace from '~/components/cards/CardWorkspace.vue'
 import NoteWorkspace from '~/components/notes/NoteWorkspace.vue'
 import SearchWorkspace from '~/components/search/SearchWorkspace.vue'
@@ -138,6 +107,7 @@ import TimelineWorkspace from '~/components/timeline/TimelineWorkspace.vue'
 import RelationWorkspace from '~/components/relations/RelationWorkspace.vue'
 import ForeshadowWorkspace from '~/components/foreshadow/ForeshadowWorkspace.vue'
 import ProofreadingWorkspace from '~/components/proofreading/ProofreadingWorkspace.vue'
+import WritingWorkspace from '~/components/writing/WritingWorkspace.vue'
 
 const controller = useProjectWorkspaceContext()
 </script>

@@ -173,5 +173,9 @@ export function getWorkspaceDefinition(mode: ProjectWorkspaceMode) {
 }
 
 export function getSecondaryWorkspaces(primaryView: ProjectPrimaryView) {
-    return projectWorkspaceDefinitions.filter(item => item.primaryView === primaryView)
+    const workspaces = projectWorkspaceDefinitions.filter(item => item.primaryView === primaryView)
+    if (primaryView === 'writing') {
+        return workspaces.filter(item => item.mode === 'writing')
+    }
+    return workspaces
 }
