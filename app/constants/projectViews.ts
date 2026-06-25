@@ -46,7 +46,7 @@ export const projectPrimaryViews: ProjectPrimaryViewDefinition[] = [
     {
         id: 'outline',
         label: '大纲',
-        description: '看板、结构树与故事时间线',
+        description: '看板、图谱与故事时间线',
         icon: 'i-lucide-git-branch',
         defaultMode: 'board'
     },
@@ -91,9 +91,9 @@ export const projectWorkspaceDefinitions: ProjectWorkspaceDefinition[] = [
     {
         mode: 'outline',
         primaryView: 'outline',
-        label: '结构',
-        description: '管理剧情节点并绑定卷、章和场景。',
-        icon: 'i-lucide-list-tree'
+        label: '图谱',
+        description: '以图谱模式查看剧情节点、父子结构与章节绑定。',
+        icon: 'i-lucide-git-fork'
     },
     {
         mode: 'timeline',

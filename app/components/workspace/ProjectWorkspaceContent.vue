@@ -16,35 +16,20 @@
 
     <WritingWorkspace v-else-if="controller.workspaceMode.value === 'writing'"/>
 
-    <OutlineWorkspace
-        v-else-if="controller.workspaceMode.value === 'outline'"
+    <OutlinePlanningWorkspace
+        v-else-if="['board', 'outline', 'timeline'].includes(controller.workspaceMode.value)"
         :documents="controller.documentStore.documents"
+        :mode="controller.workspaceMode.value"
         :project-id="controller.projectId.value"
+        @select-mode="controller.selectWorkspaceMode"
         @open-document="targetId => controller.openTarget({type: 'document', targetId, source: 'outline'})"
     />
 
-    <OutlineBoardWorkspace
-        v-else-if="controller.workspaceMode.value === 'board'"
-        :documents="controller.documentStore.documents"
+    <ResourcesWorkspace
+        v-else-if="['cards', 'relations'].includes(controller.workspaceMode.value)"
+        :mode="controller.workspaceMode.value"
         :project-id="controller.projectId.value"
-        @open-document="targetId => controller.openTarget({type: 'document', targetId, source: 'outline'})"
-    />
-
-    <TimelineWorkspace
-        v-else-if="controller.workspaceMode.value === 'timeline'"
-        :documents="controller.documentStore.documents"
-        :project-id="controller.projectId.value"
-        @open-target="controller.openTarget"
-    />
-
-    <CardWorkspace
-        v-else-if="controller.workspaceMode.value === 'cards'"
-        :project-id="controller.projectId.value"
-    />
-
-    <RelationWorkspace
-        v-else-if="controller.workspaceMode.value === 'relations'"
-        :project-id="controller.projectId.value"
+        @select-mode="controller.selectWorkspaceMode"
         @open-target="controller.openTarget"
     />
 
@@ -97,17 +82,14 @@
 
 <script lang="ts" setup>
 import ProjectDashboard from '~/components/project/ProjectDashboard.vue'
-import CardWorkspace from '~/components/cards/CardWorkspace.vue'
 import NoteWorkspace from '~/components/notes/NoteWorkspace.vue'
 import SearchWorkspace from '~/components/search/SearchWorkspace.vue'
 import ExportWorkspace from '~/components/export/ExportWorkspace.vue'
-import OutlineWorkspace from '~/components/outline/OutlineWorkspace.vue'
-import OutlineBoardWorkspace from '~/components/outline/OutlineBoardWorkspace.vue'
-import TimelineWorkspace from '~/components/timeline/TimelineWorkspace.vue'
-import RelationWorkspace from '~/components/relations/RelationWorkspace.vue'
 import ForeshadowWorkspace from '~/components/foreshadow/ForeshadowWorkspace.vue'
 import ProofreadingWorkspace from '~/components/proofreading/ProofreadingWorkspace.vue'
 import WritingWorkspace from '~/components/writing/WritingWorkspace.vue'
+import OutlinePlanningWorkspace from '~/components/outline/OutlinePlanningWorkspace.vue'
+import ResourcesWorkspace from '~/components/resources/ResourcesWorkspace.vue'
 
 const controller = useProjectWorkspaceContext()
 </script>

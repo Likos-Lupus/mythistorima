@@ -1,15 +1,9 @@
 <template>
   <div
-      :class="{
-        'is-focus-mode': controller.focusMode.value,
-        'has-sidebar': showSidebar,
-        'has-inspector': showInspector
-      }"
+      :class="{ 'is-focus-mode': controller.focusMode.value }"
       class="project-workspace-root"
   >
-    <ProjectWorkspaceSidebar v-if="showSidebar"/>
     <ProjectWorkspaceContent/>
-    <ProjectWorkspaceInspector v-if="showInspector"/>
 
     <UAlert
         v-if="controller.pageError.value"
@@ -26,16 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import ProjectWorkspaceSidebar from '~/components/workspace/ProjectWorkspaceSidebar.vue'
 import ProjectWorkspaceContent from '~/components/workspace/ProjectWorkspaceContent.vue'
-import ProjectWorkspaceInspector from '~/components/workspace/ProjectWorkspaceInspector.vue'
 
 const controller = provideProjectWorkspace(useProjectWorkspaceController())
-
-const showSidebar = computed(() => false)
-const showInspector = computed(() =>
-    !controller.focusMode.value
-    && controller.workspaceMode.value !== 'dashboard'
-    && controller.workspaceMode.value !== 'writing'
-)
 </script>

@@ -8,17 +8,16 @@
       </div>
     </div>
 
-    <UButtonGroup v-if="workspaces.length > 1" size="sm">
-      <UButton
-          v-for="item in workspaces"
-          :key="item.mode"
-          :color="activeMode === item.mode ? 'primary' : 'neutral'"
-          :icon="item.icon"
-          :label="item.label"
-          :variant="activeMode === item.mode ? 'soft' : 'ghost'"
-          @click="$emit('select', item.mode)"
-      />
-    </UButtonGroup>
+    <UTabs
+        v-if="workspaces.length > 1"
+        :content="false"
+        :items="workspaceTabs"
+        :model-value="activeMode"
+        color="neutral"
+        size="sm"
+        variant="link"
+        @update:model-value="selectWorkspace"
+    />
 
     <div class="project-context-actions">
       <UTooltip v-if="primary.id === 'writing'" text="切换专注模式">
@@ -52,7 +51,7 @@ import type {
   ProjectWorkspaceMode
 } from '~/constants/projectViews'
 
-defineProps<{
+const props = defineProps<{
   primary: ProjectPrimaryViewDefinition
   workspace: ProjectWorkspaceDefinition
   workspaces: ProjectWorkspaceDefinition[]
@@ -60,9 +59,19 @@ defineProps<{
   focusMode: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   select: [mode: ProjectWorkspaceMode]
   'toggle-focus': []
   command: []
 }>()
+
+const workspaceTabs = computed(() => props.workspaces.map(item => ({
+  label: item.label,
+  value: item.mode,
+  icon: item.icon
+})))
+
+function selectWorkspace(value: string | number) {
+  emit('select', value as ProjectWorkspaceMode)
+}
 </script>

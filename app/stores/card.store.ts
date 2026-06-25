@@ -18,7 +18,7 @@ function sortCards(cards: SettingCard[]) {
     })
 }
 
-function emptyCounts(): Record<CardType, number> {
+function emptyCounts(): Record<string, number> {
     return {
         all: 0,
         character: 0,
@@ -104,7 +104,7 @@ export const useCardStore = defineStore('card', () => {
         }
     }
 
-    function setTypeFilter(type: CardType) {
+    function setTypeFilter(type: CardType | string) {
         typeFilter.value = type
         if (type !== 'all') {
             const first = filteredCards.value[0]
