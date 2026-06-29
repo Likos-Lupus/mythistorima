@@ -15,6 +15,8 @@
       <UBreadcrumb :items="breadcrumbItems" class="min-w-0"/>
     </div>
 
+    <ProjectViewSwitcher class="project-titlebar-view-switcher"/>
+
     <div class="project-titlebar-actions">
       <UBadge :color="saveBadge.color" size="sm" variant="subtle">
         {{ saveBadge.label }}
@@ -50,6 +52,7 @@
 </template>
 
 <script lang="ts" setup>
+import ProjectViewSwitcher from '~/components/shell/ProjectViewSwitcher.vue'
 import type {SaveState} from '~/composables/useAutoSave'
 
 const props = withDefaults(defineProps<{

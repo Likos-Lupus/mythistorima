@@ -14,7 +14,8 @@ export default defineNuxtConfig({
         '~/assets/css/ui-foundation.css',
         '~/assets/css/project-shell.css',
         '~/assets/css/project-overview.css',
-        '~/assets/css/sprint4.css'
+        '~/assets/css/sprint4.css',
+        '~/assets/css/export.css'
     ],
 
     devServer: {

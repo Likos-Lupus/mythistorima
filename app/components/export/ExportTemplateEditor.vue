@@ -1,140 +1,136 @@
 <template>
-  <article class="export-template-editor glass-panel">
-    <header class="export-template-panel-header">
+  <section aria-label="模板设置" class="publication-panel">
+    <header class="publication-panel-header">
       <div>
-        <p class="eyebrow">{{
-            draft.isBuiltin ? 'Built-in template' : creating ? 'New template' : 'Project template'
-          }}</p>
-        <h3>{{ draft.isBuiltin ? '内置模板' : creating ? '创建项目模板' : '编辑项目模板' }}</h3>
-        <p v-if="draft.isBuiltin">内置模板只读，可复制后调整。</p>
+        <p class="publication-kicker">Format</p>
+        <h2>{{ draft.isBuiltin ? '内置模板' : creating ? '创建模板' : '模板设置' }}</h2>
+        <p>{{ draft.isBuiltin ? '内置模板只读，可复制后调整。' : '设置模板名称和目标发布格式。' }}</p>
       </div>
-      <span class="export-template-format-pill">{{ formatLabel }}</span>
+      <UBadge color="neutral" size="sm" variant="soft">{{ formatLabel }}</UBadge>
     </header>
 
-    <div class="export-template-form">
-      <label>
-        模板名称
-        <input v-model="draft.name" :disabled="draft.isBuiltin" class="text-field" maxlength="120">
-      </label>
-      <label>
-        格式
-        <select v-model="draft.format" :disabled="draft.isBuiltin" class="text-field" @change="onFormatChange">
-          <option value="txt">TXT</option>
-          <option value="markdown">Markdown</option>
-          <option value="html">HTML</option>
-          <option value="docx">DOCX</option>
-          <option value="epub">EPUB</option>
-          <option value="pixiv">Pixiv</option>
-        </select>
-      </label>
-    </div>
+    <UForm :state="draft" class="publication-form" @submit="save">
+      <UFormField label="模板名称" name="name" required>
+        <UInput
+            v-model="draft.name"
+            :disabled="draft.isBuiltin"
+            class="w-full"
+            maxlength="120"
+            size="sm"
+        />
+      </UFormField>
 
-    <ExportStyleEditor
-        v-model="draft.config"
-        :class="{ 'is-readonly': draft.isBuiltin }"
-        :format="draft.format"
-    />
+      <UFormField label="格式" name="format">
+        <USelect
+            v-model="draft.format"
+            :disabled="draft.isBuiltin"
+            :items="formatItems"
+            class="w-full"
+            label-key="label"
+            size="sm"
+            value-key="value"
+        />
+      </UFormField>
 
-    <footer class="export-template-editor-actions">
-      <button
-          v-if="draft.isBuiltin"
-          :disabled="saving"
-          class="primary-button"
-          type="button"
-          @click="$emit('duplicate', draft)"
-      >
-        复制为项目模板
-      </button>
-      <template v-else>
-        <button :disabled="saving || !draft.name.trim()" class="primary-button" type="button" @click="save">
-          {{ saving ? '保存中…' : creating ? '创建模板' : '保存模板' }}
-        </button>
-        <button v-if="!creating" class="danger-button" type="button" @click="remove">
-          删除
-        </button>
+      <footer class="publication-actions">
+        <UButton
+            v-if="draft.isBuiltin"
+            :loading="saving"
+            icon="i-lucide-copy-plus"
+            label="复制为项目模板"
+            size="sm"
+            @click="$emit('duplicate', cloneDraft(draft))"
+        />
+        <template v-else>
+          <UButton
+              :disabled="!draft.name.trim()"
+              :label="creating ? '创建模板' : '保存模板'"
+              :loading="saving"
+              icon="i-lucide-save"
+              size="sm"
+              type="submit"
+          />
+          <UButton
+              v-if="!creating"
+              color="error"
+              icon="i-lucide-trash-2"
+              label="删除"
+              size="sm"
+              variant="ghost"
+              @click="confirmDeleteOpen = true"
+          />
+        </template>
+      </footer>
+    </UForm>
+
+    <UModal
+        v-model:open="confirmDeleteOpen"
+        description="删除后无法从模板列表恢复。内置模板不会被删除。"
+        title="删除导出模板？"
+    >
+      <template #footer>
+        <div class="publication-modal-actions">
+          <UButton color="neutral" label="取消" size="sm" variant="ghost" @click="confirmDeleteOpen = false"/>
+          <UButton color="error" icon="i-lucide-trash-2" label="删除" size="sm" @click="remove"/>
+        </div>
       </template>
-    </footer>
-  </article>
+    </UModal>
+  </section>
 </template>
 
 <script lang="ts" setup>
-import ExportStyleEditor from '~/components/export/ExportStyleEditor.vue'
-import type {ExportTemplate, ExportTemplateDraft, ExportTemplateFormat} from '~/types/exportTemplate'
-import {defaultExportTemplateConfig, exportTemplateFormatLabel, parseExportTemplateConfig} from '~/utils/exportTemplate'
+import type {ExportTemplateDraft, ExportTemplateFormat} from '~/types/exportTemplate'
+import {defaultExportTemplateConfig, exportTemplateFormatLabel} from '~/utils/exportTemplate'
 
 const props = defineProps<{
-  template: ExportTemplate | null
   creating?: boolean
   saving?: boolean
 }>()
+
+const draft = defineModel<ExportTemplateDraft>({required: true})
 
 const emit = defineEmits<{
   save: [draft: ExportTemplateDraft]
   delete: [templateId: string]
   duplicate: [draft: ExportTemplateDraft]
-  draftChange: [draft: ExportTemplateDraft]
 }>()
 
-const draft = reactive<ExportTemplateDraft>(emptyDraft())
-
-const formatLabel = computed(() => exportTemplateFormatLabel(draft.format))
+const confirmDeleteOpen = ref(false)
+const formatItems: { label: string, value: ExportTemplateFormat }[] = [
+  {label: 'TXT', value: 'txt'},
+  {label: 'Markdown', value: 'markdown'},
+  {label: 'HTML', value: 'html'},
+  {label: 'DOCX', value: 'docx'},
+  {label: 'EPUB', value: 'epub'},
+  {label: 'Pixiv', value: 'pixiv'}
+]
+const formatLabel = computed(() => exportTemplateFormatLabel(draft.value.format))
 
 watch(
-    () => [props.template?.id, props.creating] as const,
-    () => resetDraft(),
-    {immediate: true}
+    () => draft.value.format,
+    (format, previous) => {
+      if (!previous || draft.value.isBuiltin) return
+      const defaults = defaultExportTemplateConfig(format)
+      draft.value.config = {
+        ...draft.value.config,
+        documentPageBreak: defaults.documentPageBreak,
+        epubIncludeToc: defaults.epubIncludeToc,
+        epubIncludeAssets: defaults.epubIncludeAssets,
+        pixivPageBreak: defaults.pixivPageBreak,
+        lineHeight: defaults.lineHeight,
+        chapterTitleFormat: defaults.chapterTitleFormat
+      }
+    }
 )
-
-watch(
-    draft,
-    () => emit('draftChange', cloneDraft(draft)),
-    {deep: true, immediate: true}
-)
-
-function emptyDraft(): ExportTemplateDraft {
-  return {
-    templateId: null,
-    name: '新的导出模板',
-    format: 'txt',
-    config: defaultExportTemplateConfig('txt'),
-    isBuiltin: false
-  }
-}
-
-function resetDraft() {
-  if (!props.template || props.creating) {
-    Object.assign(draft, emptyDraft())
-    return
-  }
-  Object.assign(draft, {
-    templateId: props.template.id,
-    name: props.template.name,
-    format: props.template.format,
-    config: parseExportTemplateConfig(props.template.configJson, props.template.format),
-    isBuiltin: props.template.isBuiltin !== 0
-  })
-}
-
-function onFormatChange() {
-  const format = draft.format as ExportTemplateFormat
-  const defaults = defaultExportTemplateConfig(format)
-  draft.config = {
-    ...draft.config,
-    documentPageBreak: defaults.documentPageBreak,
-    epubIncludeToc: defaults.epubIncludeToc,
-    epubIncludeAssets: defaults.epubIncludeAssets,
-    pixivPageBreak: defaults.pixivPageBreak
-  }
-}
 
 function save() {
-  emit('save', cloneDraft(draft))
+  emit('save', cloneDraft(draft.value))
 }
 
 function remove() {
-  if (!draft.templateId) return
-  if (!window.confirm(`确定删除导出模板“${draft.name}”吗？`)) return
-  emit('delete', draft.templateId)
+  if (!draft.value.templateId) return
+  confirmDeleteOpen.value = false
+  emit('delete', draft.value.templateId)
 }
 
 function cloneDraft(value: ExportTemplateDraft): ExportTemplateDraft {
@@ -142,7 +138,7 @@ function cloneDraft(value: ExportTemplateDraft): ExportTemplateDraft {
     templateId: value.templateId ?? null,
     name: value.name,
     format: value.format,
-    config: {...value.config},
+    config: {...value.config, pixivTags: [...value.config.pixivTags]},
     isBuiltin: value.isBuiltin
   }
 }

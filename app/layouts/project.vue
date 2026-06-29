@@ -12,23 +12,7 @@
     />
 
     <div class="project-layout-body">
-      <ProjectActivityBar
-          :active-view="shellStore.activePrimaryView"
-          @select="shellStore.selectPrimaryView"
-      />
-
       <section class="project-layout-stage">
-        <ProjectContextToolbar
-            :active-mode="shellStore.workspaceMode"
-            :focus-mode="shellStore.focusMode"
-            :primary="shellStore.activePrimaryDefinition"
-            :workspace="shellStore.activeWorkspaceDefinition"
-            :workspaces="shellStore.secondaryWorkspaces"
-            @command="commandStore.openPalette"
-            @select="shellStore.selectWorkspaceMode"
-            @toggle-focus="shellStore.toggleFocusMode"
-        />
-
         <main class="project-layout-content">
           <slot/>
         </main>
@@ -63,8 +47,6 @@
 
 <script lang="ts" setup>
 import ProjectTitlebar from '~/components/shell/ProjectTitlebar.vue'
-import ProjectActivityBar from '~/components/shell/ProjectActivityBar.vue'
-import ProjectContextToolbar from '~/components/shell/ProjectContextToolbar.vue'
 import ProjectStatusBar from '~/components/shell/ProjectStatusBar.vue'
 import CommandPalette from '~/components/command/CommandPalette.vue'
 import AppSettingsModal from '~/components/settings/AppSettingsModal.vue'

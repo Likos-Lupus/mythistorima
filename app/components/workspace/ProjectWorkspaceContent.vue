@@ -1,82 +1,92 @@
 <template>
   <section class="project-workspace-content">
-    <ProjectDashboard
-        v-if="controller.workspaceMode.value === 'dashboard' && controller.projectStore.currentProject"
-        :backups="controller.exportStore.backups"
-        :overview="controller.projectOverview.value"
-        :project="controller.projectStore.currentProject"
-        :saving="controller.projectSaving.value"
-        :stats="controller.projectStats.value"
-        @backup="controller.createManualBackup"
-        @delete-project="controller.deleteCurrentProject"
-        @open-mode="controller.selectWorkspaceMode"
-        @open-target="controller.openTarget"
-        @update-project="controller.updateProjectInfo"
-    />
+    <Transition :name="workspaceTransitionName" appear>
+      <ProjectDashboard
+          v-if="controller.workspaceMode.value === 'dashboard' && controller.projectStore.currentProject"
+          key="dashboard"
+          :backups="controller.exportStore.backups"
+          :overview="controller.projectOverview.value"
+          :project="controller.projectStore.currentProject"
+          :saving="controller.projectSaving.value"
+          :stats="controller.projectStats.value"
+          @backup="controller.createManualBackup"
+          @delete-project="controller.deleteCurrentProject"
+          @open-mode="controller.selectWorkspaceMode"
+          @open-target="controller.openTarget"
+          @update-project="controller.updateProjectInfo"
+      />
 
-    <WritingWorkspace v-else-if="controller.workspaceMode.value === 'writing'"/>
+      <WritingWorkspace v-else-if="controller.workspaceMode.value === 'writing'" key="writing"/>
 
-    <OutlinePlanningWorkspace
-        v-else-if="['board', 'outline', 'timeline'].includes(controller.workspaceMode.value)"
-        :documents="controller.documentStore.documents"
-        :mode="controller.workspaceMode.value"
-        :project-id="controller.projectId.value"
-        @select-mode="controller.selectWorkspaceMode"
-        @open-document="targetId => controller.openTarget({type: 'document', targetId, source: 'outline'})"
-    />
+      <OutlinePlanningWorkspace
+          v-else-if="['board', 'outline', 'timeline'].includes(controller.workspaceMode.value)"
+          :key="controller.workspaceMode.value"
+          :documents="controller.documentStore.documents"
+          :mode="controller.workspaceMode.value"
+          :project-id="controller.projectId.value"
+          @select-mode="controller.selectWorkspaceMode"
+          @open-document="targetId => controller.openTarget({type: 'document', targetId, source: 'outline'})"
+      />
 
-    <ResourcesWorkspace
-        v-else-if="['cards', 'relations'].includes(controller.workspaceMode.value)"
-        :mode="controller.workspaceMode.value"
-        :project-id="controller.projectId.value"
-        @select-mode="controller.selectWorkspaceMode"
-        @open-target="controller.openTarget"
-    />
+      <ResourcesWorkspace
+          v-else-if="['cards', 'relations'].includes(controller.workspaceMode.value)"
+          :key="controller.workspaceMode.value"
+          :mode="controller.workspaceMode.value"
+          :project-id="controller.projectId.value"
+          @select-mode="controller.selectWorkspaceMode"
+          @open-target="controller.openTarget"
+      />
 
+      <NoteWorkspace
+          v-else-if="controller.workspaceMode.value === 'notes'"
+          key="notes"
+          :active-document-id="controller.documentStore.activeDocumentId"
+          :documents="controller.documentStore.documents"
+          :project-id="controller.projectId.value"
+      />
 
-    <NoteWorkspace
-        v-else-if="controller.workspaceMode.value === 'notes'"
-        :active-document-id="controller.documentStore.activeDocumentId"
-        :documents="controller.documentStore.documents"
-        :project-id="controller.projectId.value"
-    />
+      <ForeshadowWorkspace
+          v-else-if="controller.workspaceMode.value === 'foreshadow'"
+          key="foreshadow"
+          :documents="controller.documentStore.documents"
+          :project-id="controller.projectId.value"
+          @open-target="controller.openTarget"
+      />
 
-    <ForeshadowWorkspace
-        v-else-if="controller.workspaceMode.value === 'foreshadow'"
-        :documents="controller.documentStore.documents"
-        :project-id="controller.projectId.value"
-        @open-target="controller.openTarget"
-    />
+      <ProofreadingWorkspace
+          v-else-if="controller.workspaceMode.value === 'proofreading'"
+          key="proofreading"
+          :active-document-id="controller.documentStore.activeDocumentId"
+          :documents="controller.documentStore.documents"
+          :project-id="controller.projectId.value"
+          @open-target="controller.openTarget"
+      />
 
-    <ProofreadingWorkspace
-        v-else-if="controller.workspaceMode.value === 'proofreading'"
-        :active-document-id="controller.documentStore.activeDocumentId"
-        :documents="controller.documentStore.documents"
-        :project-id="controller.projectId.value"
-        @open-target="controller.openTarget"
-    />
+      <SearchWorkspace
+          v-else-if="controller.workspaceMode.value === 'search'"
+          key="search"
+          :project-id="controller.projectId.value"
+          @open-target="controller.openTarget"
+      />
 
-    <SearchWorkspace
-        v-else-if="controller.workspaceMode.value === 'search'"
-        :project-id="controller.projectId.value"
-        @open-target="controller.openTarget"
-    />
+      <ExportWorkspace
+          v-else-if="controller.workspaceMode.value === 'export'"
+          key="export"
+          :active-document-id="controller.documentStore.activeDocumentId"
+          :documents="controller.documentStore.documents"
+          :project-id="controller.projectId.value"
+          @imported="controller.handleImportedDocument"
+      />
 
-    <ExportWorkspace
-        v-else-if="controller.workspaceMode.value === 'export'"
-        :active-document-id="controller.documentStore.activeDocumentId"
-        :documents="controller.documentStore.documents"
-        :project-id="controller.projectId.value"
-        @imported="controller.handleImportedDocument"
-    />
-
-    <UEmpty
-        v-else
-        class="project-workspace-empty"
-        description="请从活动栏选择工作视图。"
-        icon="i-lucide-panels-top-left"
-        title="未选择工作区"
-    />
+      <UEmpty
+          v-else
+          key="empty"
+          class="project-workspace-empty"
+          description="请从标题栏选择工作视图。"
+          icon="i-lucide-panels-top-left"
+          title="未选择工作区"
+      />
+    </Transition>
   </section>
 </template>
 
@@ -92,4 +102,8 @@ import OutlinePlanningWorkspace from '~/components/outline/OutlinePlanningWorksp
 import ResourcesWorkspace from '~/components/resources/ResourcesWorkspace.vue'
 
 const controller = useProjectWorkspaceContext()
+
+const workspaceTransitionName = computed(() => controller.shellStore.workspaceTransitionDirection === 'backward'
+  ? 'project-workspace-swap-backward'
+  : 'project-workspace-swap-forward')
 </script>

@@ -1,54 +1,68 @@
 <template>
-  <section class="export-range-picker glass-panel">
-    <header class="export-template-panel-header">
+  <section aria-label="导出范围" class="publication-panel">
+    <header class="publication-panel-header">
       <div>
-        <h3>导出范围</h3>
+        <p class="publication-kicker">Range</p>
+        <h2>范围</h2>
         <p>当前文档会自动包含其子文档；自选范围只导出勾选项。</p>
       </div>
     </header>
 
-    <div class="export-range-options">
-      <label :class="{ 'is-active': modelValue === 'all' }">
-        <input :checked="modelValue === 'all'" name="export-range" type="radio" @change="selectRange('all')">
-        <span><strong>全项目</strong><small>{{ flatDocuments.length }} 个文档</small></span>
-      </label>
-      <label :class="{ 'is-active': modelValue === 'current' }">
-        <input
-            :checked="modelValue === 'current'"
-            :disabled="!activeDocumentId"
-            name="export-range"
-            type="radio"
-            @change="selectRange('current')"
-        >
-        <span><strong>当前文档及子文档</strong><small>{{ currentDocumentTitle }}</small></span>
-      </label>
-      <label :class="{ 'is-active': modelValue === 'selected' }">
-        <input :checked="modelValue === 'selected'" name="export-range" type="radio" @change="selectRange('selected')">
-        <span><strong>自选文档</strong><small>已选 {{ selectedDocumentIds.length }} 项</small></span>
-      </label>
+    <div aria-label="导出范围" class="publication-range-options" role="radiogroup">
+      <UButton
+          v-for="option in rangeOptions"
+          :key="option.value"
+          :aria-checked="modelValue === option.value"
+          :color="modelValue === option.value ? 'primary' : 'neutral'"
+          :disabled="option.value === 'current' && !activeDocumentId"
+          :variant="modelValue === option.value ? 'soft' : 'ghost'"
+          block
+          class="publication-range-button"
+          role="radio"
+          size="sm"
+          @click="selectRange(option.value)"
+      >
+        <span>
+          <strong>{{ option.label }}</strong>
+          <small>{{ option.description }}</small>
+        </span>
+      </UButton>
     </div>
 
-    <div v-if="modelValue === 'selected'" class="export-document-selection">
-      <div class="export-selection-actions">
-        <button class="text-button" type="button" @click="selectAll">全选</button>
-        <button class="text-button" type="button" @click="clearAll">清空</button>
+    <section v-if="modelValue === 'selected'" aria-label="自选文档" class="publication-selection-panel">
+      <div class="publication-selection-actions">
+        <UBadge color="neutral" size="sm" variant="soft">已选 {{ selectedDocumentIds.length }}</UBadge>
+        <div>
+          <UButton label="全选" size="xs" variant="ghost" @click="selectAll"/>
+          <UButton label="清空" size="xs" variant="ghost" @click="clearAll"/>
+        </div>
       </div>
-      <label
-          v-for="document in flatDocuments"
-          :key="document.id"
-          :style="{ '--export-depth': document.depth }"
-          class="export-document-check"
-      >
-        <input
-            :checked="selectedDocumentIds.includes(document.id)"
-            type="checkbox"
-            @change="toggleDocument(document.id)"
+
+      <UEmpty
+          v-if="!flatDocuments.length"
+          description="创建章节或卷后即可选择导出范围。"
+          icon="i-lucide-file-text"
+          title="没有可导出的文档"
+      />
+
+      <div v-else class="publication-document-checks">
+        <UCheckbox
+            v-for="document in flatDocuments"
+            :key="document.id"
+            :model-value="selectedDocumentIds.includes(document.id)"
+            :style="{'--publication-depth': document.depth}"
+            class="publication-document-check"
+            @update:model-value="toggleDocument(document.id)"
         >
-        <span class="export-document-type">{{ typeLabel(document.type) }}</span>
-        <span>{{ document.title }}</span>
-        <small>{{ document.characterCount }} 字</small>
-      </label>
-    </div>
+          <template #label>
+            <span class="publication-document-check-label">
+              <span>{{ document.title }}</span>
+              <small>{{ typeLabel(document.type) }} · {{ document.characterCount }} 字</small>
+            </span>
+          </template>
+        </UCheckbox>
+      </div>
+    </section>
   </section>
 </template>
 
@@ -76,6 +90,11 @@ const flatDocuments = computed(() => flattenDocuments(props.documents))
 const currentDocumentTitle = computed(
     () => props.documents.find(document => document.id === props.activeDocumentId)?.title ?? '当前未选择文档'
 )
+const rangeOptions = computed<{ label: string, description: string, value: ExportRange }[]>(() => [
+  {label: '全项目', description: `${flatDocuments.value.length} 个文档`, value: 'all'},
+  {label: '当前文档及子文档', description: currentDocumentTitle.value, value: 'current'},
+  {label: '自选文档', description: `已选 ${props.selectedDocumentIds.length} 项`, value: 'selected'}
+])
 
 function selectRange(range: ExportRange) {
   emit('update:modelValue', range)
@@ -96,32 +115,19 @@ function clearAll() {
   emit('update:selectedDocumentIds', [])
 }
 
-function flattenDocuments(documents: NovelDocument[]) {
-  const result: FlatDocument[] = []
-  const children = new Map<string | null, NovelDocument[]>()
-  for (const document of documents) {
-    const parentId = document.parentId || null
-    const list = children.get(parentId) ?? []
-    list.push(document)
-    children.set(parentId, list)
-  }
-  for (const list of children.values()) {
-    list.sort((a, b) => a.sortOrder - b.sortOrder || a.createdAt - b.createdAt)
-  }
-  const walk = (parentId: string | null, depth: number) => {
-    for (const document of children.get(parentId) ?? []) {
-      result.push({...document, depth})
-      walk(document.id, depth + 1)
-    }
-  }
-  walk(null, 0)
-  return result
+function flattenDocuments(documents: NovelDocument[], parentId: string | null = null, depth = 0): FlatDocument[] {
+  return documents
+      .filter(document => document.parentId === parentId)
+      .sort((a, b) => a.orderIndex - b.orderIndex)
+      .flatMap(document => [
+        {...document, depth},
+        ...flattenDocuments(documents, document.id, depth + 1)
+      ])
 }
 
-function typeLabel(type: string) {
+function typeLabel(type: NovelDocument['type']) {
   if (type === 'volume') return '卷'
-  if (type === 'chapter') return '章'
   if (type === 'scene') return '场景'
-  return '文档'
+  return '章节'
 }
 </script>

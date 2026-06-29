@@ -1,174 +1,97 @@
 <template>
-  <section class="export-style-editor">
-    <header class="export-template-panel-header">
+  <section aria-label="样式与内容选项" class="publication-panel">
+    <header class="publication-panel-header">
       <div>
-        <h4>版式与发布配置</h4>
-        <p>通用字段会用于 HTML、DOCX 与 EPUB；Pixiv 使用平台专用标记。</p>
+        <p class="publication-kicker">Style</p>
+        <h2>内容与样式</h2>
+        <p>这些设置会用于实时预览和最终导出。</p>
       </div>
     </header>
 
-    <div class="export-style-grid">
-      <label class="export-check-row">
-        <input :checked="modelValue.includeTitle" type="checkbox" @change="patchBoolean('includeTitle', $event)">
-        包含作品标题
-      </label>
-      <label class="export-check-row">
-        <input :checked="modelValue.includeAuthor" type="checkbox" @change="patchBoolean('includeAuthor', $event)">
-        包含作者
-      </label>
-      <label class="export-check-row">
-        <input
-            :checked="modelValue.includeChapterTitle"
-            type="checkbox"
-            @change="patchBoolean('includeChapterTitle', $event)"
-        >
-        包含章节标题
-      </label>
-      <label class="export-check-row">
-        <input
-            :checked="modelValue.firstLineIndent"
-            type="checkbox"
-            @change="patchBoolean('firstLineIndent', $event)"
-        >
-        正文首行缩进
-      </label>
+    <UForm :state="modelValue" class="publication-form publication-style-form">
+      <section aria-label="内容选项" class="publication-check-grid">
+        <UCheckbox v-model="includeTitle" label="包含作品标题"/>
+        <UCheckbox v-model="includeAuthor" label="包含作者"/>
+        <UCheckbox v-model="includeChapterTitle" label="包含章节标题"/>
+        <UCheckbox v-model="firstLineIndent" label="正文首行缩进"/>
+      </section>
 
-      <label class="export-style-wide">
-        章节标题格式
-        <input
-            :value="modelValue.chapterTitleFormat"
-            class="text-field"
+      <UFormField label="章节标题格式" name="chapterTitleFormat">
+        <UInput
+            v-model="chapterTitleFormat"
+            class="w-full"
             placeholder="第 {index} 章 {title}"
-            @input="patchText('chapterTitleFormat', $event)"
-        >
-        <small>支持 <code>{index}</code>、<code>{title}</code>、<code>{type}</code>、<code>{depth}</code>。</small>
-      </label>
+            size="sm"
+        />
+        <template #help>
+          支持 {index}、{title}、{type}、{depth}。
+        </template>
+      </UFormField>
 
-      <label>
-        段落间距
-        <select
-            :value="modelValue.paragraphSeparator"
-            class="text-field"
-            @change="patchText('paragraphSeparator', $event)"
-        >
-          <option :value="'\n'">单换行</option>
-          <option :value="'\n\n'">空一行</option>
-          <option :value="'\n\n\n'">空两行</option>
-        </select>
-      </label>
+      <div class="publication-form-grid">
+        <UFormField label="段落间距" name="paragraphSeparator">
+          <USelect
+              v-model="paragraphSeparator"
+              :items="separatorItems"
+              class="w-full"
+              label-key="label"
+              size="sm"
+              value-key="value"
+          />
+        </UFormField>
+        <UFormField label="正文字体" name="fontFamily">
+          <USelect
+              v-model="fontFamily"
+              :items="fontItems"
+              class="w-full"
+              label-key="label"
+              size="sm"
+              value-key="value"
+          />
+        </UFormField>
+      </div>
 
-      <label>
-        正文字体
-        <select :value="modelValue.fontFamily" class="text-field" @change="patchText('fontFamily', $event)">
-          <option value="serif">衬线</option>
-          <option value="sans-serif">无衬线</option>
-          <option value="monospace">等宽</option>
-          <option value="system">系统字体</option>
-        </select>
-      </label>
+      <div class="publication-form-grid">
+        <UFormField label="字号" name="fontSize">
+          <UInputNumber v-model="fontSize" :max="72" :min="8" :step="0.5" class="w-full" size="sm"/>
+        </UFormField>
+        <UFormField label="行距" name="lineHeight">
+          <div class="publication-slider-field">
+            <USlider v-model="lineHeight" :max="3" :min="1" :step="0.05"/>
+            <span>{{ lineHeight.toFixed(2) }}</span>
+          </div>
+        </UFormField>
+      </div>
 
-      <label>
-        字号（pt）
-        <input
-            :value="modelValue.fontSize"
-            class="text-field"
-            max="72"
-            min="8"
-            step="0.5"
-            type="number"
-            @input="patchNumber('fontSize', $event)"
-        >
-      </label>
-
-      <label>
-        行距
-        <input
-            :value="modelValue.lineHeight"
-            class="text-field"
-            max="3"
-            min="1"
-            step="0.05"
-            type="number"
-            @input="patchNumber('lineHeight', $event)"
-        >
-      </label>
-
-      <label v-if="format === 'docx' || format === 'epub'" class="export-check-row export-style-wide">
-        <input
-            :checked="modelValue.documentPageBreak"
-            type="checkbox"
-            @change="patchBoolean('documentPageBreak', $event)"
-        >
-        文档之间分页
-      </label>
+      <UCheckbox
+          v-if="format === 'docx' || format === 'epub'"
+          v-model="documentPageBreak"
+          label="文档之间分页"
+      />
 
       <template v-if="format === 'epub'">
-        <label class="export-check-row">
-          <input
-              :checked="modelValue.epubIncludeToc"
-              type="checkbox"
-              @change="patchBoolean('epubIncludeToc', $event)"
-          >
-          生成 EPUB 目录
-        </label>
-        <label class="export-check-row">
-          <input
-              :checked="modelValue.epubIncludeAssets"
-              type="checkbox"
-              @change="patchBoolean('epubIncludeAssets', $event)"
-          >
-          打包项目图片资源
-        </label>
-        <label class="export-style-wide">
-          EPUB 出版者
-          <input
-              :value="modelValue.epubPublisher"
-              class="text-field"
-              maxlength="120"
-              placeholder="Mythistorima"
-              @input="patchText('epubPublisher', $event)"
-          >
-          <small>标题、作者、语言与项目封面会自动从项目资料读取。</small>
-        </label>
+        <section aria-label="EPUB 选项" class="publication-check-grid">
+          <UCheckbox v-model="epubIncludeToc" label="生成 EPUB 目录"/>
+          <UCheckbox v-model="epubIncludeAssets" label="打包项目图片资源"/>
+        </section>
+        <UFormField label="EPUB 出版者" name="epubPublisher">
+          <UInput v-model="epubPublisher" class="w-full" maxlength="120" placeholder="Mythistorima" size="sm"/>
+          <template #help>标题、作者、语言与项目封面会自动从项目资料读取。</template>
+        </UFormField>
       </template>
 
       <template v-if="format === 'pixiv'">
-        <label class="export-check-row">
-          <input
-              :checked="modelValue.pixivPageBreak"
-              type="checkbox"
-              @change="patchBoolean('pixivPageBreak', $event)"
-          >
-          文档之间插入 <code>[newpage]</code>
-        </label>
-        <label class="export-check-row">
-          <input
-              :checked="modelValue.pixivConvertRuby"
-              type="checkbox"
-              @change="patchBoolean('pixivConvertRuby', $event)"
-          >
-          转换 <code>｜文字《注音》</code>
-        </label>
-        <label class="export-check-row">
-          <input
-              :checked="modelValue.pixivConvertEmphasis"
-              type="checkbox"
-              @change="patchBoolean('pixivConvertEmphasis', $event)"
-          >
-          转换强调标记
-        </label>
-        <label class="export-style-wide">
-          Pixiv 标签
-          <input
-              :value="modelValue.pixivTags.join(', ')"
-              class="text-field"
-              placeholder="原创, 奇幻, 长篇"
-              @input="patchPixivTags"
-          >
-          <small>最多 10 个，以逗号分隔；导出文本顶部会生成 <code>#标签</code> 行。</small>
-        </label>
+        <section aria-label="Pixiv 选项" class="publication-check-grid">
+          <UCheckbox v-model="pixivPageBreak" label="文档之间插入 [newpage]"/>
+          <UCheckbox v-model="pixivConvertRuby" label="转换 ｜文字《注音》"/>
+          <UCheckbox v-model="pixivConvertEmphasis" label="转换强调标记"/>
+        </section>
+        <UFormField label="Pixiv 标签" name="pixivTags">
+          <UInputTags v-model="pixivTags" class="w-full" placeholder="输入标签后回车" size="sm"/>
+          <template #help>最多 10 个，导出文本顶部会生成 #标签 行。</template>
+        </UFormField>
       </template>
-    </div>
+    </UForm>
   </section>
 </template>
 
@@ -184,37 +107,68 @@ const emit = defineEmits<{
   'update:modelValue': [value: ExportTemplateConfig]
 }>()
 
+const separatorItems = [
+  {label: '单换行', value: '\n'},
+  {label: '空一行', value: '\n\n'},
+  {label: '空两行', value: '\n\n\n'}
+]
+const fontItems: { label: string, value: ExportFontFamily }[] = [
+  {label: '衬线', value: 'serif'},
+  {label: '无衬线', value: 'sans-serif'},
+  {label: '等宽', value: 'monospace'},
+  {label: '系统字体', value: 'system'}
+]
+
 function update(patch: Partial<ExportTemplateConfig>) {
   emit('update:modelValue', {...props.modelValue, ...patch})
 }
 
-function patchBoolean(key: keyof ExportTemplateConfig, event: Event) {
-  update({[key]: (event.target as HTMLInputElement).checked} as Partial<ExportTemplateConfig>)
+function booleanModel(key: keyof Pick<ExportTemplateConfig,
+    'includeTitle' | 'includeAuthor' | 'includeChapterTitle' | 'firstLineIndent' | 'documentPageBreak' |
+    'epubIncludeToc' | 'epubIncludeAssets' | 'pixivPageBreak' | 'pixivConvertRuby' | 'pixivConvertEmphasis'>) {
+  return computed({
+    get: () => Boolean(props.modelValue[key]),
+    set: value => update({[key]: Boolean(value)} as Partial<ExportTemplateConfig>)
+  })
 }
 
-function patchText(
-    key: 'chapterTitleFormat' | 'paragraphSeparator' | 'fontFamily' | 'epubPublisher',
-    event: Event
-) {
-  const value = (event.target as HTMLInputElement | HTMLSelectElement).value
-  if (key === 'fontFamily') {
-    update({fontFamily: value as ExportFontFamily})
-  } else {
-    update({[key]: value} as Partial<ExportTemplateConfig>)
-  }
-}
+const includeTitle = booleanModel('includeTitle')
+const includeAuthor = booleanModel('includeAuthor')
+const includeChapterTitle = booleanModel('includeChapterTitle')
+const firstLineIndent = booleanModel('firstLineIndent')
+const documentPageBreak = booleanModel('documentPageBreak')
+const epubIncludeToc = booleanModel('epubIncludeToc')
+const epubIncludeAssets = booleanModel('epubIncludeAssets')
+const pixivPageBreak = booleanModel('pixivPageBreak')
+const pixivConvertRuby = booleanModel('pixivConvertRuby')
+const pixivConvertEmphasis = booleanModel('pixivConvertEmphasis')
 
-function patchNumber(key: 'fontSize' | 'lineHeight', event: Event) {
-  const value = Number((event.target as HTMLInputElement).value)
-  if (Number.isFinite(value)) update({[key]: value})
-}
-
-function patchPixivTags(event: Event) {
-  const tags = (event.target as HTMLInputElement).value
-      .split(/[,，]/)
-      .map(tag => tag.trim().replace(/^#/, ''))
-      .filter(Boolean)
-      .slice(0, 10)
-  update({pixivTags: tags})
-}
+const chapterTitleFormat = computed({
+  get: () => props.modelValue.chapterTitleFormat,
+  set: value => update({chapterTitleFormat: value})
+})
+const paragraphSeparator = computed({
+  get: () => props.modelValue.paragraphSeparator,
+  set: value => update({paragraphSeparator: value})
+})
+const fontFamily = computed({
+  get: () => props.modelValue.fontFamily,
+  set: value => update({fontFamily: value as ExportFontFamily})
+})
+const fontSize = computed({
+  get: () => props.modelValue.fontSize,
+  set: value => update({fontSize: Number(value)})
+})
+const lineHeight = computed({
+  get: () => props.modelValue.lineHeight,
+  set: value => update({lineHeight: Number(value)})
+})
+const epubPublisher = computed({
+  get: () => props.modelValue.epubPublisher,
+  set: value => update({epubPublisher: value})
+})
+const pixivTags = computed({
+  get: () => props.modelValue.pixivTags,
+  set: value => update({pixivTags: value.map(tag => tag.trim().replace(/^#/, '')).filter(Boolean).slice(0, 10)})
+})
 </script>

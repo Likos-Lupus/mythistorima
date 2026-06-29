@@ -3,6 +3,8 @@ import {
     getPrimaryViewForWorkspace,
     getSecondaryWorkspaces,
     getWorkspaceDefinition,
+    projectPrimaryViews,
+    projectWorkspaceDefinitions,
     type ProjectPrimaryView,
     type ProjectWorkspaceMode
 } from '~/constants/projectViews'
@@ -12,6 +14,7 @@ type CommandExecutor = (item: CommandPaletteItem) => void | Promise<void>
 
 export const useProjectShellStore = defineStore('project-shell', () => {
     const workspaceMode = ref<ProjectWorkspaceMode>('writing')
+    const workspaceTransitionDirection = ref<'forward' | 'backward'>('forward')
     const focusMode = ref(false)
     const settingsOpen = ref(false)
     const projectCharacterCount = ref(0)
@@ -26,15 +29,41 @@ export const useProjectShellStore = defineStore('project-shell', () => {
     const activeWorkspaceDefinition = computed(() => getWorkspaceDefinition(workspaceMode.value))
     const secondaryWorkspaces = computed(() => getSecondaryWorkspaces(activePrimaryView.value))
 
+    function primaryOrder(viewId: ProjectPrimaryView) {
+        const index = projectPrimaryViews.findIndex(view => view.id === viewId)
+        return index < 0 ? 0 : index
+    }
+
+    function workspaceOrder(mode: ProjectWorkspaceMode) {
+        const index = projectWorkspaceDefinitions.findIndex(workspace => workspace.mode === mode)
+        return index < 0 ? 0 : index
+    }
+
+    function setTransitionDirection(nextMode: ProjectWorkspaceMode) {
+        const currentPrimary = getPrimaryViewForWorkspace(workspaceMode.value)
+        const nextPrimary = getPrimaryViewForWorkspace(nextMode)
+        const currentPrimaryOrder = primaryOrder(currentPrimary)
+        const nextPrimaryOrder = primaryOrder(nextPrimary)
+        if (currentPrimaryOrder !== nextPrimaryOrder) {
+            workspaceTransitionDirection.value = nextPrimaryOrder > currentPrimaryOrder ? 'forward' : 'backward'
+            return
+        }
+        workspaceTransitionDirection.value = workspaceOrder(nextMode) >= workspaceOrder(workspaceMode.value) ? 'forward' : 'backward'
+    }
+
+    function commitWorkspaceMode(mode: ProjectWorkspaceMode) {
+        setTransitionDirection(mode)
+        workspaceMode.value = mode
+        if (mode !== 'writing') focusMode.value = false
+    }
+
     function selectPrimaryView(viewId: ProjectPrimaryView) {
         const definition = getPrimaryViewDefinition(viewId)
-        workspaceMode.value = definition.defaultMode
-        focusMode.value = false
+        commitWorkspaceMode(definition.defaultMode)
     }
 
     function selectWorkspaceMode(mode: ProjectWorkspaceMode) {
-        workspaceMode.value = mode
-        if (mode !== 'writing') focusMode.value = false
+        commitWorkspaceMode(mode)
     }
 
     function toggleFocusMode() {
@@ -98,6 +127,7 @@ export const useProjectShellStore = defineStore('project-shell', () => {
 
     return {
         workspaceMode,
+        workspaceTransitionDirection,
         focusMode,
         settingsOpen,
         projectCharacterCount,
