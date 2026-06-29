@@ -1,0 +1,205 @@
+/* Titlebar view navigation */
+.project-titlebar-view-switcher {
+    justify-self: center;
+    align-self: center;
+}
+
+.project-view-switcher {
+    --project-view-height: 2.35rem;
+    position: relative;
+    display: inline-flex;
+    height: var(--project-view-height);
+    min-width: 0;
+    max-width: min(64rem, calc(100vw - 28rem));
+    align-items: center;
+    border: 1px solid color-mix(in oklab, var(--ui-border) 82%, transparent);
+    border-radius: var(--ui-radius);
+    background: color-mix(in oklab, var(--ui-bg-elevated) 92%, var(--ui-bg-muted));
+    color: var(--ui-text);
+    padding: 0.25rem;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+.project-view-row {
+    display: inline-flex;
+    min-width: 0;
+    height: 100%;
+    align-items: center;
+    gap: 0.22rem;
+}
+
+.project-view-tabs {
+    min-width: 0;
+    flex: 0 0 auto;
+}
+
+.project-view-entry {
+    display: inline-flex;
+    min-width: 0;
+    height: 100%;
+    flex: 0 0 auto;
+    align-items: center;
+}
+
+.project-view-entry.is-subviews {
+    flex: 0 1 auto;
+    margin-left: -0.86rem;
+    z-index: 1;
+}
+
+.project-view-entry.is-active-view {
+    z-index: 3;
+}
+
+.project-view-main-tab {
+    position: relative;
+    flex: 0 0 auto;
+    width: 2rem;
+    min-width: 2rem;
+    height: 1.85rem;
+    justify-content: center;
+    border-radius: var(--ui-radius) !important;
+    color: var(--ui-text-muted);
+    font-weight: 700;
+    padding-inline: 0;
+    white-space: nowrap;
+    transition: width 240ms cubic-bezier(.2, .8, .2, 1),
+    min-width 240ms cubic-bezier(.2, .8, .2, 1),
+    padding-inline 240ms cubic-bezier(.2, .8, .2, 1),
+    color 160ms ease,
+    background-color 220ms cubic-bezier(.2, .8, .2, 1),
+    box-shadow 220ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.project-view-main-tab:hover {
+    color: var(--ui-text-highlighted);
+    background: color-mix(in oklab, var(--ui-bg-accented) 58%, transparent);
+}
+
+.project-view-main-tab.is-active {
+    width: 5.1rem;
+    min-width: 5.1rem;
+    justify-content: center;
+    background: var(--ui-primary);
+    color: color-mix(in oklab, var(--ui-primary) 10%, black);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, white 24%, transparent);
+    padding-inline: 0.55rem;
+}
+
+.project-view-main-tab.is-active :where(svg, span) {
+    color: inherit;
+}
+
+.project-subview-rail {
+    position: relative;
+    display: inline-flex;
+    flex: 0 1 auto;
+    height: 1.85rem;
+    min-width: 0;
+    max-width: min(24rem, 38vw);
+    align-items: center;
+    border: 0;
+    border-radius: 0 var(--ui-radius) var(--ui-radius) 0;
+    background: color-mix(in oklab, var(--ui-primary) 11%, var(--ui-bg-elevated));
+    z-index: 0;
+    box-shadow: none;
+    padding: 0.18rem 0.34rem 0.18rem 1.16rem;
+    overflow: hidden;
+    transform-origin: left center;
+}
+
+.project-view-subtabs,
+.project-secondary-tabs-root,
+.project-secondary-tabs-list {
+    display: inline-flex;
+    height: 100%;
+    min-width: 0;
+    align-items: center;
+}
+
+.project-view-subtabs {
+    position: relative;
+    z-index: 1;
+}
+
+.project-secondary-tabs-list {
+    display: inline-flex;
+    height: 100%;
+    align-items: center;
+    gap: 0.04rem;
+    border-radius: var(--ui-radius);
+    background: transparent;
+    padding: 0;
+}
+
+.project-secondary-tabs-trigger {
+    display: inline-flex;
+    height: 1.44rem;
+    min-width: 2.9rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
+    border-radius: var(--ui-radius) !important;
+    color: color-mix(in oklab, var(--ui-text) 70%, transparent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: 0 0.38rem;
+    text-align: center;
+    white-space: nowrap;
+    transition: color 160ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.project-secondary-tabs-trigger:hover {
+    color: var(--ui-text-highlighted);
+    background: color-mix(in oklab, var(--ui-primary) 11%, transparent);
+}
+
+.project-secondary-tabs-indicator {
+    border-radius: var(--ui-radius) !important;
+    background: transparent !important;
+    box-shadow: inset 0 -2px 0 color-mix(in oklab, var(--ui-primary) 72%, var(--ui-text-highlighted));
+    transition: transform 220ms cubic-bezier(.2, .8, .2, 1),
+    width 220ms cubic-bezier(.2, .8, .2, 1),
+    left 220ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.project-secondary-tabs-trigger[aria-selected="true"],
+.project-secondary-tabs-trigger[data-state="active"] {
+    color: var(--ui-text-highlighted);
+    background: transparent;
+}
+
+.project-secondary-tabs-icon {
+    width: 0.86rem;
+    height: 0.86rem;
+    flex: 0 0 auto;
+}
+
+.project-secondary-tabs-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+.project-view-tab-move,
+.project-view-tab-enter-active,
+.project-view-tab-leave-active {
+    transition: transform 260ms cubic-bezier(.2, .8, .2, 1),
+    opacity 180ms ease,
+    width 240ms cubic-bezier(.2, .8, .2, 1),
+    margin 240ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.project-view-tab-enter-from,
+.project-view-tab-leave-to {
+    opacity: 0;
+    transform: translateX(-0.45rem) scaleX(0.96);
+}
+
+.project-view-tab-leave-active {
+    position: absolute;
+    pointer-events: none;
+}

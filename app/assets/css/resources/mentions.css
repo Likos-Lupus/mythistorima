@@ -1,0 +1,144 @@
+/* Setting references and mention popovers */
+.setting-reference {
+    display: inline;
+    border-bottom: 1px dotted rgba(123, 84, 43, 0.7);
+    background: rgba(255, 237, 188, 0.7);
+    border-radius: 0.25rem;
+    color: #6b421f !important;
+    cursor: help;
+    padding: 0.02rem 0.08rem;
+}
+
+.setting-reference:hover {
+    background: rgba(255, 225, 150, 0.95);
+    border-bottom-color: rgba(89, 55, 22, 0.95);
+}
+
+.setting-mention-list,
+.setting-reference-preview {
+    position: fixed;
+    z-index: 80;
+    width: min(320px, calc(100vw - 32px));
+    max-height: 320px;
+    overflow: auto;
+    color: var(--paper-text) !important;
+    box-shadow: 0 22px 44px rgba(82, 57, 35, 0.24);
+}
+
+.setting-mention-list {
+    padding: 0.45rem;
+}
+
+.setting-mention-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.45rem 0.55rem;
+    color: var(--paper-muted) !important;
+    font-size: 0.78rem;
+}
+
+.setting-mention-item {
+    display: grid;
+    grid-template-columns: 3rem 1fr;
+    gap: 0.6rem;
+    align-items: start;
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 0.7rem;
+    background: transparent;
+    color: var(--paper-text) !important;
+    cursor: pointer;
+    padding: 0.55rem 0.6rem;
+    text-align: left;
+}
+
+.setting-mention-item:hover,
+.setting-mention-item.is-active {
+    border-color: rgba(122, 84, 49, 0.24);
+    background: rgba(255, 250, 238, 0.95);
+}
+
+.setting-mention-type {
+    border-radius: 999px;
+    background: rgba(120, 84, 45, 0.12);
+    color: #6d4b2d !important;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.35rem;
+    text-align: center;
+}
+
+.setting-mention-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.setting-mention-main strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.setting-mention-main small,
+.setting-mention-empty {
+    color: var(--paper-muted) !important;
+}
+
+.setting-mention-empty {
+    margin: 0;
+    padding: 0.75rem;
+    font-size: 0.86rem;
+}
+
+.setting-reference-preview {
+    padding: 0.9rem;
+    pointer-events: none;
+}
+
+.setting-reference-kicker {
+    margin: 0 0 0.25rem;
+    color: var(--paper-muted) !important;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.setting-reference-preview h3 {
+    margin: 0;
+    color: var(--paper-text) !important;
+    font-size: 1rem;
+}
+
+.setting-reference-aliases,
+.setting-reference-description {
+    margin: 0.45rem 0 0;
+    color: var(--paper-muted) !important;
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+.setting-reference-fields {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0.7rem 0 0;
+}
+
+.setting-reference-fields div {
+    border-top: 1px solid rgba(122, 84, 49, 0.12);
+    padding-top: 0.35rem;
+}
+
+.setting-reference-fields dt {
+    color: var(--paper-muted) !important;
+    font-size: 0.75rem;
+}
+
+.setting-reference-fields dd {
+    margin: 0.12rem 0 0;
+    color: var(--paper-text) !important;
+    font-size: 0.84rem;
+    line-height: 1.45;
+}

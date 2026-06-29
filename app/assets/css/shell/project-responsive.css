@@ -1,0 +1,24 @@
+/* Project shell narrow-screen rules */
+@media (max-width: 760px) {
+    .project-titlebar {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .project-titlebar-view-switcher {
+        display: none;
+    }
+
+    .project-workspace-root.has-sidebar,
+    .project-workspace-root.has-sidebar.has-inspector {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .project-workspace-sidebar,
+    .project-workspace-inspector {
+        display: none;
+    }
+
+    .project-status-metrics span:nth-last-child(-n + 2) {
+        display: none;
+    }
+}

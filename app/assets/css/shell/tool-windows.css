@@ -1,0 +1,178 @@
+/* Writing tool windows and tool strips */
+.workspace-tool-window {
+    --tool-window-size: 312px;
+    position: relative;
+    display: flex;
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    flex: 1 1 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid color-mix(in oklab, var(--ui-border) 72%, transparent);
+    border-radius: var(--ui-radius);
+    background: color-mix(in oklab, var(--ui-bg-elevated) 95%, var(--ui-bg));
+    box-shadow: 0 14px 32px color-mix(in oklab, var(--ui-text-highlighted) 12%, transparent);
+}
+
+.workspace-tool-window.is-side-dock,
+.workspace-tool-window.is-bottom-dock {
+    width: 100%;
+}
+
+.workspace-tool-window-header {
+    display: flex;
+    height: 2rem;
+    min-height: 2rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.45rem;
+    border-bottom: 1px solid color-mix(in oklab, var(--ui-border) 58%, transparent);
+    background: color-mix(in oklab, var(--ui-bg-elevated) 88%, var(--ui-bg));
+    padding: 0 0.65rem;
+}
+
+.workspace-tool-window-title,
+.workspace-tool-window-actions {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.workspace-tool-window-title {
+    color: var(--ui-text-highlighted);
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.workspace-tool-window-title span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.workspace-tool-window-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 0.55rem;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+}
+
+.workspace-tool-resize-handle {
+    position: absolute;
+    z-index: 4;
+    border: 0;
+    background: transparent;
+}
+
+.workspace-tool-resize-handle.is-horizontal {
+    top: 0;
+    bottom: 0;
+    width: 0.65rem;
+    cursor: col-resize;
+}
+
+.workspace-tool-window.is-left .workspace-tool-resize-handle.is-horizontal {
+    right: -0.325rem;
+}
+
+.workspace-tool-window.is-right .workspace-tool-resize-handle.is-horizontal {
+    left: -0.325rem;
+}
+
+.workspace-tool-resize-handle.is-vertical {
+    top: -0.325rem;
+    right: 0;
+    left: 0;
+    height: 0.65rem;
+    cursor: row-resize;
+}
+
+.workspace-tool-strip {
+    position: relative;
+    z-index: 11;
+    display: grid;
+    width: var(--workspace-tool-strip-size);
+    min-width: var(--workspace-tool-strip-size);
+    min-height: 0;
+    align-self: stretch;
+    grid-row: 1 / -1;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.25rem;
+    overflow: hidden;
+    border-color: color-mix(in oklab, var(--ui-border) 72%, transparent);
+    background: var(--writing-workspace-surface);
+    padding: 0.4rem 0.32rem;
+}
+
+.workspace-tool-strip.is-left {
+    grid-area: left-strip;
+    border-right: 1px solid color-mix(in oklab, var(--ui-border) 72%, transparent);
+}
+
+.workspace-tool-strip.is-right {
+    grid-area: right-strip;
+    border-left: 1px solid color-mix(in oklab, var(--ui-border) 72%, transparent);
+}
+
+.workspace-tool-strip-group {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.workspace-tool-strip-group.at-top {
+    justify-content: flex-start;
+}
+
+.workspace-tool-strip-group.at-center {
+    justify-content: center;
+}
+
+.workspace-tool-strip-group.at-bottom {
+    justify-content: flex-end;
+}
+
+.workspace-tool-strip-button {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--ui-radius);
+}
+
+.workspace-tool-strip-button :where(svg, .iconify) {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.writing-tool-placeholder {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--ui-text-muted);
+    font-size: 0.82rem;
+}
+
+.writing-tool-placeholder strong {
+    color: var(--ui-text-highlighted);
+}
+
+.document-tree-dialog-form {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.document-tree-dialog-actions {
+    display: flex;
+    width: 100%;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}

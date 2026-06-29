@@ -117,7 +117,7 @@ select {
     font-family: inherit;
 }
 
-/* Sprint 2 radius baseline: panels and fields use rounded-lg = --ui-radius. */
+/* Radius baseline: panels and fields use --ui-radius. */
 :where(.rounded-xl, .rounded-2xl, .rounded-3xl) {
     border-radius: var(--ui-radius) !important;
 }

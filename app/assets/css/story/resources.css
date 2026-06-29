@@ -1,0 +1,128 @@
+/* Resource forms and relation details */
+.story-form {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.story-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.resource-type-list,
+.resource-definition-list {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.resource-definition-list {
+    max-height: 12rem;
+    overflow: auto;
+}
+
+.resource-definition-list.compact {
+    max-height: 8rem;
+}
+
+.resource-definition-item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    width: 100%;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius);
+    background: transparent;
+    padding: 0.35rem 0.45rem;
+    color: var(--ui-text);
+    text-align: left;
+}
+
+.resource-definition-item span:not(.u-badge) {
+    overflow: hidden;
+    color: var(--ui-text-highlighted);
+    font-size: 0.76rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.resource-detail-content {
+    flex: 1;
+    padding: 0.45rem;
+}
+
+.resource-card-form,
+.resource-fields-section,
+.resource-reference-section {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.resource-fields-section,
+.resource-reference-section,
+.resource-schema-editor {
+    border-top: 1px solid var(--ui-border);
+    padding-top: 0.75rem;
+}
+
+.resource-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.resource-reference-section ul {
+    display: grid;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.resource-reference-section li {
+    display: grid;
+    gap: 0.1rem;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg);
+    padding: 0.45rem;
+}
+
+.resource-reference-section li span {
+    color: var(--ui-text-highlighted);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.resource-reference-section li small {
+    color: var(--ui-text-muted);
+    font-size: 0.68rem;
+}
+
+.resource-schema-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 7rem auto;
+    gap: 0.35rem;
+    align-items: center;
+    margin-top: 0.4rem;
+}
+
+.relation-canvas-main .relation-graph-panel {
+    min-height: 0;
+    flex: 1;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg) !important;
+    box-shadow: none;
+}
+
+.resources-relation-inspector {
+    overflow: auto;
+}
+
+.relation-type-inspector {
+    border-top: 1px solid var(--ui-border);
+    padding-top: 0.75rem;
+}

@@ -1,0 +1,167 @@
+/* Outline graph view */
+.outline-mermaid-view {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.outline-mermaid-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--line-soft);
+    padding-bottom: 0.85rem;
+}
+
+.outline-mermaid-header h2 {
+    margin: 0.12rem 0 0;
+    color: var(--paper-text) !important;
+    font-size: 1.3rem;
+    font-weight: 950;
+}
+
+.outline-mermaid-header p {
+    margin: 0.25rem 0 0;
+    color: var(--paper-muted) !important;
+    line-height: 1.65;
+}
+
+.outline-mermaid-actions {
+    flex: 0 0 auto;
+}
+
+.outline-mermaid-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 0.45fr) minmax(320px, 0.55fr);
+    gap: 1rem;
+    min-height: 360px;
+}
+
+.outline-mermaid-preview,
+.outline-mermaid-code {
+    min-height: 360px;
+    border: 1px solid rgba(96, 72, 48, 0.12);
+    border-radius: 1.2rem;
+    background: rgba(255, 250, 240, 0.58) !important;
+}
+
+.outline-mermaid-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    overflow: auto;
+    padding: 1rem;
+}
+
+.outline-flow-root {
+    align-self: center;
+    border: 1px solid rgba(109, 67, 37, 0.22);
+    border-radius: 999px;
+    background: var(--accent-soft) !important;
+    color: var(--accent) !important;
+    padding: 0.55rem 1rem;
+    font-weight: 950;
+}
+
+.outline-flow-lanes {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.outline-flow-node {
+    position: relative;
+    display: grid;
+    gap: 0.3rem;
+    margin-left: calc(var(--outline-depth, 0) * 1.25rem);
+    border: 1px solid rgba(96, 72, 48, 0.15);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.68) !important;
+    padding: 0.68rem 0.78rem;
+}
+
+.outline-flow-node::before {
+    content: '';
+    position: absolute;
+    left: -0.72rem;
+    top: -0.72rem;
+    width: 0.72rem;
+    height: 1.25rem;
+    border-left: 1px solid rgba(109, 67, 37, 0.18);
+    border-bottom: 1px solid rgba(109, 67, 37, 0.18);
+    border-bottom-left-radius: 0.45rem;
+}
+
+.outline-flow-node.is-planned {
+    background: rgba(255, 247, 237, 0.82) !important;
+}
+
+.outline-flow-node.is-drafting {
+    background: rgba(238, 246, 255, 0.82) !important;
+}
+
+.outline-flow-node.is-done {
+    background: rgba(237, 248, 241, 0.82) !important;
+}
+
+.outline-flow-node span {
+    width: fit-content;
+    border-radius: 999px;
+    background: rgba(109, 67, 37, 0.1);
+    color: var(--accent) !important;
+    padding: 0.12rem 0.42rem;
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.outline-flow-node strong {
+    color: var(--paper-text) !important;
+    font-weight: 950;
+}
+
+.outline-flow-node small {
+    color: var(--paper-muted) !important;
+    line-height: 1.55;
+}
+
+.outline-mermaid-code {
+    margin: 0;
+    overflow: auto;
+    padding: 1rem;
+    color: var(--paper-text) !important;
+    font-size: 0.84rem;
+    line-height: 1.7;
+    white-space: pre;
+}
+
+body[data-theme="dark"] .outline-board-column,
+body[data-theme="dark"] .outline-board-card,
+body[data-theme="dark"] .outline-board-panel,
+body[data-theme="dark"] .outline-board-detail,
+body[data-theme="dark"] .outline-mermaid-view,
+body[data-theme="dark"] .outline-mermaid-preview,
+body[data-theme="dark"] .outline-mermaid-code,
+body[data-theme="dark"] .outline-flow-node,
+body[data-theme="dark"] .outline-filter-chip,
+body[data-theme="dark"] .outline-board-toolbar {
+    background: rgba(31, 28, 25, 0.78) !important;
+}
+
+@media (max-width: 1240px) {
+    .outline-board-layout,
+    .outline-mermaid-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .outline-board-toolbar,
+    .outline-mermaid-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .outline-board {
+        grid-template-columns: repeat(3, minmax(240px, 86vw));
+    }
+}

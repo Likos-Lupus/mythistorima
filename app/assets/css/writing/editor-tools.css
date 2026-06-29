@@ -1,0 +1,151 @@
+/* Editor tools, search and settings cards */
+.workspace-layout.is-focus-mode .workspace-sidebar,
+.workspace-layout.is-focus-mode .workspace-status {
+    display: none !important;
+}
+
+.workspace-layout.is-focus-mode .workspace-editor {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.workspace-layout.is-focus-mode .workspace-editor-host {
+    border-radius: 2rem;
+}
+
+.editor-toolbar .toolbar-divider {
+    width: 1px;
+    height: 1.5rem;
+    background: var(--line-soft);
+    margin: 0 0.25rem;
+}
+
+.editor-find-replace {
+    display: grid;
+    gap: 0.55rem;
+    border-bottom: 1px solid var(--line-soft);
+    background: #fffaf0 !important;
+    padding: 0.7rem 1rem;
+}
+
+.find-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.find-input,
+.compact-number-field {
+    min-width: 0;
+    border: 1px solid rgba(96, 72, 48, 0.16);
+    border-radius: 999px;
+    background: #fffdf8 !important;
+    color: var(--paper-text) !important;
+    outline: none;
+}
+
+.find-input {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+.find-input:focus,
+.compact-number-field:focus {
+    border-color: rgba(123, 79, 44, 0.48);
+    box-shadow: 0 0 0 3px rgba(123, 79, 44, 0.1);
+}
+
+.find-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.find-count {
+    color: var(--paper-muted) !important;
+    font-size: 0.78rem;
+    font-weight: 800;
+    margin-right: auto;
+}
+
+.editor-paper {
+    width: min(100%, var(--editor-page-width, 820px));
+}
+
+.novel-editor-shell .ProseMirror {
+    font-size: var(--editor-font-size, 17px);
+    line-height: var(--editor-line-height, 2);
+}
+
+.settings-card {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.75rem;
+    border: 1px solid rgba(96, 72, 48, 0.13);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.5) !important;
+    padding: 0.9rem;
+}
+
+.settings-card h3 {
+    margin: 0;
+    color: var(--paper-text) !important;
+    font-size: 0.92rem;
+    font-weight: 900;
+}
+
+.settings-card label {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--paper-muted) !important;
+    font-size: 0.82rem;
+    font-weight: 800;
+}
+
+.compact-setting-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.compact-number-field {
+    width: 100%;
+    padding: 0.38rem 0.65rem;
+    font-size: 0.82rem;
+}
+
+.full-width-button {
+    width: 100%;
+    justify-content: center;
+}
+
+@media (max-width: 720px) {
+    .find-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.editor-focus-overlay {
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border: 1px solid var(--line-soft);
+    border-radius: 999px;
+    background: rgba(255, 250, 240, 0.92) !important;
+    color: #6d4325 !important;
+    padding: 0.42rem 0.55rem 0.42rem 0.85rem;
+    box-shadow: 0 10px 28px rgba(58, 40, 22, 0.12);
+    font-size: 0.82rem;
+    font-weight: 900;
+}
+
+.workspace-editor-host {
+    position: relative;
+}

@@ -1,0 +1,331 @@
+/* Classic writing editor and chapter tree */
+.app-sidebar {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 1.5rem;
+    padding: 1rem;
+}
+
+.chapter-tree {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chapter-tree-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.chapter-title {
+    margin: 0;
+    color: var(--paper-text) !important;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.chapter-subtitle {
+    margin: 0.18rem 0 0;
+    color: var(--paper-muted) !important;
+    font-size: 0.78rem;
+}
+
+.chapter-list {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.chapter-button {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.55) !important;
+    color: var(--paper-text) !important;
+    padding: 0.8rem 0.9rem;
+    text-align: left;
+    transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.chapter-button:hover {
+    background: #fffdf8 !important;
+    transform: translateY(-1px);
+}
+
+.chapter-button.is-active {
+    border-color: rgba(123, 79, 44, 0.46);
+    background: rgba(123, 79, 44, 0.16) !important;
+}
+
+.chapter-button-title {
+    display: block;
+    color: var(--paper-text) !important;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.chapter-button-meta {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--paper-muted) !important;
+    font-size: 0.75rem;
+}
+
+.empty-panel {
+    border: 1px dashed var(--line-soft);
+    border-radius: 1.25rem;
+    background: rgba(255, 255, 255, 0.42) !important;
+    color: var(--paper-muted) !important;
+    padding: 1rem;
+    text-align: center;
+}
+
+.novel-editor-shell {
+    height: 100%;
+    min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 1.65rem;
+}
+
+.editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    border-bottom: 1px solid var(--line-soft);
+    background: #fff6e7 !important;
+    padding: 0.75rem 1rem;
+}
+
+.toolbar-button {
+    border: 1px solid rgba(96, 72, 48, 0.12);
+    padding: 0.42rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.toolbar-button.is-active {
+    border-color: rgba(123, 79, 44, 0.35);
+    background: var(--accent-soft) !important;
+    color: #5a351e !important;
+}
+
+.editor-scroll-area {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    background: #f7eddd !important;
+    padding: 1.5rem;
+}
+
+.editor-loading,
+.editor-fallback,
+.editor-select-empty {
+    height: 100%;
+    min-height: 420px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--paper-muted) !important;
+}
+
+.editor-paper {
+    position: relative;
+    width: min(100%, 820px);
+    min-height: 100%;
+    margin: 0 auto;
+    border: 1px solid rgba(94, 68, 42, 0.2);
+    border-radius: 1.5rem;
+    background: linear-gradient(180deg, #fffdf8 0%, #fff9ef 100%) !important;
+    color: var(--paper-text) !important;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.72), 0 18px 55px rgba(64, 42, 21, 0.08);
+    cursor: text;
+}
+
+.editor-empty-hint {
+    pointer-events: none;
+    position: absolute;
+    left: 2rem;
+    top: 2rem;
+    z-index: 1;
+    color: rgba(102, 93, 84, 0.72) !important;
+}
+
+.editor-empty-hint p {
+    margin: 0;
+}
+
+.editor-empty-hint p + p {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.novel-editor-shell .ProseMirror {
+    min-height: calc(100vh - 19rem);
+    outline: none;
+    font-size: 1.06rem;
+    line-height: 2.05;
+    letter-spacing: 0.02em;
+    color: var(--paper-text) !important;
+    caret-color: var(--accent);
+}
+
+.novel-editor-shell .novel-prose {
+    min-height: calc(100vh - 19rem);
+    padding: 2rem;
+    color: var(--paper-text) !important;
+    background: transparent !important;
+}
+
+.novel-editor-shell .ProseMirror p {
+    margin: 0.8rem 0;
+}
+
+.novel-editor-shell .ProseMirror h1,
+.novel-editor-shell .ProseMirror h2,
+.novel-editor-shell .ProseMirror h3 {
+    margin: 1.6rem 0 1rem;
+    line-height: 1.35;
+    color: var(--paper-text) !important;
+    font-weight: 800;
+}
+
+.novel-editor-shell .ProseMirror blockquote {
+    margin: 1rem 0;
+    border-left: 3px solid rgba(123, 79, 44, 0.32);
+    padding-left: 1rem;
+    color: #5f5348 !important;
+}
+
+.novel-editor-shell .ProseMirror ul,
+.novel-editor-shell .ProseMirror ol {
+    padding-left: 1.45rem;
+}
+
+.novel-editor-shell .ProseMirror-focused {
+    outline: none;
+}
+
+.editor-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-top: 1px solid var(--line-soft);
+    background: #fff6e7 !important;
+    color: var(--paper-muted) !important;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+.editor-status-items {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.editor-error {
+    color: #b42318 !important;
+}
+
+.status-panel {
+    height: 100%;
+    overflow: auto;
+    border-radius: 1.5rem;
+    padding: 1.25rem;
+}
+
+.status-panel-title {
+    margin: 0;
+    color: var(--paper-text) !important;
+    font-size: 1.05rem;
+    font-weight: 800;
+}
+
+.status-panel-subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--paper-muted) !important;
+    font-size: 0.875rem;
+}
+
+.status-list {
+    margin-top: 1rem;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.status-card {
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.58) !important;
+    padding: 0.8rem;
+}
+
+.status-card dt {
+    color: #6d4325 !important;
+    font-weight: 800;
+}
+
+.status-card dd {
+    margin: 0.25rem 0 0;
+    color: var(--paper-muted) !important;
+    overflow-wrap: anywhere;
+}
+
+/* Writing-pane render guard: keep the two critical panes visible even when
+   component auto-import or responsive layout behavior changes across Nuxt builds. */
+.workspace-layout > .workspace-sidebar,
+.workspace-layout > .workspace-editor-host {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.workspace-editor-host {
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden;
+    border-radius: 1.65rem;
+    background: rgba(255, 250, 240, 0.28) !important;
+}
+
+.workspace-editor-host > .novel-editor-shell,
+.workspace-editor-host > .editor-select-empty {
+    width: 100%;
+    height: 100%;
+    flex: 1 1 auto;
+}
+
+.workspace-sidebar.app-sidebar {
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: var(--surface) !important;
+    color: var(--paper-text) !important;
+}
+
+.novel-editor-shell {
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: var(--surface-strong) !important;
+    color: var(--paper-text) !important;
+}
+
+.novel-editor-shell .tiptap,
+.novel-editor-shell .ProseMirror,
+.novel-editor-shell .novel-prose {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}

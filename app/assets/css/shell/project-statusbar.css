@@ -1,0 +1,99 @@
+/* Project status bar, errors and responsive shell rules */
+.project-status-bar {
+    position: relative;
+    z-index: 40;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-top: 1px solid var(--ui-border);
+    background: var(--ui-bg);
+    color: var(--ui-text-muted);
+    font-size: 0.68rem;
+    line-height: 1;
+    padding: 0 0.65rem;
+}
+
+.project-status-section {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.project-status-document {
+    max-width: 18rem;
+    overflow: hidden;
+    color: var(--ui-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.project-status-metrics {
+    justify-content: flex-end;
+    white-space: nowrap;
+}
+
+.project-status-indicator {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--ui-text-dimmed);
+}
+
+.project-status-indicator.is-dirty,
+.project-status-indicator.is-saving {
+    background: var(--ui-warning);
+}
+
+.project-status-indicator.is-saved {
+    background: var(--ui-success);
+}
+
+.project-status-indicator.is-failed {
+    background: var(--ui-error);
+}
+
+.project-workspace-error {
+    position: absolute;
+    z-index: 70;
+    right: 1rem;
+    bottom: 1rem;
+    width: min(28rem, calc(100% - 2rem));
+    box-shadow: var(--shadow-paper);
+}
+
+.command-palette-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    border-top: 1px solid var(--ui-border);
+    color: var(--ui-text-muted);
+    font-size: 0.7rem;
+    padding: 0.45rem 0.75rem;
+}
+
+.project-layout.is-focus-mode .project-status-bar {
+    opacity: 0.2;
+    transition: opacity 160ms ease;
+}
+
+.project-layout.is-focus-mode .project-status-bar:hover {
+    opacity: 1;
+}
+
+@media (max-width: 1080px) {
+    .project-workspace-root.has-sidebar.has-inspector {
+        grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
+    }
+
+    .project-workspace-root.has-sidebar.has-inspector .project-workspace-inspector {
+        display: none;
+    }
+
+    .project-view-switcher {
+        max-width: min(36rem, calc(100vw - 24rem));
+    }
+}

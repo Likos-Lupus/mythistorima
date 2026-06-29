@@ -1,0 +1,300 @@
+/* Foreshadow threads and appearance stats */
+/* Foreshadow threads and appearance stats */
+.foreshadow-workspace,
+.stats-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-height: 100%;
+}
+
+.foreshadow-workspace-header,
+.stats-workspace-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.foreshadow-workspace-kicker,
+.stats-workspace-kicker,
+.section-kicker {
+    margin: 0 0 .35rem;
+    color: var(--paper-muted);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.foreshadow-workspace-header h1,
+.stats-workspace-header h1,
+.list-panel-header h2,
+.foreshadow-status-header h2 {
+    margin: 0;
+}
+
+.foreshadow-workspace-header p,
+.stats-workspace-header p {
+    margin-bottom: 0;
+}
+
+.foreshadow-workspace-actions,
+.stats-workspace-actions,
+.form-action-row,
+.foreshadow-filter-row,
+.form-two-columns,
+.foreshadow-note-import {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+}
+
+.foreshadow-layout,
+.stats-layout {
+    display: grid;
+    grid-template-columns: minmax(280px, .9fr) minmax(360px, 1.1fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.foreshadow-status-board,
+.foreshadow-thread-list,
+.foreshadow-editor,
+.appearance-table-panel,
+.appearance-detail-panel,
+.appearance-matrix-panel,
+.stats-summary-card {
+    padding: 1rem;
+}
+
+.foreshadow-status-header,
+.list-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    margin-bottom: .85rem;
+}
+
+.inline-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .9rem;
+    color: var(--paper-muted);
+}
+
+.foreshadow-status-grid,
+.stats-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: .75rem;
+}
+
+.foreshadow-status-card,
+.stats-summary-card {
+    border: 1px solid var(--line-soft);
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, .55);
+    padding: .85rem;
+    text-align: left;
+}
+
+.foreshadow-status-card span,
+.stats-summary-card span,
+.appearance-detail-summary span {
+    display: block;
+    color: var(--paper-muted);
+    font-size: .8rem;
+}
+
+.foreshadow-status-card strong,
+.stats-summary-card strong,
+.appearance-detail-summary strong {
+    display: block;
+    margin-top: .25rem;
+    font-size: 1.45rem;
+}
+
+.foreshadow-unpaid-list,
+.foreshadow-thread-stack,
+.appearance-detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+    margin-top: .9rem;
+}
+
+.foreshadow-mini-thread,
+.foreshadow-thread-item,
+.appearance-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    width: 100%;
+    border: 1px solid var(--line-soft);
+    border-radius: .9rem;
+    background: rgba(255, 255, 255, .55);
+    padding: .8rem;
+    color: inherit;
+    text-align: left;
+}
+
+.foreshadow-mini-thread.is-active,
+.foreshadow-thread-item.is-active,
+.appearance-table tr.is-active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.foreshadow-thread-item small,
+.foreshadow-mini-thread small,
+.appearance-detail-item small,
+.muted-text {
+    color: var(--paper-muted);
+}
+
+.thread-status-pill {
+    width: fit-content;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    padding: .2rem .55rem;
+    color: var(--accent);
+    font-size: .75rem;
+    font-weight: 700;
+}
+
+.thread-route {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    color: var(--paper-muted);
+    font-size: .82rem;
+}
+
+.foreshadow-editor-form,
+.appearance-detail-summary {
+    display: flex;
+    flex-direction: column;
+    gap: .85rem;
+}
+
+.foreshadow-editor-form label,
+.foreshadow-note-import label,
+.foreshadow-filter-row label,
+.form-two-columns label {
+    display: flex;
+    flex: 1 1 180px;
+    flex-direction: column;
+    gap: .35rem;
+    color: var(--paper-muted);
+    font-size: .88rem;
+    font-weight: 700;
+}
+
+.text-field,
+.textarea-field {
+    width: 100%;
+    border: 1px solid var(--line-soft);
+    border-radius: .75rem;
+    background: rgba(255, 255, 255, .72);
+    color: var(--paper-text);
+    padding: .7rem .8rem;
+    font: inherit;
+}
+
+.textarea-field {
+    resize: vertical;
+}
+
+.danger-button {
+    border: 1px solid color-mix(in srgb, #b42318 45%, var(--line-soft));
+    border-radius: .75rem;
+    background: color-mix(in srgb, #b42318 10%, transparent);
+    color: #b42318;
+    cursor: pointer;
+    font-weight: 700;
+    padding: .65rem .9rem;
+}
+
+.appearance-table-wrap,
+.appearance-matrix-wrap {
+    max-width: 100%;
+    overflow: auto;
+}
+
+.appearance-table,
+.appearance-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+}
+
+.appearance-table th,
+.appearance-table td,
+.appearance-matrix th,
+.appearance-matrix td {
+    border-bottom: 1px solid var(--line-soft);
+    padding: .65rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.appearance-table tbody tr,
+.appearance-matrix tbody tr {
+    cursor: pointer;
+}
+
+.appearance-matrix th:first-child {
+    min-width: 180px;
+}
+
+.appearance-matrix td {
+    min-width: 54px;
+    text-align: center;
+}
+
+.appearance-matrix td.has-appearance {
+    border-radius: .45rem;
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    color: var(--accent);
+    font-weight: 800;
+}
+
+.link-button {
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    padding: 0;
+}
+
+.appearance-detail-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    margin-bottom: .85rem;
+}
+
+.appearance-detail-summary > div {
+    border: 1px solid var(--line-soft);
+    border-radius: .9rem;
+    padding: .75rem;
+}
+
+.appearance-detail-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@media (max-width: 1100px) {
+    .foreshadow-layout,
+    .stats-layout {
+        grid-template-columns: 1fr;
+    }
+}

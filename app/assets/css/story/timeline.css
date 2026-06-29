@@ -1,0 +1,80 @@
+/* Story timeline surfaces */
+.story-timeline-lane {
+    display: grid;
+    align-content: start;
+    gap: 0;
+    margin: 0;
+    padding: 0.5rem 0.5rem 1rem;
+    list-style: none;
+}
+
+.story-timeline-lane li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0 0 1rem;
+    cursor: pointer;
+}
+
+.story-timeline-lane li::before {
+    position: absolute;
+    top: 1.6rem;
+    bottom: 0;
+    left: 0.95rem;
+    width: 1px;
+    background: var(--ui-border);
+    content: "";
+}
+
+.story-timeline-lane li > span {
+    z-index: 1;
+    display: grid;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border: 1px solid var(--ui-border);
+    border-radius: 999px;
+    background: var(--ui-bg-elevated);
+    color: var(--ui-text-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.story-timeline-lane article {
+    display: grid;
+    gap: 0.35rem;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg);
+    padding: 0.65rem;
+}
+
+.story-timeline-lane li.is-active article,
+.story-timeline-lane li.is-active > span {
+    border-color: var(--ui-primary);
+}
+
+.story-timeline-lane small {
+    color: var(--ui-text-muted);
+    font-size: 0.68rem;
+}
+
+.story-timeline-lane strong {
+    display: block;
+    color: var(--ui-text-highlighted);
+    font-size: 0.86rem;
+}
+
+.story-timeline-lane p {
+    margin: 0;
+    color: var(--ui-text);
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+.story-timeline-lane footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}

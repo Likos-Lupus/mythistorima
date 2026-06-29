@@ -1,0 +1,51 @@
+/* Legacy workspace layout */
+.workspace-layout {
+    height: calc(100vh - 6.75rem);
+    min-height: 620px;
+    min-width: 0;
+    display: flex;
+    flex-direction: row;
+    gap: 1.25rem;
+    overflow: hidden;
+}
+
+.workspace-sidebar {
+    width: 260px;
+    flex: 0 0 260px;
+    min-width: 240px;
+    min-height: 0;
+}
+
+.workspace-editor {
+    flex: 1 1 auto;
+    min-width: 420px;
+    min-height: 0;
+}
+
+.workspace-status {
+    width: 300px;
+    flex: 0 0 300px;
+    min-height: 0;
+}
+
+@media (max-width: 1180px) {
+    .workspace-status {
+        display: none !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .workspace-layout {
+        height: auto;
+        overflow: visible;
+        flex-direction: column;
+    }
+
+    .workspace-sidebar,
+    .workspace-editor,
+    .workspace-status {
+        width: 100%;
+        flex: none;
+        min-width: 0;
+    }
+}

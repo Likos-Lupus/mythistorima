@@ -1,0 +1,217 @@
+/* Shared story workspace frame */
+.project-workspace-content:has(.story-workspace) {
+    overflow: hidden;
+    background: var(--ui-bg-muted);
+}
+
+.story-workspace {
+    display: grid;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0.5rem;
+    padding: 0.5rem;
+    position: relative;
+    background: var(--ui-bg-muted);
+    color: var(--ui-text);
+}
+
+.story-page-header,
+.story-side-panel,
+.story-main-panel,
+.story-inspector-panel {
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg-elevated);
+    color: var(--ui-text);
+}
+
+.story-page-header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0.75rem;
+}
+
+.story-page-header h1,
+.story-detail-header h2 {
+    margin: 0;
+    color: var(--ui-text-highlighted);
+    font-size: 1rem;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.story-page-header p,
+.story-detail-header p {
+    margin: 0.15rem 0 0;
+    color: var(--ui-text-muted);
+    font-size: 0.78rem;
+}
+
+.story-kicker {
+    margin: 0;
+    color: var(--ui-text-muted);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.story-header-actions,
+.story-panel-toolbar,
+.story-panel-actions,
+.story-inspector-actions {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+}
+
+.story-alert {
+    position: absolute;
+    z-index: 5;
+    top: 0.5rem;
+    right: 0.5rem;
+    max-width: min(28rem, calc(100% - 1rem));
+}
+
+.story-master-detail,
+.story-canvas-mode {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    gap: 0.5rem;
+}
+
+.story-master-detail,
+.story-canvas-mode {
+    grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr) minmax(18rem, 22rem);
+}
+
+.story-side-panel,
+.story-main-panel,
+.story-inspector-panel {
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow: hidden;
+    padding: 0.55rem;
+}
+
+.story-panel-header,
+.story-detail-header {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+}
+
+.story-panel-header > div,
+.story-detail-header > div {
+    display: grid;
+    min-width: 0;
+    gap: 0.1rem;
+}
+
+.story-panel-header strong,
+.resource-fields-section strong,
+.resource-reference-section strong {
+    color: var(--ui-text-highlighted);
+    font-size: 0.82rem;
+    font-weight: 750;
+}
+
+.story-panel-header span,
+.resource-fields-section span {
+    overflow: hidden;
+    color: var(--ui-text-muted);
+    font-size: 0.7rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.story-list-scroll,
+.resource-detail-content,
+.story-inspector-content,
+.outline-kanban-scroll,
+.outline-mind-map,
+.story-timeline-lane {
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+}
+
+.story-list-scroll {
+    display: grid;
+    align-content: start;
+    gap: 0.25rem;
+}
+
+.story-list-item {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    gap: 0.15rem;
+    border: 1px solid transparent;
+    border-radius: var(--ui-radius);
+    background: transparent;
+    padding: 0.45rem 0.5rem;
+    color: var(--ui-text);
+    text-align: left;
+}
+
+.story-list-item:hover,
+.story-list-item.is-active,
+.resource-definition-item:hover,
+.resource-definition-item.is-active {
+    border-color: var(--ui-border);
+    background: var(--ui-bg-muted);
+}
+
+.story-list-title {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.35rem;
+    overflow: hidden;
+    color: var(--ui-text-highlighted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.story-list-item small {
+    overflow: hidden;
+    color: var(--ui-text-muted);
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.story-status-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    flex: none;
+    border-radius: 999px;
+    background: var(--ui-text-dimmed);
+}
+
+.story-status-dot.is-drafting {
+    background: var(--ui-primary);
+}
+
+.story-status-dot.is-done {
+    background: var(--ui-success);
+}
+
+.story-status-dot.is-archived {
+    background: var(--ui-text-muted);
+}

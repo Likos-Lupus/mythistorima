@@ -1,0 +1,27 @@
+/* Shell radius normalization */
+.project-layout :where(
+    .project-view-switcher,
+    .project-subview-rail,
+    .project-view-main-tab,
+    .project-secondary-tabs-trigger,
+    .project-secondary-tabs-indicator,
+    .project-workspace-sidebar,
+    .project-workspace-inspector,
+    .project-inspector-facts > div,
+    .project-inspector-note,
+    .document-tabs-trigger,
+    .workspace-tool-window,
+    .workspace-tool-strip-button,
+    .editor-bridge-toolbar,
+    .story-panel,
+    .story-list-item,
+    .story-card,
+    .story-filter-card,
+    .story-canvas,
+    .publication-panel,
+    .publication-settings,
+    .publication-preview-shell,
+    .publication-preview-paper
+) {
+    border-radius: var(--ui-radius) !important;
+}

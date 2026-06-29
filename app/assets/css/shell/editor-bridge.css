@@ -1,0 +1,232 @@
+/* Writing editor bridge */
+.editor-bridge-shell {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    overflow: hidden;
+    background: transparent;
+}
+
+.editor-bridge-loading {
+    display: grid;
+    flex: 1;
+    align-content: start;
+    gap: 1rem;
+    overflow: auto;
+    padding: 1.25rem clamp(1rem, 3vw, 2rem);
+}
+
+.editor-bridge-runtime {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    align-items: stretch;
+    justify-content: stretch;
+    overflow: hidden;
+    background: transparent;
+    padding: 0;
+}
+
+.editor-bridge-root {
+    position: relative;
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    flex-direction: column;
+    overflow: hidden;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+}
+
+.editor-bridge-toolbar-row {
+    position: relative;
+    z-index: 7;
+    display: flex;
+    flex: 0 0 2.75rem;
+    width: 100%;
+    min-width: 0;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: transparent;
+    padding: 0.32rem 0.75rem;
+}
+
+.editor-bridge-toolbar {
+    display: flex;
+    width: min(var(--editor-page-width), 100%);
+    min-width: 0;
+    max-width: var(--editor-page-width);
+    min-height: 2rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in oklab, var(--ui-border) 58%, transparent);
+    border-radius: var(--ui-radius);
+    background: color-mix(in oklab, var(--ui-bg-elevated) 94%, var(--ui-bg-muted));
+    box-shadow: 0 8px 22px color-mix(in oklab, var(--ui-text-highlighted) 8%, transparent);
+    padding: 0.14rem 0.35rem;
+}
+
+.editor-bridge-format-toolbar {
+    min-width: 0;
+    flex: 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.editor-bridge-format-toolbar::-webkit-scrollbar {
+    display: none;
+}
+
+.editor-bridge-toolbar-actions {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.1rem;
+}
+
+.editor-bridge-content {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    margin: 0;
+    overflow-x: clip;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: clamp(1rem, 2.2vw, 1.75rem) 0 clamp(4rem, 8vh, 6rem);
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+}
+
+.editor-bridge-prose,
+.editor-bridge-root .ProseMirror {
+    box-sizing: border-box;
+    width: min(var(--editor-page-width), calc(100% - 2rem));
+    max-width: var(--editor-page-width);
+    min-height: calc(100% - 2rem);
+    margin: 0 auto;
+    overflow-x: clip !important;
+    outline: none;
+    color: var(--ui-text-highlighted);
+    font-family: var(--editor-font-family);
+    font-size: var(--editor-font-size);
+    line-height: var(--editor-line-height);
+    overflow-wrap: anywhere;
+}
+
+.editor-bridge-root .ProseMirror p {
+    margin: 0 0 1em;
+}
+
+.editor-bridge-root .ProseMirror h1,
+.editor-bridge-root .ProseMirror h2,
+.editor-bridge-root .ProseMirror h3 {
+    margin: 1.2em 0 0.6em;
+    color: var(--ui-text-highlighted);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.25;
+}
+
+.editor-bridge-root .ProseMirror blockquote {
+    margin: 1rem 0;
+    border-inline-start: 3px solid var(--ui-border-accented);
+    color: var(--ui-text-muted);
+    padding-inline-start: 1rem;
+}
+
+.editor-bridge-root .ProseMirror ul,
+.editor-bridge-root .ProseMirror ol {
+    padding-inline-start: 1.5rem;
+}
+
+.editor-bridge-root .ProseMirror .setting-reference {
+    border-bottom: 1px dashed var(--ui-primary);
+    color: var(--ui-primary);
+    cursor: help;
+}
+
+
+.editor-bridge-root > * {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.editor-bridge-root :where([role="textbox"], [contenteditable="true"]) {
+    overflow-x: clip !important;
+    white-space: pre-wrap;
+}
+
+.editor-bridge-drag-handle {
+    display: none !important;
+    position: absolute;
+    z-index: 5;
+}
+
+.editor-bridge-root :where(.editor-bridge-drag-handle, [data-editor-drag-handle], [data-drag-handle]) {
+    pointer-events: auto;
+}
+
+.editor-bridge-content :where(.editor-bridge-drag-handle, [data-editor-drag-handle], [data-drag-handle]) {
+    position: absolute;
+}
+
+.editor-bridge-root :where(.tiptap, .ProseMirror, [contenteditable="true"]) {
+    max-width: 100%;
+}
+
+@media (max-width: 1180px) {
+    .writing-workspace-stage {
+        grid-template-columns:
+            var(--workspace-tool-strip-size)
+            minmax(0, clamp(0px, var(--writing-left-tool-size), 30vw))
+            minmax(0, 1fr)
+            minmax(0, clamp(0px, var(--writing-right-tool-size), 30vw))
+            var(--workspace-tool-strip-size);
+    }
+}
+
+@media (max-width: 900px) {
+    .document-tabs-trigger {
+        min-width: 5rem;
+        max-width: 8rem;
+    }
+
+    .editor-bridge-toolbar-row {
+        padding-inline: 0.625rem;
+    }
+
+    .editor-bridge-content {
+        padding-block: 1rem 4rem;
+    }
+
+    .editor-bridge-prose,
+    .editor-bridge-root .ProseMirror {
+        width: min(var(--editor-page-width), calc(100% - 1.25rem));
+    }
+}

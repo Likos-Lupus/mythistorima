@@ -1,0 +1,12 @@
+/* Story workspace responsive rules */
+@media (max-width: 1280px) {
+    .story-master-detail,
+    .story-canvas-mode {
+        grid-template-columns: minmax(13rem, 16rem) minmax(0, 1fr) minmax(16rem, 18rem);
+    }
+
+    .resource-fields-grid,
+    .story-form-grid {
+        grid-template-columns: 1fr;
+    }
+}

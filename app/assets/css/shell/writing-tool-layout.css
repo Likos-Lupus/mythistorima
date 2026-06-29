@@ -1,0 +1,162 @@
+/* Writing tool layout and splitters */
+.writing-workspace-stage {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
+    grid-template-areas:
+        "left-strip left-tools editor right-tools right-strip"
+        "left-strip bottom bottom bottom right-strip";
+    grid-template-columns:
+        var(--workspace-tool-strip-size)
+        minmax(0, clamp(0px, var(--writing-left-tool-size), 32vw))
+        minmax(0, 1fr)
+        minmax(0, clamp(0px, var(--writing-right-tool-size), 32vw))
+        var(--workspace-tool-strip-size);
+    grid-template-rows: minmax(0, 1fr) 0px;
+    overflow: hidden;
+    contain: size layout paint;
+    background: var(--writing-workspace-surface);
+}
+
+.writing-workspace.has-bottom-tools .writing-workspace-stage {
+    grid-template-rows: minmax(0, 1fr) clamp(15rem, var(--writing-bottom-tool-size), 50%);
+}
+
+.writing-workspace.is-focus-mode .writing-workspace-stage {
+    grid-template-areas: "editor";
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+}
+
+.writing-editor-surface {
+    position: relative;
+    grid-area: editor;
+    display: flex;
+    min-width: 0;
+    min-height: 0;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--writing-workspace-surface);
+}
+
+.writing-empty-state {
+    width: 100%;
+    min-height: 100%;
+    place-items: center;
+    color: var(--ui-text-muted);
+}
+
+.writing-tool-column {
+    position: relative;
+    z-index: 8;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    align-self: stretch;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    background: var(--writing-workspace-surface);
+    padding: 0.35rem;
+    pointer-events: none;
+}
+
+.writing-tool-column.is-left {
+    grid-area: left-tools;
+    padding-left: 0.45rem;
+    padding-right: 0.3rem;
+}
+
+.writing-tool-column.is-right {
+    grid-area: right-tools;
+    padding-left: 0.3rem;
+    padding-right: 0.45rem;
+}
+
+.writing-tool-slot {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    align-items: stretch;
+    pointer-events: auto;
+}
+
+.writing-tool-slot.is-single {
+    flex: 1 1 auto;
+}
+
+.writing-tool-splitter {
+    position: relative;
+    z-index: 3;
+    flex: 0 0 auto;
+    border: 0;
+    background: transparent;
+}
+
+.writing-tool-splitter.is-horizontal {
+    height: 0.45rem;
+    cursor: row-resize;
+}
+
+.writing-tool-splitter.is-horizontal::before {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    left: 0.75rem;
+    height: 1px;
+    background: color-mix(in oklab, var(--ui-border) 64%, transparent);
+    content: "";
+}
+
+.writing-tool-splitter.is-vertical {
+    width: 0.45rem;
+    cursor: col-resize;
+}
+
+.writing-tool-splitter.is-vertical::before {
+    position: absolute;
+    top: 0.75rem;
+    bottom: 0.75rem;
+    left: 50%;
+    width: 1px;
+    background: color-mix(in oklab, var(--ui-border) 64%, transparent);
+    content: "";
+}
+
+.writing-bottom-dock {
+    position: relative;
+    z-index: 10;
+    grid-area: bottom;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    max-height: 100%;
+    align-self: stretch;
+    gap: 0;
+    overflow: hidden;
+    background: var(--writing-workspace-surface);
+    padding: 0 0.45rem 0.35rem;
+    pointer-events: none;
+}
+
+.writing-bottom-pane {
+    display: flex;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 0;
+    pointer-events: auto;
+}
+
+.writing-bottom-pane.is-single {
+    flex: 1 1 auto;
+}

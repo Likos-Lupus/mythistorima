@@ -1,0 +1,84 @@
+/* Publication workspace toolbar and frame */
+.project-workspace-content:has(.publication-workspace) {
+    overflow: hidden;
+    background: var(--ui-bg-muted);
+}
+
+.publication-workspace {
+    position: relative;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: 2.5rem minmax(0, 1fr);
+    overflow: hidden;
+    background: var(--ui-bg-muted);
+    color: var(--ui-text);
+}
+
+.publication-toolbar {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--ui-border);
+    background: var(--ui-bg);
+    padding: 0 0.65rem;
+}
+
+.publication-toolbar-title,
+.publication-toolbar-controls,
+.publication-zoom-control,
+.publication-actions,
+.publication-modal-actions,
+.publication-selection-actions,
+.publication-backup-item {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.publication-toolbar-title > div {
+    display: grid;
+    min-width: 0;
+    gap: 0.05rem;
+}
+
+.publication-toolbar-title strong {
+    overflow: hidden;
+    color: var(--ui-text-highlighted);
+    font-size: 0.85rem;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.publication-toolbar-title span,
+.publication-panel-header p,
+.publication-utility-section span,
+.publication-preview-header p,
+.publication-template-button small,
+.publication-range-button small,
+.publication-document-check-label small {
+    color: var(--ui-text-muted);
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+.publication-toolbar-controls {
+    justify-content: flex-end;
+}
+
+.publication-zoom-control {
+    width: 13rem;
+    color: var(--ui-text-muted);
+    font-size: 0.72rem;
+}
+
+.publication-zoom-slider {
+    min-width: 6rem;
+    flex: 1;
+}

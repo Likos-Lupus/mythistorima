@@ -1,0 +1,210 @@
+/* Publication settings panels */
+.publication-layout {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(18rem, 22rem) minmax(0, 1fr);
+    gap: 0.5rem;
+    overflow: hidden;
+    padding: 0.5rem;
+}
+
+.publication-settings,
+.publication-preview,
+.publication-panel {
+    min-width: 0;
+    min-height: 0;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg-elevated);
+    color: var(--ui-text);
+}
+
+.publication-settings {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+}
+
+.publication-settings-tabs {
+    border-bottom: 1px solid var(--ui-border);
+    padding: 0 0.5rem;
+}
+
+.publication-settings-scroll {
+    display: grid;
+    min-height: 0;
+    align-content: start;
+    gap: 0.5rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding: 0.5rem;
+}
+
+.publication-panel {
+    display: grid;
+    align-content: start;
+    gap: 0.65rem;
+    padding: 0.65rem;
+}
+
+.publication-panel-header,
+.publication-preview-header,
+.publication-utility-section header {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.publication-panel-header > div,
+.publication-preview-header > div,
+.publication-utility-section header {
+    min-width: 0;
+}
+
+.publication-kicker {
+    margin: 0;
+    color: var(--ui-text-muted);
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.publication-panel-header h2,
+.publication-preview-header h2 {
+    margin: 0;
+    color: var(--ui-text-highlighted);
+    font-size: 0.92rem;
+    font-weight: 750;
+    line-height: 1.2;
+}
+
+.publication-panel-header p,
+.publication-preview-header p {
+    margin: 0.12rem 0 0;
+}
+
+.publication-form,
+.publication-template-items,
+.publication-range-options,
+.publication-selection-panel,
+.publication-document-checks,
+.publication-utility-section,
+.publication-backup-list,
+.publication-skeleton-stack,
+.publication-preview-loading {
+    display: grid;
+    min-width: 0;
+    gap: 0.55rem;
+}
+
+.publication-form-grid,
+.publication-check-grid {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+}
+
+.publication-style-form {
+    gap: 0.8rem;
+}
+
+.publication-slider-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 2.5rem;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2rem;
+    color: var(--ui-text-muted);
+    font-size: 0.72rem;
+}
+
+.publication-template-button,
+.publication-range-button {
+    justify-content: flex-start;
+    min-height: 3rem;
+}
+
+.publication-template-button-content,
+.publication-range-button > span {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    text-align: left;
+}
+
+.publication-template-button-content > span,
+.publication-range-button > span {
+    min-width: 0;
+}
+
+.publication-template-button strong,
+.publication-range-button strong,
+.publication-utility-section strong,
+.publication-backup-item strong {
+    display: block;
+    overflow: hidden;
+    color: var(--ui-text-highlighted);
+    font-size: 0.78rem;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.publication-selection-panel {
+    border-top: 1px solid var(--ui-border);
+    padding-top: 0.55rem;
+}
+
+.publication-selection-actions {
+    justify-content: space-between;
+}
+
+.publication-document-checks {
+    max-height: 18rem;
+    overflow: auto;
+    overscroll-behavior: contain;
+    padding-right: 0.25rem;
+}
+
+.publication-document-check {
+    padding-left: calc(var(--publication-depth, 0) * 0.85rem);
+}
+
+.publication-document-check-label {
+    display: grid;
+    min-width: 0;
+    gap: 0.08rem;
+}
+
+.publication-document-check-label span {
+    overflow: hidden;
+    color: var(--ui-text-highlighted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.publication-utility-section {
+    border-top: 1px solid var(--ui-border);
+    padding-top: 0.65rem;
+}
+
+.publication-backup-item {
+    justify-content: space-between;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: var(--ui-bg);
+    padding: 0.45rem 0.55rem;
+}
+
+.publication-backup-item span {
+    color: var(--ui-text-muted);
+    font-size: 0.72rem;
+}

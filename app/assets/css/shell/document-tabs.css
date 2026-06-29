@@ -1,0 +1,93 @@
+/* Writing document tabs */
+.document-tabs-bar {
+    position: sticky;
+    top: 0;
+    z-index: 14;
+    display: flex;
+    flex: 0 0 var(--workspace-tool-strip-size);
+    height: var(--workspace-tool-strip-size);
+    min-height: var(--workspace-tool-strip-size);
+    max-height: var(--workspace-tool-strip-size);
+    align-items: stretch;
+    border-bottom: 1px solid color-mix(in oklab, var(--ui-border) 72%, transparent);
+    background: color-mix(in oklab, var(--ui-bg) 92%, var(--ui-bg-muted));
+    padding: 0.35rem 0.45rem;
+}
+
+.document-tabs-placeholder {
+    min-width: 0;
+    flex: 1;
+}
+
+.document-tabs-tabs {
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.document-tabs-root {
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.document-tabs-list {
+    min-width: 0;
+    height: 100%;
+    flex: 1;
+    gap: 0.12rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+}
+
+.document-tabs-list::-webkit-scrollbar {
+    display: none;
+}
+
+.document-tabs-trigger {
+    min-width: 6rem;
+    max-width: 10rem;
+    min-height: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--ui-radius);
+    padding-block: 0;
+    padding-inline: 0.5rem 0.25rem;
+    font-size: 0.72rem;
+    line-height: 1;
+}
+
+.document-tabs-trigger[data-state="active"] {
+    background: color-mix(in oklab, var(--ui-bg-elevated) 82%, transparent);
+}
+
+.document-tabs-icon,
+.document-tabs-leading-icon {
+    width: 0.9rem;
+    height: 0.9rem;
+}
+
+.document-tabs-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.document-tabs-label.is-preview {
+    font-style: italic;
+}
+
+.document-tab-dirty {
+    width: 0.38rem;
+    height: 0.38rem;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    background: var(--ui-primary);
+}
+
+.document-tab-pin {
+    flex: 0 0 auto;
+    color: var(--ui-text-dimmed);
+    font-size: 0.72rem;
+}

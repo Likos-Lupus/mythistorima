@@ -1,0 +1,91 @@
+/* Application themes */
+html[data-theme="light"],
+body[data-theme="light"] {
+    color-scheme: light;
+    --paper-bg: #ffffff;
+    --paper-bg-strong: #ffffff;
+    --paper-text: #1f2933;
+    --paper-muted: #5b6675;
+    --app-bg: #f4f7fb;
+    --app-bg-deep: #e5ecf5;
+    --line-soft: rgba(68, 83, 104, 0.18);
+    --shadow-paper: 0 24px 70px rgba(37, 49, 66, 0.12);
+    --accent: #375a7f;
+    --accent-hover: #274763;
+    --accent-soft: rgba(55, 90, 127, 0.12);
+    --surface: rgba(255, 255, 255, 0.94);
+    --surface-strong: #ffffff;
+}
+
+html[data-theme="dark"],
+body[data-theme="dark"] {
+    color-scheme: dark;
+    --paper-bg: #1f2227;
+    --paper-bg-strong: #252930;
+    --paper-text: #f4eadf;
+    --paper-muted: #c6b9ab;
+    --app-bg: #17191d;
+    --app-bg-deep: #101216;
+    --line-soft: rgba(244, 234, 223, 0.16);
+    --shadow-paper: 0 24px 80px rgba(0, 0, 0, 0.28);
+    --accent: #d6a36d;
+    --accent-hover: #e7b77f;
+    --accent-soft: rgba(214, 163, 109, 0.16);
+    --surface: rgba(37, 41, 48, 0.94);
+    --surface-strong: #252930;
+}
+
+body[data-theme="light"] {
+    background: linear-gradient(135deg, #f9fbff 0%, var(--app-bg) 52%, #eaf0f8 100%);
+}
+
+body[data-theme="dark"] {
+    background: radial-gradient(circle at top left, rgba(214, 163, 109, 0.12), transparent 34rem),
+    linear-gradient(135deg, #121418 0%, var(--app-bg) 54%, #0e1013 100%);
+}
+
+html[data-editor-font="sans"] body {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html[data-editor-font="system"] body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+html[data-editor-font="mono"] body {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.novel-editor-shell .ProseMirror,
+.novel-editor-shell .novel-prose {
+    font-family: var(--editor-font-family, ui-serif, "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", Georgia, serif) !important;
+    font-size: var(--editor-font-size, var(--app-editor-font-size, 17px)) !important;
+    line-height: var(--editor-line-height, var(--app-editor-line-height, 2)) !important;
+}
+
+.editor-paper {
+    width: min(100%, var(--editor-page-width, var(--app-editor-page-width, 820px))) !important;
+}
+
+body[data-theme="dark"] .topbar,
+body[data-theme="dark"] .editor-toolbar,
+body[data-theme="dark"] .editor-status-bar {
+    background: rgba(31, 34, 39, 0.96) !important;
+}
+
+body[data-theme="dark"] .editor-scroll-area {
+    background: #17191d !important;
+}
+
+body[data-theme="dark"] .editor-paper,
+body[data-theme="dark"] .form-field,
+body[data-theme="dark"] .paper-card,
+body[data-theme="dark"] .status-card,
+body[data-theme="dark"] .document-tree-row,
+body[data-theme="dark"] .chapter-button,
+body[data-theme="dark"] .secondary-button,
+body[data-theme="dark"] .ghost-button,
+body[data-theme="dark"] .toolbar-button {
+    background: var(--surface-strong) !important;
+    color: var(--paper-text) !important;
+}

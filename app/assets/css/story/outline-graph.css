@@ -1,0 +1,60 @@
+/* Outline graph surfaces */
+.outline-mind-map {
+    position: relative;
+    flex: 1;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
+    background: linear-gradient(var(--ui-border-muted) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ui-border-muted) 1px, transparent 1px),
+    var(--ui-bg);
+    background-size: 32px 32px;
+}
+
+.outline-mind-map svg {
+    width: 100%;
+    min-width: 980px;
+    height: 100%;
+    min-height: 620px;
+}
+
+.outline-mind-map line {
+    stroke: var(--ui-border-accented);
+    stroke-width: 1.5;
+}
+
+.outline-mind-map marker path {
+    fill: var(--ui-border-accented);
+}
+
+.outline-mind-node {
+    cursor: pointer;
+}
+
+.outline-mind-node rect {
+    fill: var(--ui-bg-elevated);
+    stroke: var(--ui-border);
+}
+
+.outline-mind-node.is-active rect {
+    stroke: var(--ui-primary);
+    stroke-width: 2;
+}
+
+.outline-mind-node-type,
+.outline-mind-node-doc {
+    fill: var(--ui-text-muted);
+    font-size: 12px;
+}
+
+.outline-mind-node-title {
+    fill: var(--ui-text-highlighted);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.outline-mind-empty {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+}
